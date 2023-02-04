@@ -1,0 +1,9 @@
+UnityProject/Library/
+UnityProject/obj/
+UnityProject/.vs/
+UnityProject/.vsconfig
+UnityProject/Assembly-CSharp.csproj
+UnityProject/Assembly-CSharp-Editor.csproj
+UnityProject/UnityProject.sln
+UnityProject/Logs/
+UnityProject/Temp/
