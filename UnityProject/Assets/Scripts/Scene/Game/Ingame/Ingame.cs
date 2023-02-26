@@ -8,10 +8,11 @@ namespace scene.game
 	[System.Serializable]
 	public class Ingame : MonoBehaviour
 	{
-		public enum AngleType
+		public enum ZoomType
 		{
-			Back,
-			Front,
+			Normal,
+			In,
+			Out,
 		}
 
 		[SerializeField]
@@ -25,43 +26,48 @@ namespace scene.game
 
 
 
-
-
 		private Transform m_cameraTransform = null;
 
 		private Vector3 m_cameraDragEuler = Vector3.zero;
 
-		private Vector3 m_cameraEuler = new Vector3(20.0f, 0.0f, 0.0f);
+		private Vector3 m_cameraEuler = Vector3.zero;
 
-		private float m_cameraDistance = 20.0f;
+		private float m_cameraDistance = 0.0f;
 
-		private float m_cameraHeight = 12.0f;
+		private float m_cameraHeight = 0.0f;
 
 
 
 		public void Initialize(
-			UnityAction<int, UnityAction<ingame.StageScene>> loadStageEvent,
+			UnityAction<int, ingame.StageScene, UnityAction<ingame.StageScene>> changeMapEvent,
 			UnityAction<string, UnityAction> ingameEvent,
 			UnityAction<ingame.IngameWorld.SearchInData> updateCharaActionButtonEvent,
 			UnityAction callback)
 		{
-			StartCoroutine(InitializeCoroutine(loadStageEvent, ingameEvent, updateCharaActionButtonEvent, callback));
+			StartCoroutine(InitializeCoroutine(changeMapEvent, ingameEvent, updateCharaActionButtonEvent, callback));
 		}
 
 		private IEnumerator InitializeCoroutine(
-			UnityAction<int, UnityAction<ingame.StageScene>> loadStageEvent,
+			UnityAction<int, ingame.StageScene, UnityAction<ingame.StageScene>> changeMapEvent,
 			UnityAction<string, UnityAction> ingameEvent,
 			UnityAction<ingame.IngameWorld.SearchInData> updateCharaActionButtonEvent,
 			UnityAction callback)
 		{
 			bool isDone = false;
+
 			m_world.Initialize(
-				loadStageEvent,
+				changeMapEvent,
 				ingameEvent,
 				updateCharaActionButtonEvent,
 				() => { isDone = true; });
 			while (!isDone) { yield return null; }
 			m_app.Initialize();
+
+			var camera = GeneralRoot.Instance.GetIngame2Camera();
+			m_cameraEuler = new Vector3(GetCameraEulerX(), 0.0f, 0.0f);
+			m_cameraTransform = camera.transform;
+			m_cameraDistance = GetCameraDistance(ZoomType.Normal);
+			m_cameraHeight = GetCameraHeight(ZoomType.Normal);
 
 			if (callback != null)
 			{
@@ -69,18 +75,30 @@ namespace scene.game
 			}
 		}
 
+		private void FixedUpdate()
+		{
+			if (m_cameraTransform == null)
+			{
+				return;
+			}
+			m_cameraTransform.SetPositionAndRotation(
+				GetCameraPosition(),
+				Quaternion.Euler(GetCameraEuler()));
+		}
+
 		public IEnumerator ChangeMapCoroutine(int stageId, int dataIndex, UnityAction callback)
 		{
 			yield return m_world.ChangeMapOutCoroutine();
-			yield return m_world.LoadStage(stageId, dataIndex);
+			yield return UpdateMovieCameraCoroutine(ZoomType.Out, 0.5f, false, null);
 
-			var camera = GeneralRoot.Instance.GetIngame2Camera();
-			m_cameraTransform = camera.transform;
+			yield return m_world.ChangeMapCoroutine(stageId, dataIndex);
+
 			m_cameraTransform.SetPositionAndRotation(
 				GetCameraPosition(),
 				Quaternion.Euler(GetCameraEuler()));
 
 			yield return m_world.ChangeMapInCoroutine();
+			yield return UpdateMovieCameraCoroutine(ZoomType.Normal, 0.5f, false, null);
 
 			if (callback != null)
 			{
@@ -113,10 +131,6 @@ namespace scene.game
 				dragX = 10.0f - m_cameraEuler.x;
 			}
 			m_cameraDragEuler = new Vector3(dragX, dragY, 0.0f);
-
-			m_cameraTransform.SetPositionAndRotation(
-				GetCameraPosition(),
-				Quaternion.Euler(GetCameraEuler()));
 		}
 
 		public void OnCameraEndDragEvent()
@@ -132,10 +146,6 @@ namespace scene.game
 		public void OnPlayerDragEvent(Vector2 dragVector)
 		{
 			m_world.OnPlayerDragEvent(dragVector);
-
-			m_cameraTransform.SetPositionAndRotation(
-				GetCameraPosition(),
-				Quaternion.Euler(GetCameraEuler()));
 		}
 
 		public void OnPlayerEndDragEvent()
@@ -182,14 +192,14 @@ namespace scene.game
 			m_world.RemoveTarget(controllId);
 		}
 
-		public void OnCharaActionButtonPressed(int controllId)
+		public void OnCharaActionButtonPressed(int controllId, UnityAction callback)
 		{
-			m_world.OnCharaActionButtonPressed(controllId);
+			m_world.OnCharaActionButtonPressed(controllId, callback);
 		}
 
-		public void UpdateSearch()
+		public void SetIsEventLock(bool value)
 		{
-			m_world.UpdateSearch();
+			m_world.SetIsEventLock(value);
 		}
 
 		public EnemyDataAsset.Data.ColorData GetColorData(int enemyId, int controllId)
@@ -197,14 +207,9 @@ namespace scene.game
 			return m_world.GetColorData(enemyId, controllId);
 		}
 
-		public void PlayPlayerReaction(UnityAction callback)
+		public void PlayReaction(ingame.IngameWorld.ReactionType type, int enemyControllId, UnityAction callback)
 		{
-			m_world.PlayPlayerReaction(callback);
-		}
-
-		public void PlayEnemyReaction(int controllId, UnityAction callback)
-		{
-			m_world.PlayEnemyReaction(controllId, callback);
+			m_world.PlayReaction(type, enemyControllId, callback);
 		}
 
 		private Vector3 GetCameraPosition()
@@ -233,37 +238,49 @@ namespace scene.game
 			return v;
 		}
 
-		public void UpdateMovieCamera(bool isZoom, UnityAction callback)
+		public void UpdateMovieCamera(
+			ZoomType type,
+			float time,
+			bool isResetEulerY,
+			UnityAction callback)
 		{
-			StartCoroutine(UpdateMovieCameraCoroutine(isZoom, callback));
+			StartCoroutine(UpdateMovieCameraCoroutine(type, time, isResetEulerY, callback));
 		}
 
-		private IEnumerator UpdateMovieCameraCoroutine(bool isZoom, UnityAction callback)
+		private IEnumerator UpdateMovieCameraCoroutine(
+			ZoomType type,
+			float time,
+			bool isResetEulerY,
+			UnityAction callback)
 		{
+			Vector3 beforeEuler = m_cameraEuler;
+			Vector3 afterEuler = m_cameraEuler;
+			if (isResetEulerY == true)
+			{
+				afterEuler = new Vector3(GetCameraEulerX(), m_cameraEuler.y, 0.0f);
+			}
+
 			AnimationCurve curve = AnimationCurve.EaseInOut(0.0f, 0.0f, 1.0f, 1.0f);
 
+			float beforeDistance = m_cameraDistance;
+			float afterDistance = GetCameraDistance(type);
+			float beforeHeight = m_cameraHeight;
+			float afterHeight = GetCameraHeight(type);
+
 			float nowTime = 0.0f;
-			float moveTime = 1.0f;
-			while (nowTime < moveTime)
+			while (nowTime < time)
 			{
 				nowTime += Time.deltaTime;
-				if (nowTime > moveTime)
+				if (nowTime > time)
 				{
-					nowTime = moveTime;
+					nowTime = time;
 				}
 
-				float t = nowTime / moveTime;
-				float eva = curve.Evaluate(t);
-				if (isZoom == true)
-				{
-					m_cameraDistance = 20.0f - (20.0f - 10.0f) * eva;
-					m_cameraHeight = 12.0f - (12.0f - 8.0f) * eva;
-				}
-				else
-				{
-					m_cameraDistance = 10.0f - (10.0f - 20.0f) * eva;
-					m_cameraHeight = 8.0f - (8.0f - 12.0f) * eva;
-				}
+				float t = nowTime / time;
+				float value = curve.Evaluate(t);
+				m_cameraEuler = Vector3.Lerp(beforeEuler, afterEuler, value);
+				m_cameraDistance = Mathf.Lerp(beforeDistance, afterDistance, value);
+				m_cameraHeight = Mathf.Lerp(beforeHeight, afterHeight, value);
 				m_cameraTransform.SetPositionAndRotation(
 					GetCameraPosition(),
 					Quaternion.Euler(GetCameraEuler()));
@@ -275,6 +292,57 @@ namespace scene.game
 			{
 				callback();
 			}
+		}
+
+		private float GetCameraDistance(ZoomType type)
+		{
+			switch (type)
+			{
+				case ZoomType.Normal:
+					{
+						return 20.0f;
+					}
+				case ZoomType.In:
+					{
+						return 10.0f;
+					}
+				case ZoomType.Out:
+					{
+						return 30.0f;
+					}
+				default:
+					{
+						return 20.0f;
+					}
+			}
+		}
+
+		private float GetCameraHeight(ZoomType type)
+		{
+			switch (type)
+			{
+				case ZoomType.Normal:
+					{
+						return 12.0f;
+					}
+				case ZoomType.In:
+					{
+						return 8.0f;
+					}
+				case ZoomType.Out:
+					{
+						return 16.0f;
+					}
+				default:
+					{
+						return 12.0f;
+					}
+			}
+		}
+
+		private float GetCameraEulerX()
+		{
+			return 20.0f;
 		}
 	}
 }

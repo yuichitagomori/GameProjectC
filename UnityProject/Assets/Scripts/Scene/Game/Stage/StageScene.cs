@@ -21,7 +21,7 @@ namespace scene.game.ingame
 		{
 			[SerializeField]
 			private Material m_skyboxMaterial = null;
-			public Material SkyboxMaterial => m_skyboxMaterial;
+			//public Material SkyboxMaterial => m_skyboxMaterial;
 
 			[SerializeField]
 			private Texture[] m_skyboxTextures = null;
@@ -48,7 +48,7 @@ namespace scene.game.ingame
 
 			[SerializeField]
 			private Material[] m_mapMaterials = null;
-			public Material[] MapMaterials => m_mapMaterials;
+			//public Material[] MapMaterials => m_mapMaterials;
 
 			[SerializeField]
 			private world.EnemyController m_enemyController = null;
@@ -102,6 +102,21 @@ namespace scene.game.ingame
 				}
 			}
 
+			public void SetSequenceTime(float value)
+			{
+				m_skyboxMaterial.SetFloat("_SequenceTime", value);
+				for (int i = 0; i < m_mapMaterials.Length; ++i)
+				{
+					m_mapMaterials[i].SetFloat("_SequenceTime", value);
+				}
+				m_enemyController.SetSequenceTime(value);
+			}
+
+			public void SetSkyboxTexture(Texture texture)
+			{
+				m_skyboxMaterial.SetTexture("_Texture", texture);
+			}
+
 			public PositionData GetPositionData(int index)
 			{
 				return m_positionDataList[index];
@@ -134,12 +149,8 @@ namespace scene.game.ingame
 
 		private IEnumerator ReadyCoroutine(UnityAction callback)
 		{
-			m_worldData.SkyboxMaterial.SetFloat("_SequenceTime", 0.0f);
-			m_worldData.SkyboxMaterial.SetTexture("_Texture", m_worldData.SkyboxTextures[0]);
-			for (int i = 0; i < m_worldData.MapMaterials.Length; ++i)
-			{
-				m_worldData.MapMaterials[i].SetFloat("_SequenceTime", 0.0f);
-			}
+			m_worldData.SetSequenceTime(0.0f);
+			m_worldData.SetSkyboxTexture(m_worldData.SkyboxTextures[0]);
 
 			yield return m_worldData.InitializeCoroutine(
 				m_playerTransform,
@@ -169,48 +180,48 @@ namespace scene.game.ingame
 
 		public IEnumerator ChangeMapOutCoroutine()
 		{
+			var curve = AnimationCurve.EaseInOut(0.0f, 0.0f, 1.0f, 1.0f);
+
 			float nowTime = 0.0f;
 			float maxTime = 0.5f;
 			while (nowTime < maxTime)
 			{
 				nowTime += Time.deltaTime;
-				float t = nowTime / maxTime;
-				float value = 1.0f - t;
-				m_worldData.SkyboxMaterial.SetFloat("_SequenceTime", value);
-				for (int i = 0; i < m_worldData.MapMaterials.Length; ++i)
+				if (nowTime > maxTime)
 				{
-					m_worldData.MapMaterials[i].SetFloat("_SequenceTime", value);
+					nowTime = maxTime;
 				}
+
+				float t = nowTime / maxTime;
+				float value = curve.Evaluate(1.0f - t);
+				m_worldData.SetSequenceTime(value);
+
 				yield return null;
 			}
-			m_worldData.SkyboxMaterial.SetFloat("_SequenceTime", 0.0f);
-			for (int i = 0; i < m_worldData.MapMaterials.Length; ++i)
-			{
-				m_worldData.MapMaterials[i].SetFloat("_SequenceTime", 0.0f);
-			}
+			m_worldData.SetSequenceTime(0.0f);
 		}
 
 		public IEnumerator ChangeMapInCoroutine()
 		{
+			var curve = AnimationCurve.EaseInOut(0.0f, 0.0f, 1.0f, 1.0f);
+
 			float nowTime = 0.0f;
 			float maxTime = 0.5f;
 			while (nowTime < maxTime)
 			{
 				nowTime += Time.deltaTime;
-				float t = nowTime / maxTime;
-				float value = t;
-				m_worldData.SkyboxMaterial.SetFloat("_SequenceTime", value);
-				for (int i = 0; i < m_worldData.MapMaterials.Length; ++i)
+				if (nowTime > maxTime)
 				{
-					m_worldData.MapMaterials[i].SetFloat("_SequenceTime", value);
+					nowTime = maxTime;
 				}
+
+				float t = nowTime / maxTime;
+				float value = curve.Evaluate(t);
+				m_worldData.SetSequenceTime(value);
+
 				yield return null;
 			}
-			m_worldData.SkyboxMaterial.SetFloat("_SequenceTime", 1.0f);
-			for (int i = 0; i < m_worldData.MapMaterials.Length; ++i)
-			{
-				m_worldData.MapMaterials[i].SetFloat("_SequenceTime", 1.0f);
-			}
+			m_worldData.SetSequenceTime(1.0f);
 		}
 
 		public PositionData GetPositionData(int index)
@@ -236,7 +247,7 @@ namespace scene.game.ingame
 
 			while (true)
 			{
-				m_worldData.SkyboxMaterial.SetTexture("_Texture", m_worldData.SkyboxTextures[index]);
+				m_worldData.SetSkyboxTexture(m_worldData.SkyboxTextures[index]);
 				index++;
 				if (index >= m_worldData.SkyboxTextures.Length)
 				{

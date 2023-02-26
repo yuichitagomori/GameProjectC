@@ -103,6 +103,15 @@ public class AnimatorExpansion : MonoBehaviour
 	}
 
 	/// <summary>
+	/// 再生中かどうか
+	/// </summary>
+	/// <returns></returns>
+	public bool IsPlaying()
+	{
+		return m_animator.enabled;
+	}
+
+	/// <summary>
 	/// アニメーションフレーム指定
 	/// </summary>
 	/// <param name="addTime"></param>

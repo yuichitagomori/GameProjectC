@@ -5,21 +5,27 @@ using UnityEngine.Events;
 
 namespace scene.game.ingame.world.effect
 {
-    public class FreezeEffect : EffectBase
+    public class FreezeEffect : PlayEffectBase
     {
+        [SerializeField]
+        protected FBXBase m_fbx = null;
+
         [SerializeField]
         private SkinnedMeshRenderer m_mesh = null;
 
-        public override void Initialize(
-            UnityAction effectEvent,
-            UnityAction callback)
+
+
+        public override void Play(UnityAction callback)
 		{
-            m_fbx.Anime.Play("Action", callback);
-            //StartCoroutine(PlayAction());
+            StartCoroutine(PlayAction());
 		}
 
         private IEnumerator PlayAction()
-		{
+        {
+            bool isDone = false;
+            m_fbx.Anime.Play("Action", () => { isDone = true; });
+            while (!isDone) { yield return null; }
+
             WaitForSeconds wait = new WaitForSeconds(0.01f);
             int index = 0;
             int indexMax = 3;

@@ -27,18 +27,17 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 
 
 	/// <summary>
+	/// シーン操作
+	/// </summary>
+	[SerializeField]
+	private scene.SceneController m_sceneController;
+
+	/// <summary>
 	/// Ads操作
 	/// </summary>
 	[SerializeField]
 	private system.AdsController m_adsController;
 	public system.AdsController AdsController { get { return m_adsController; } }
-
-	/// <summary>
-	/// シーン操作
-	/// </summary>
-	[SerializeField]
-	private scene.SceneController m_sceneController;
-	public scene.SceneController SceneController { get { return m_sceneController; } }
 
 	///// <summary>
 	///// 通信コネクター

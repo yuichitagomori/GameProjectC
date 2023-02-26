@@ -12,6 +12,20 @@ namespace scene
 	{
 		[Header("SceneBase")]
 
+		[SerializeField]
+		private string m_sceneName;
+		public string SceneName
+		{
+			get
+			{
+				if (string.IsNullOrEmpty(m_sceneName) == false)
+				{
+					return m_sceneName;
+				}
+				return GetType().Name;
+			}
+		}
+
 		/// <summary>
 		/// キャンバス
 		/// </summary>
@@ -34,23 +48,24 @@ namespace scene
 
 
 		/// <summary>
-		/// 終了時イベント
+		/// シーン管理
 		/// </summary>
-		private UnityAction<SceneBase, UnityAction> m_finishEvent;
+		protected scene.SceneController m_sceneController;
 
 
 
 		/// <summary>
 		/// 初期化
 		/// </summary>
-		/// <param name="finishEvent"></param>
-		public void Initialize(UnityAction<SceneBase, UnityAction> finishEvent)
+		/// <param name="sceneController"></param>
+		public void Initialize(scene.SceneController sceneController)
 		{
+			m_sceneController = sceneController;
+
 			if (m_canvas != null)
 			{
 				m_canvas.worldCamera = GeneralRoot.Instance.GetOutgameCamera();
 			}
-			m_finishEvent = finishEvent;
 
 			for (int i = 0; i < m_localizeTextList.Count; ++i)
 			{
@@ -75,11 +90,7 @@ namespace scene
 		/// <param name="callback"></param>
 		public virtual void Finish(UnityAction callback)
 		{
-			if (m_finishEvent != null)
-			{
-				m_finishEvent(this, callback);
-			}
-			else
+			if (callback != null)
 			{
 				callback();
 			}

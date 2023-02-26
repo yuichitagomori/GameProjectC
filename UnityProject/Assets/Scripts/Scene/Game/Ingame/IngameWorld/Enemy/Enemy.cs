@@ -9,6 +9,12 @@ namespace scene.game.ingame.world
 	[System.Serializable]
 	public class Enemy : MonoBehaviour
 	{
+		public enum ReactionType
+		{
+			Delight,    // 喜ぶ
+			Restraint,  // 拘束
+		}
+
 		private enum ModeType
 		{
 			Free,
@@ -58,21 +64,20 @@ namespace scene.game.ingame.world
 
 		private Transform m_transform = null;
 
-		private Transform m_playerTransform = null;
-
 		private ModeType m_modeType = ModeType.Free;
 
 		private Vector3[] m_navmeshPointList = null;
 
 		private Vector3 m_transformPosition = Vector3.zero;
+		public Vector3 TransformPosition => m_transformPosition;
 
 		private Quaternion m_transformRotation = Quaternion.identity;
-
-		private float m_animationUpdateAddTime = 0.0f;
 
 		private float m_updateWaitTime = 0.0f;
 
 		private float m_nowWaitTime = 0.0f;
+
+		private UnityAction m_loopEffectOutEvent = null;
 
 
 		public void Initialize(
@@ -88,7 +93,6 @@ namespace scene.game.ingame.world
 			m_enemyId = enemyId;
 
 			m_transform = base.transform;
-			m_playerTransform = playerTransform;
 			m_modeType = ModeType.Free;
 			m_navmeshPointList = navmeshPointList;
 			m_navAgent.enabled = false;
@@ -108,8 +112,7 @@ namespace scene.game.ingame.world
 					material.SetColor("_Color1", colorData.Colors1);
 					material.SetColor("_Color2", colorData.Colors2);
 
-					//float flatLerp = (i != 0) ? 1.0f : 0.0f;
-					material.SetFloat("_FlatLerp", 0.0f);
+					material.SetFloat("_SequenceTime", 0.0f);
 				}
 			}
 
@@ -125,7 +128,7 @@ namespace scene.game.ingame.world
 			{
 				int initializeNavmeshPointIndex = UnityEngine.Random.Range(0, m_navmeshPointList.Length);
 				Vector3 initializePos = m_navmeshPointList[initializeNavmeshPointIndex];
-				m_transformPosition = initializePos;
+				SetPosition(initializePos);
 				m_transformRotation = m_transform.rotation;
 				m_transform.SetPositionAndRotation(m_transformPosition, m_transformRotation);
 				StartCoroutine(UpdateNavmeshCoroutine(initializeNavmeshPointIndex));
@@ -140,8 +143,8 @@ namespace scene.game.ingame.world
 			var LODEventDatas = new Common.LODEvent.Data[]
 			{
 				new Common.LODEvent.Data(1, 0.0f, () => UpdateLOD(1)),
-				new Common.LODEvent.Data(2, 25.0f, () => UpdateLOD(2)),
-				new Common.LODEvent.Data(3, 100.0f, () => UpdateLOD(3)),
+				new Common.LODEvent.Data(2, 50.0f, () => UpdateLOD(2)),
+				new Common.LODEvent.Data(3, 200.0f, () => UpdateLOD(3)),
 			};
 			m_lodEvent.Initialize(
 				LODEventDatas,
@@ -149,21 +152,37 @@ namespace scene.game.ingame.world
 				1.0f);
 		}
 
+		public void SetSequenceTime(float value)
+		{
+			for (int i = 0; i < m_fbx.Models.Length; ++i)
+			{
+				if (m_fbx.Models[i].Mesh == null)
+				{
+					continue;
+				}
+				var material = m_fbx.Models[i].Mesh.materials[0];
+				material.SetFloat("_SequenceTime", value);
+			}
+		}
+
 		private void FixedUpdate()
 		{
 			if (m_transform == null) return;
 
-			m_animationUpdateAddTime += Time.deltaTime;
 			m_nowWaitTime += Time.deltaTime;
 
 			if (m_nowWaitTime >= m_updateWaitTime)
 			{
+				float animationUpdateTime = m_nowWaitTime;
 				m_nowWaitTime = 0;
 
 				m_transform.SetPositionAndRotation(m_transformPosition, m_transformRotation);
 
-				m_fbx.Anime.UpdateFrame(m_animationUpdateAddTime);
-				m_animationUpdateAddTime = 0.0f;
+				if (m_fbx.Anime.IsPlaying() == false)
+				{
+					// Loop再生アニメ中でStopしている状態のみ、更新
+					m_fbx.Anime.UpdateFrame(animationUpdateTime);
+				}
 			}
 		}
 
@@ -177,17 +196,17 @@ namespace scene.game.ingame.world
 			Debug.Log("Enemy SearchOut");
 		}
 
-		public void OnCharaActionButtonPressed(UnityAction<string> callback)
+		public void OnCharaActionButtonPressed(Vector3 playerCharaPosition, UnityAction<string> callback)
 		{
-			StartCoroutine(OnCharaActionButtonPressedCoroutine(callback));
+			StartCoroutine(OnCharaActionButtonPressedCoroutine(playerCharaPosition, callback));
 		}
 
-		private IEnumerator OnCharaActionButtonPressedCoroutine(UnityAction<string> callback)
+		private IEnumerator OnCharaActionButtonPressedCoroutine(Vector3 playerCharaPosition, UnityAction<string> callback)
 		{
 			m_modeType = ModeType.Reaction;
 			string beforeAnimName = m_fbx.Anime.GetAnimationName();
 
-			var dir = m_playerTransform.position - m_transformPosition;
+			var dir = playerCharaPosition - m_transformPosition;
 			var look = Quaternion.LookRotation(dir, Vector3.up);
 			float time = 0.0f;
 			while (time < 0.5f)
@@ -240,16 +259,44 @@ namespace scene.game.ingame.world
 			}
 		}
 
-		public void PlayReaction(UnityAction callback)
+		public void PlayReaction(
+			ReactionType type,
+			UnityAction loopEffectOutEvent,
+			UnityAction callback)
 		{
-			StartCoroutine(PlayReactionCoroutine(callback));
+			StartCoroutine(PlayReactionCoroutine(type, loopEffectOutEvent, callback));
 		}
 
-		private IEnumerator PlayReactionCoroutine(UnityAction callback)
+		private IEnumerator PlayReactionCoroutine(
+			ReactionType type,
+			UnityAction loopEffectOutEvent,
+			UnityAction callback)
 		{
-			PlayLoopAnimation("ReactionYes");
-			yield return new WaitForSeconds(2.0f);
-			PlayLoopAnimation("Wait");
+			switch (type)
+			{
+				case ReactionType.Delight:
+					{
+						bool isDone = false;
+						PlayAnimation("ReactionYes", () => { isDone = true; });
+						while (!isDone) { yield return null; }
+
+						PlayLoopAnimation("Wait");
+
+						break;
+					}
+				case ReactionType.Restraint:
+					{
+						bool isDone = false;
+						PlayAnimation("ReactionRestraint", () => { isDone = true; });
+						while (!isDone) { yield return null; }
+
+						PlayLoopAnimation("ReactionRestraintLoop");
+
+						break;
+					}
+			}
+
+			m_loopEffectOutEvent = loopEffectOutEvent;
 
 			if (callback != null)
 			{
@@ -271,6 +318,11 @@ namespace scene.game.ingame.world
 		{
 			m_fbx.Anime.PlayLoop(name);
 			m_fbx.Anime.Stop();
+		}
+
+		private void PlayAnimation(string name, UnityAction callback)
+		{
+			m_fbx.Anime.Play(name, callback);
 		}
 
 		private IEnumerator UpdateNavmeshCoroutine(int navPointIndex)
@@ -344,7 +396,7 @@ namespace scene.game.ingame.world
 						continue;
 					}
 
-					m_transformPosition = Vector3.Lerp(nowPos, cornerPos, cornerLeapTime);
+					SetPosition(Vector3.Lerp(nowPos, cornerPos, cornerLeapTime));
 					var look = Quaternion.LookRotation(dir, Vector3.up);
 					m_transformRotation = Quaternion.Lerp(m_transformRotation, look, 0.1f);
 
@@ -353,7 +405,7 @@ namespace scene.game.ingame.world
 					yield return null;
 				}
 
-				m_transformPosition = cornerPos;
+				SetPosition(cornerPos);
 				m_nowWaitTime = m_updateWaitTime;	// コーナー到着時は強制更新
 				yield return null;
 
@@ -391,7 +443,7 @@ namespace scene.game.ingame.world
 					}
 				case 2:
 					{
-						m_updateWaitTime = 0.1f;
+						m_updateWaitTime = 0.2f;
 						for (int i = 0; i < m_fbx.Models.Length; ++i)
 						{
 							m_fbx.Models[i].ModelObject.SetActive(i == 1);
@@ -407,6 +459,25 @@ namespace scene.game.ingame.world
 						}
 						break;
 					}
+			}
+		}
+
+		private void SetPosition(Vector3 pos)
+		{
+			m_transformPosition = pos;
+			Ray ray = new Ray(m_transformPosition + Vector3.up * 5.0f, Vector3.down);
+			var hits = Physics.RaycastAll(ray, 10.0f);
+			if (hits.Length > 0)
+			{
+				for (int i = 0; i < hits.Length; ++i)
+				{
+					if (hits[i].collider.tag == "IgnoreRaycast")
+					{
+						continue;
+					}
+					m_transformPosition = hits[i].point;
+					break;
+				}
 			}
 		}
 	}

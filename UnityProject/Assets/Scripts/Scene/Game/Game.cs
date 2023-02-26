@@ -29,8 +29,6 @@ namespace scene
 
 		private GameMode m_gameMode = GameMode.None;
 
-		private scene.game.ingame.StageScene m_stageScene = null;
-
 
 
 		public override void Ready(UnityAction callback)
@@ -55,7 +53,7 @@ namespace scene
 
 			bool isDone = false;
 			m_ingame.Initialize(
-				loadStageEvent: LoadStageEvent,
+				changeMapEvent: ChangeMapEvent,
 				ingameEvent: IngameEvent,
 				updateCharaActionButtonEvent: UpdateCharaActionButton,
 				() => { isDone = true; });
@@ -83,28 +81,29 @@ namespace scene
 			StartCoroutine(m_movieController.ChangeMapCoroutine(1, 0, false, true, null));
 		}
 
-		private void LoadStageEvent(int stageId, UnityAction<scene.game.ingame.StageScene> addedEvent)
+		private void ChangeMapEvent(
+			int stageId,
+			game.ingame.StageScene beforeStage,
+			UnityAction<game.ingame.StageScene> addedEvent)
 		{
-			StartCoroutine(LoadStageEventCoroutine(stageId, addedEvent));
+			StartCoroutine(ChangeMapEventCoroutine(stageId, beforeStage, addedEvent));
 		}
 
-		private IEnumerator LoadStageEventCoroutine(int stageId, UnityAction<scene.game.ingame.StageScene> addedEvent)
+		private IEnumerator ChangeMapEventCoroutine(
+			int stageId,
+			game.ingame.StageScene beforeStage,
+			UnityAction<game.ingame.StageScene> addedEvent)
 		{
 			bool isDone = false;
-			if (m_stageScene != null)
+			if (beforeStage != null)
 			{
-				GeneralRoot.Instance.SceneController.RemoveScene(m_stageScene, () => { isDone = true; });
+				m_sceneController.RemoveScene(beforeStage, () => { isDone = true; });
 				while (!isDone) { yield return null; }
 			}
 
-			GeneralRoot.Instance.SceneController.AddScene<game.ingame.StageScene>(
+			m_sceneController.AddScene<game.ingame.StageScene>(
 				sceneName: string.Format("Stage{0:000}", stageId),
-				added: (s) =>
-				{
-					m_stageScene = s;
-					addedEvent(m_stageScene);
-				},
-				finishEvent: null);
+				added: addedEvent);
 		}
 
 		private void IngameEvent(string eventParam, UnityAction callback)
@@ -129,7 +128,7 @@ namespace scene
 					{
 						int mapId = int.Parse(eventType[1]);
 						int dataIndex = int.Parse(eventType[2]);
-						StartCoroutine(m_movieController.ChangeMapCoroutine(mapId, dataIndex, false, false, callback));
+						StartCoroutine(ChangeMapCoroutine(mapId, dataIndex, callback));
 						break;
 					}
 				case "SearchIn":
@@ -158,6 +157,12 @@ namespace scene
 						RemoveTarget(enemyId, controllId, callback);
 						break;
 					}
+				case "Shop":
+					{
+						int shopId = int.Parse(eventType[1]);
+						Shop(shopId, callback);
+						break;
+					}
 				case "Movie":
 					{
 						int movieId = int.Parse(eventType[1]);
@@ -180,6 +185,17 @@ namespace scene
 			callback();
 		}
 
+		private IEnumerator ChangeMapCoroutine(int mapId, int dataIndex, UnityAction callback)
+		{
+			m_outgame.SetVisible(game.Outgame.Target.None);
+
+			yield return m_movieController.ChangeMapCoroutine(mapId, dataIndex, false, false, callback);
+
+			m_outgame.SetVisible(game.Outgame.Target.Game);
+
+			callback();
+		}
+
 		private void SearchIn(int controllId, UnityAction callback)
 		{
 			m_ingame.SearchIn(controllId);
@@ -194,16 +210,79 @@ namespace scene
 
 		private void AddTarget(int enemyId, int controllId, UnityAction callback)
 		{
-			var searchTargetList = GeneralRoot.Instance.UserData.Data.SearchTargetList;
-			searchTargetList.Add(new data.UserData.LocalSaveData.SearchTargetData(
-				enemyId,
-				controllId));
-			UpdateOutgameSearchTarget(callback);
+			//var searchTargetList = GeneralRoot.Instance.UserData.Data.SearchTargetList;
+			//searchTargetList.Add(new data.UserData.LocalSaveData.SearchTargetData(
+			//	enemyId,
+			//	controllId));
+			//UpdateOutgameSearchTarget(callback);
+			StartCoroutine(Test(enemyId, controllId, callback));
+		}
+
+		private IEnumerator Test(int enemyId, int controllId, UnityAction callback)
+		{
+			m_outgame.SetVisible(game.Outgame.Target.None);
+
+			bool isDone = false;
+			m_ingame.UpdateMovieCamera(game.Ingame.ZoomType.Out, 0.5f, false, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
+			// クエストデータ
+			var quests = new List<dialog.QuestListDialog.Data.Quest>();
+			for (int i = 0; i < 10; ++i)
+			{
+				quests.Add(new dialog.QuestListDialog.Data.Quest(
+					title: string.Format("QUEST{0}", (i + 1)),
+					info: string.Format("クエストじょうほう{0}", (i + i)),
+					difficultyRank: (i + 1),
+					questState: dialog.QuestListDialog.Data.Quest.State.Unprogressed,
+					rewards: null));
+			}
+			int receiveQuestIndex = -1;
+			var data = new dialog.QuestListDialog.Data(
+				title: "QUEST LIST",
+				quests: quests.ToArray(),
+				receiveEvent: (index) => { receiveQuestIndex = index; });
+
+			isDone = false;
+			m_sceneController.AddScene<dialog.QuestListDialog>(
+				added: (s) =>
+				{
+					s.Setting(data, () => { isDone = true; });
+				});
+			while (!isDone) { yield return null; }
+
+			isDone = false;
+			m_ingame.UpdateMovieCamera(game.Ingame.ZoomType.Normal, 0.25f, false, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
+			m_outgame.SetVisible(game.Outgame.Target.Game);
+
+			if (receiveQuestIndex >= 0)
+			{
+				var searchTargetList = GeneralRoot.Instance.UserData.Data.SearchTargetList;
+				searchTargetList.Add(new data.UserData.LocalSaveData.SearchTargetData(
+					enemyId,
+					controllId));
+
+				isDone = false;
+				UpdateOutgameSearchTarget(() => { isDone = true; });
+				while (!isDone) { yield return null; }
+			}
+
+			callback();
 		}
 
 		private void RemoveTarget(int enemyId, int controllId, UnityAction callback)
 		{
 			StartCoroutine(RemoveTargetCoroutine(enemyId, controllId, callback));
+		}
+
+		private void Shop(int shopId, UnityAction callback)
+		{
+			m_sceneController.AddScene<dialog.ShopDialog>(
+				added: (s) =>
+				{
+				});
 		}
 
 		private IEnumerator RemoveTargetCoroutine(int enemyId, int controllId, UnityAction callback)
@@ -265,7 +344,20 @@ namespace scene
 
 		private void OnCharaActionButtonPressed(int controllId)
 		{
-			m_ingame.OnCharaActionButtonPressed(controllId);
+			StartCoroutine(OnCharaActionButtonPressedCoroutine(controllId));
+		}
+
+		private IEnumerator OnCharaActionButtonPressedCoroutine(int controllId)
+		{
+			m_ingame.SetIsEventLock(true);
+			m_outgame.SetVisible(game.Outgame.Target.None);
+
+			bool isDone = false;
+			m_ingame.OnCharaActionButtonPressed(controllId, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
+			m_outgame.SetVisible(game.Outgame.Target.Game);
+			m_ingame.SetIsEventLock(false);
 		}
 
 		private void UpdateOutgameObject()

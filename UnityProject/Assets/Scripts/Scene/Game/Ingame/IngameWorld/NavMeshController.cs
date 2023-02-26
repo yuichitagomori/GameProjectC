@@ -24,107 +24,117 @@ namespace scene.game.ingame.world
 		[SerializeField]
 		private Stair[] m_stairs = null;
 
+
+		List<Vector3> navMeshBasePointList = new List<Vector3>();
+
 		public Vector3[] GetNavMeshBasePoints()
 		{
-			List<Vector3> navMeshBasePointList = new List<Vector3>();
-			List<Stair> stairList = new List<Stair>();
+			navMeshBasePointList.Clear();
 			for (int i = 0; i < 100; ++i)
 			{
 				int index = UnityEngine.Random.Range(0, m_points.Length);
-				if (navMeshBasePointList.Count <= 0)
-				{
-					navMeshBasePointList.Add(m_points[index]);
-					continue;
-				}
-
-				Vector3 beforePoint = navMeshBasePointList[navMeshBasePointList.Count - 1];
-				if (beforePoint.y != m_points[index].y)
-				{
-					// ŠK‚ðˆÚ“®‚·‚é‚Ì‚ÅAstairPoint‚ð·‚µž‚Þ
-					stairList.Clear();
-					for (int j = 0; j < m_stairs.Length; ++j)
-					{
-						if (m_stairs[j].Points[0].y == beforePoint.y &&
-							m_stairs[j].Points[1].y == m_points[index].y)
-						{
-							stairList.Add(m_stairs[j]);
-						}
-						else if (
-							m_stairs[j].Points[1].y == beforePoint.y &&
-							m_stairs[j].Points[0].y == m_points[index].y)
-						{
-							stairList.Add(m_stairs[j]);
-						}
-					}
-					Stair nearStair = null;
-					for (int j = 0; j < stairList.Count; ++j)
-					{
-						if (nearStair == null)
-						{
-							nearStair = stairList[j];
-							continue;
-						}
-
-						Vector3 checkBeforeStairPoint = Vector3.zero;
-						Vector3 checkAfterStairPoint = Vector3.zero;
-						if (nearStair.Points[0].y == beforePoint.y &&
-							stairList[j].Points[0].y == beforePoint.y)
-						{
-							checkBeforeStairPoint = nearStair.Points[0];
-							checkAfterStairPoint = stairList[j].Points[0];
-						}
-						else if (
-							nearStair.Points[0].y == beforePoint.y &&
-							stairList[j].Points[1].y == beforePoint.y)
-						{
-							checkBeforeStairPoint = nearStair.Points[0];
-							checkAfterStairPoint = stairList[j].Points[1];
-						}
-						else if (
-							nearStair.Points[1].y == beforePoint.y &&
-							stairList[j].Points[0].y == beforePoint.y)
-						{
-							checkBeforeStairPoint = nearStair.Points[1];
-							checkAfterStairPoint = stairList[j].Points[0];
-						}
-						else if (
-							nearStair.Points[1].y == beforePoint.y &&
-							stairList[j].Points[1].y == beforePoint.y)
-						{
-							checkBeforeStairPoint = nearStair.Points[1];
-							checkAfterStairPoint = stairList[j].Points[1];
-						}
-
-						float magnitudeBefore = (beforePoint - checkBeforeStairPoint).magnitude;
-						float magnitudeAfter = (beforePoint - checkAfterStairPoint).magnitude;
-						if (magnitudeAfter < magnitudeBefore)
-						{
-							nearStair = stairList[j];
-						}
-					}
-
-					if (nearStair == null)
-					{
-						// ŠKˆÚ“®Ž¸”s
-						continue;
-					}
-
-					if (nearStair.Points[0].y == beforePoint.y)
-					{
-						navMeshBasePointList.Add(nearStair.Points[0]);
-						navMeshBasePointList.Add(nearStair.Points[1]);
-					}
-					else if (nearStair.Points[1].y == beforePoint.y)
-					{
-						navMeshBasePointList.Add(nearStair.Points[1]);
-						navMeshBasePointList.Add(nearStair.Points[0]);
-					}
-				}
-
 				navMeshBasePointList.Add(m_points[index]);
-
 			}
 			return navMeshBasePointList.ToArray();
+
+			//List<Stair> stairList = new List<Stair>();
+			//for (int i = 0; i < 100; ++i)
+			//{
+			//	int index = UnityEngine.Random.Range(0, m_points.Length);
+			//	if (navMeshBasePointList.Count <= 0)
+			//	{
+			//		navMeshBasePointList.Add(m_points[index]);
+			//		continue;
+			//	}
+
+			//	Vector3 beforePoint = navMeshBasePointList[navMeshBasePointList.Count - 1];
+			//	if (beforePoint.y != m_points[index].y)
+			//	{
+			//		// ŠK‚ðˆÚ“®‚·‚é‚Ì‚ÅAstairPoint‚ð·‚µž‚Þ
+			//		stairList.Clear();
+			//		for (int j = 0; j < m_stairs.Length; ++j)
+			//		{
+			//			if (m_stairs[j].Points[0].y == beforePoint.y &&
+			//				m_stairs[j].Points[1].y == m_points[index].y)
+			//			{
+			//				stairList.Add(m_stairs[j]);
+			//			}
+			//			else if (
+			//				m_stairs[j].Points[1].y == beforePoint.y &&
+			//				m_stairs[j].Points[0].y == m_points[index].y)
+			//			{
+			//				stairList.Add(m_stairs[j]);
+			//			}
+			//		}
+			//		Stair nearStair = null;
+			//		for (int j = 0; j < stairList.Count; ++j)
+			//		{
+			//			if (nearStair == null)
+			//			{
+			//				nearStair = stairList[j];
+			//				continue;
+			//			}
+
+			//			Vector3 checkBeforeStairPoint = Vector3.zero;
+			//			Vector3 checkAfterStairPoint = Vector3.zero;
+			//			if (nearStair.Points[0].y == beforePoint.y &&
+			//				stairList[j].Points[0].y == beforePoint.y)
+			//			{
+			//				checkBeforeStairPoint = nearStair.Points[0];
+			//				checkAfterStairPoint = stairList[j].Points[0];
+			//			}
+			//			else if (
+			//				nearStair.Points[0].y == beforePoint.y &&
+			//				stairList[j].Points[1].y == beforePoint.y)
+			//			{
+			//				checkBeforeStairPoint = nearStair.Points[0];
+			//				checkAfterStairPoint = stairList[j].Points[1];
+			//			}
+			//			else if (
+			//				nearStair.Points[1].y == beforePoint.y &&
+			//				stairList[j].Points[0].y == beforePoint.y)
+			//			{
+			//				checkBeforeStairPoint = nearStair.Points[1];
+			//				checkAfterStairPoint = stairList[j].Points[0];
+			//			}
+			//			else if (
+			//				nearStair.Points[1].y == beforePoint.y &&
+			//				stairList[j].Points[1].y == beforePoint.y)
+			//			{
+			//				checkBeforeStairPoint = nearStair.Points[1];
+			//				checkAfterStairPoint = stairList[j].Points[1];
+			//			}
+
+			//			float magnitudeBefore = (beforePoint - checkBeforeStairPoint).magnitude;
+			//			float magnitudeAfter = (beforePoint - checkAfterStairPoint).magnitude;
+			//			if (magnitudeAfter < magnitudeBefore)
+			//			{
+			//				nearStair = stairList[j];
+			//			}
+			//		}
+
+			//		if (nearStair == null)
+			//		{
+			//			// ŠKˆÚ“®Ž¸”s
+			//			continue;
+			//		}
+
+			//		if (nearStair.Points[0].y == beforePoint.y)
+			//		{
+			//			navMeshBasePointList.Add(nearStair.Points[0]);
+			//			navMeshBasePointList.Add(nearStair.Points[1]);
+			//		}
+			//		else if (nearStair.Points[1].y == beforePoint.y)
+			//		{
+			//			navMeshBasePointList.Add(nearStair.Points[1]);
+			//			navMeshBasePointList.Add(nearStair.Points[0]);
+			//		}
+			//	}
+
+			//	navMeshBasePointList.Add(m_points[index]);
+
+			//}
+			//return navMeshBasePointList.ToArray();
 		}
 
 		/// <summary>

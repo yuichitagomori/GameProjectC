@@ -47,12 +47,12 @@ namespace scene.game
 			}
 		}
 
-		public void Play(int movieId, int controllId, UnityAction callback)
+		public void Play(int movieId, int enemyControllId, UnityAction callback)
 		{
-			StartCoroutine(PlayCoroutine(movieId, controllId, callback));
+			StartCoroutine(PlayCoroutine(movieId, enemyControllId, callback));
 		}
 
-		private IEnumerator PlayCoroutine(int movieId, int controllId, UnityAction callback)
+		private IEnumerator PlayCoroutine(int movieId, int enemyControllId, UnityAction callback)
 		{
 			//float fadeTime = 0.5f;
 			//yield return FadeInCoroutine(fadeTime);
@@ -60,20 +60,19 @@ namespace scene.game
 			//yield return FadeOutCoroutine(fadeTime);
 
 			bool isDone = false;
-			m_ingame.UpdateMovieCamera(true, () => { isDone = true; });
+			m_ingame.UpdateMovieCamera(Ingame.ZoomType.In, 1.0f, true, () => { isDone = true; });
 			while (!isDone) { yield return null; };
 
 			//yield return FadeInCoroutine(fadeTime);
 			//m_outgame.ChangeGameUI();
 			//yield return FadeOutCoroutine(fadeTime);
 
-			int doneCount = 0;
-			m_ingame.PlayPlayerReaction(() => { doneCount++; });
-			m_ingame.PlayEnemyReaction(controllId, () => { doneCount++; });
-			while(doneCount < 2) { yield return null; };
+			isDone = false;
+			m_ingame.PlayReaction(ingame.IngameWorld.ReactionType.Restraint, enemyControllId, () => { isDone = true; });
+			while (!isDone) { yield return null; };
 
 			isDone = false;
-			m_ingame.UpdateMovieCamera(false, () => { isDone = true; });
+			m_ingame.UpdateMovieCamera(Ingame.ZoomType.Normal, 1.0f, true, () => { isDone = true; });
 			while (!isDone) { yield return null; };
 
 			if (callback != null)
@@ -92,6 +91,7 @@ namespace scene.game
 				{
 					nowTime = fadeTime;
 				}
+
 				var fadeColor = m_fade.color;
 				fadeColor.a = (nowTime / fadeTime);
 				m_fade.color = fadeColor;

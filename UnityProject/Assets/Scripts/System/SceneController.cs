@@ -40,6 +40,16 @@ namespace scene
 		}
 
 		/// <summary>
+		/// 初期化コルーチン
+		/// </summary>
+		/// <returns></returns>
+		private IEnumerator InitializeCoroutine()
+		{
+			yield return ChangeSceneCoroutine("Game", null, false);
+			yield return RemoveSceneCoroutine("Initialize");
+		}
+
+		/// <summary>
 		/// シーン切り替え
 		/// </summary>
 		/// <param name="added"></param>
@@ -78,12 +88,9 @@ namespace scene
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="added"></param>
-		/// <param name="finishEvent"></param>
-		public void AddScene<T>(
-			UnityAction<T> added = null,
-			UnityAction<SceneBase, UnityAction> finishEvent = null) where T : SceneBase
+		public void AddScene<T>(UnityAction<T> added = null) where T : SceneBase
 		{
-			AddScene<T>(typeof(T).Name, added, finishEvent);
+			AddScene<T>(typeof(T).Name, added);
 		}
 
 		/// <summary>
@@ -91,11 +98,9 @@ namespace scene
 		/// </summary>
 		/// <param name="sceneName"></param>
 		/// <param name="added"></param>
-		/// <param name="finishEvent"></param>
 		public void AddScene<T>(
 			string sceneName,
-			UnityAction<T> added = null,
-			UnityAction<SceneBase, UnityAction> finishEvent = null) where T : SceneBase
+			UnityAction<T> added = null) where T : SceneBase
 		{
 			if (m_coroutine != null)
 			{
@@ -111,8 +116,7 @@ namespace scene
 						added((T)s);
 					}
 					m_coroutine = null;
-				},
-				finishEvent: finishEvent));
+				}));
 		}
 
 		/// <summary>
@@ -140,16 +144,6 @@ namespace scene
 		}
 
 		/// <summary>
-		/// 初期化コルーチン
-		/// </summary>
-		/// <returns></returns>
-		private IEnumerator InitializeCoroutine()
-		{
-			yield return ChangeSceneCoroutine("Game", null, false);
-			yield return RemoveSceneCoroutine("Initialize");
-		}
-
-		/// <summary>
 		/// シーン切り替え
 		/// </summary>
 		/// <param name="sceneName"></param>
@@ -174,7 +168,7 @@ namespace scene
 			}
 
 			SceneBase newScene = null;
-			yield return AddSceneColoutine(sceneName, (SceneBase _newScene) => { newScene = _newScene; });
+			yield return LoadSceneColoutine(sceneName, (SceneBase _newScene) => { newScene = _newScene; });
 			while (newScene == null) { yield return null; }
 
 			SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
@@ -195,7 +189,7 @@ namespace scene
 				added(newScene);
 			}
 			
-			newScene.Initialize(null);
+			newScene.Initialize(this);
 
 			isDone = false;
 			newScene.Ready(() => { isDone = true; });
@@ -223,18 +217,16 @@ namespace scene
 		/// </summary>
 		/// <param name="sceneName"></param>
 		/// <param name="added"></param>
-		/// <param name="finishEvent"></param>
 		private IEnumerator AddSceneColoutine(
 			string sceneName,
-			UnityAction<SceneBase> added,
-			UnityAction<SceneBase, UnityAction> finishEvent)
+			UnityAction<SceneBase> added)
 		{
 			GeneralRoot.Instance.SetForeMostRayCast(true);
 
 			bool isDone = false;
 
 			SceneBase newScene = null;
-			yield return AddSceneColoutine(sceneName, (SceneBase s) => { newScene = s; });
+			yield return LoadSceneColoutine(sceneName, (SceneBase s) => { newScene = s; });
 			while (newScene == null) { yield return null; }
 
 			m_scenes.Add(newScene);
@@ -244,7 +236,7 @@ namespace scene
 				added(newScene);
 			}
 			
-			newScene.Initialize(finishEvent);
+			newScene.Initialize(this);
 
 			isDone = false;
 			newScene.Ready(() => { isDone = true; });
@@ -270,19 +262,14 @@ namespace scene
 		/// <returns></returns>
 		private IEnumerator RemoveSceneColoutine(SceneBase scene, UnityAction callback)
 		{
-			SceneBase targetScene = m_scenes.Find(d => d == scene);
-			if (scene == null)
-			{
-				Debug.LogError("scene not find");
-			}
-
 			bool isDone = false;
-			targetScene.Finish(() => { isDone = true; });
+			scene.Finish(() => { isDone = true; });
 			while (!isDone) { yield return null; }
 
-			m_scenes.Remove(targetScene);
+			m_scenes.Remove(scene);
 
-			yield return RemoveSceneCoroutine(targetScene.name);
+			string sceneName = scene.SceneName;
+			yield return RemoveSceneCoroutine(sceneName);
 
 			if (callback != null)
 			{
@@ -296,7 +283,7 @@ namespace scene
 		/// <param name="sceneName"></param>
 		/// <param name="callback"></param>
 		/// <returns></returns>
-		private IEnumerator AddSceneColoutine(string sceneName, UnityAction<SceneBase> callback)
+		private IEnumerator LoadSceneColoutine(string sceneName, UnityAction<SceneBase> callback)
 		{
 			var async = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
 

@@ -98,7 +98,7 @@ namespace scene
 			while (!isDone) { yield return null; }
 
 			isDone = false;
-			GeneralRoot.Instance.SceneController.RemoveScene(this, () => { isDone = true; });
+			m_sceneController.RemoveScene(this, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 		}
 	}

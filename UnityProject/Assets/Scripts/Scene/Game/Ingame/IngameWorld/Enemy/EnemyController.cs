@@ -59,6 +59,15 @@ namespace scene.game.ingame.world
             }
         }
 
+        public void SetSequenceTime(float value)
+		{
+            for (int i = 0; i < m_enemyList.Count; ++i)
+			{
+                var enemy = m_enemyList[i];
+                enemy.SetSequenceTime(value);
+            }
+        }
+
         public world.Enemy GetEnemy(int controllId)
         {
             return m_enemyList.Find(d => (d.ControllId == controllId));

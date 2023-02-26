@@ -10,6 +10,12 @@ namespace scene.game
 	[System.Serializable]
 	public class Outgame : MonoBehaviour
 	{
+		public enum Target
+		{
+			None,
+			Game,
+			Movie,
+		}
 
 		[SerializeField]
 		private Material m_renderPassMaterial = null;
@@ -65,16 +71,10 @@ namespace scene.game
 		//	yield return PlayMapInCoroutine();
 		//}
 
-		public void ChangeGameUI()
+		public void SetVisible(Target visibleTarget)
 		{
-			m_gameUI.SetVisible(true);
-			m_movieUI.SetVisible(false);
-		}
-
-		public void ChangeMovieUI()
-		{
-			m_gameUI.SetVisible(false);
-			m_movieUI.SetVisible(true);
+			m_gameUI.SetVisible(visibleTarget == Target.Game);
+			m_movieUI.SetVisible(visibleTarget == Target.Movie);
 		}
 
 		public void UpdateSearchTarget(outgame.GameUI.SearchTargetIconColor colorData, UnityAction callback)

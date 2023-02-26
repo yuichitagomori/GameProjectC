@@ -40,6 +40,7 @@ namespace scene.game.ingame.world
 				UnityEditor.GameObjectUtility.SetStaticEditorFlags(obj, flag);
 				var mesh = obj.GetComponent<MeshRenderer>();
 				mesh.enabled = true;
+				obj.tag = "Untagged";
 			}
 		}
 
