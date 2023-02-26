@@ -1553,8 +1553,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1212806889}
   - component: {fileID: 1212806888}
-  - component: {fileID: 1212806890}
   - component: {fileID: 1212806886}
+  - component: {fileID: 1212806890}
   - component: {fileID: 1212806885}
   - component: {fileID: 1212806891}
   - component: {fileID: 1212806884}
@@ -1624,7 +1624,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_data:
     m_stageId: -1
-    m_appModeList: 0
     m_searchTargetList: []
     m_bgmVolume: 0.5
     m_seVolume: 0.5
@@ -1640,8 +1639,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b2c47b5a1806ec4d82c6595dc3c7fef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_adsController: {fileID: 1212806890}
   m_sceneController: {fileID: 1212806886}
+  m_adsController: {fileID: 1212806890}
   m_assetData: {fileID: 1212806885}
   m_ssData: {fileID: 1212806891}
   m_masterData: {fileID: 1212806884}
@@ -1715,7 +1714,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1329751347
 RectTransform:
   m_ObjectHideFlags: 0
