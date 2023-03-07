@@ -15,7 +15,7 @@ namespace scene.game.ingame.world
 
 		public enum LoopEffectType
 		{
-			Restaint,
+			Restraint,
 		}
 
 		[SerializeField]

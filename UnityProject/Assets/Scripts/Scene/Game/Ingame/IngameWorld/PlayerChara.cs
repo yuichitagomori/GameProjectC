@@ -15,9 +15,6 @@ namespace scene.game.ingame.world
 		}
 
 		[SerializeField]
-		private Collider m_collider = null;
-
-		[SerializeField]
 		private Rigidbody m_rigidbody = null;
 
 		[SerializeField]
@@ -37,15 +34,7 @@ namespace scene.game.ingame.world
 		private Transform m_transform = null;
 		public new Transform transform => m_transform;
 
-		private bool m_enable = false;
-		public bool Enable
-		{
-			set
-			{
-				//m_collider.enabled = value;
-				m_enable = value;
-			}
-		}
+		private bool m_enable = true;
 
 		private Transform m_cameraTransform = null;
 
@@ -90,16 +79,30 @@ namespace scene.game.ingame.world
 			};
 		}
 
-		public void OnCharaActionButtonPressed(Vector3 targetPosition, UnityAction callback)
+		public void SetEnable(bool value)
 		{
-			StartCoroutine(OnCharaActionButtonPressedCoroutine(targetPosition, callback));
+			m_enable = value;
 		}
 
-		private IEnumerator OnCharaActionButtonPressedCoroutine(Vector3 targetPosition, UnityAction callback)
+		public void OnCharaActionButtonPressed(UnityAction callback)
 		{
 			m_moveVector = Vector3.zero;
 
-			var dir = targetPosition - m_transform.position;
+			if (callback != null)
+			{
+				callback();
+			}
+		}
+
+		public void LookTarget(Vector3 targetPosition, UnityAction callback)
+		{
+			StartCoroutine(LookTargetCoroutine(targetPosition, callback));
+		}
+
+		private IEnumerator LookTargetCoroutine(Vector3 targetPosition, UnityAction callback)
+		{
+			Vector3 targetPos = new Vector3(targetPosition.x, m_transform.position.y, targetPosition.z);
+			var dir = targetPos - m_transform.position;
 			var look = Quaternion.LookRotation(dir, Vector3.up);
 			float time = 0.0f;
 			while (time < 0.5f)
@@ -127,9 +130,10 @@ namespace scene.game.ingame.world
 			{
 				case ReactionType.Delight:
 					{
-						bool isDone = false;
-						m_fbx.Anime.Play("ReactionDelight", () => { isDone = true; });
-						while (!isDone) { yield return null; }
+						int doneCount = 0;
+						LookTarget(m_cameraTransform.position, () => { doneCount++; });
+						m_fbx.Anime.Play("ReactionDelight", () => { doneCount++; });
+						while (doneCount < 3) { yield return null; }
 
 						m_fbx.Anime.PlayLoop("Wait");
 

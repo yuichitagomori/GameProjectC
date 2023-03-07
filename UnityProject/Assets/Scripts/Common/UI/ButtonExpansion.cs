@@ -36,6 +36,15 @@ namespace CommonUI
 			m_callback = callback;
 		}
 
+		public void SetupActive(bool value)
+		{
+			if (m_animator != null)
+			{
+				m_animator.Play(value ? "Enable" : "Disable", null);
+			}
+			m_raycast.SetActive(value);
+		}
+
 		public override void OnPointerDown(PointerEventData e)
 		{
 			//Debug.Log("OnPointerDown");
@@ -54,15 +63,6 @@ namespace CommonUI
 				m_animator.Play("Up", null);
 			}
 			base.OnPointerUp(e);
-		}
-
-		public void SetupActive(bool value)
-		{
-			if (m_animator != null)
-			{
-				m_animator.Play(value ? "Enable" : "Disable", null);
-			}
-			m_raycast.SetActive(value);
 		}
 
 		public void OnPointerClick(PointerEventData e)

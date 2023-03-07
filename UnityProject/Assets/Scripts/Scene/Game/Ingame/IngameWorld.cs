@@ -61,21 +61,23 @@ namespace scene.game.ingame
 
 		//private data.UserData.LocalSaveData.AppMode m_appModeList = data.UserData.LocalSaveData.AppMode.None;
 
-		private UnityAction<int, StageScene, UnityAction<StageScene>> m_changeMapEvent = null;
+		private UnityAction<int, StageScene, UnityAction<StageScene>> m_changeMapEvent;
 
-		private UnityAction<string, UnityAction> m_ingameEvent = null;
+		private UnityAction<string, UnityAction> m_ingameEvent;
 
-		private UnityAction<SearchInData> m_updateCharaActionButtonEvent = null;
+		private UnityAction<SearchInData> m_updateCharaActionButtonEvent;
 
-		private StageScene m_stage = null;
+		private StageScene m_stage;
 
 		private List<string> m_eventParamList = new List<string>();
+
+		private Coroutine m_setupEventParamCoroutine;
 
 		private bool m_isEventLock = false;
 
 		private List<SearchInData> m_searchInDataList = new List<SearchInData>();
 
-		private UnityAction m_playLoopEffectOutEvent = null;
+		private UnityAction m_playLoopEffectOutEvent;
 
 
 
@@ -90,13 +92,11 @@ namespace scene.game.ingame
 			m_updateCharaActionButtonEvent = updateCharaActionButtonEvent;
 			
 			m_player.Initialize();
-			m_player.Enable = false;
+			m_player.SetEnable(false);
 
 			m_renderPlate.Initialize();
 
 			m_effectController.Initialize();
-
-			StartCoroutine(UpdateCoroutine());
 
 			callback();
 		}
@@ -111,8 +111,8 @@ namespace scene.game.ingame
 				m_stage.Initialize(
 					m_player.transform,
 					m_enemyAssetData,
-					SetEventParam,
-					SetEventParam);
+					SetupEventParam,
+					SetupEventParam);
 				isDone = true;
 			});
 			while (!isDone) { yield return null; }
@@ -179,7 +179,7 @@ namespace scene.game.ingame
 			{
 				yield return m_stage.ChangeMapInCoroutine();
 			}
-			m_player.Enable = true;
+			m_player.SetEnable(true);
 		}
 
 		public IEnumerator ChangeMapOutCoroutine()
@@ -188,7 +188,7 @@ namespace scene.game.ingame
 			{
 				yield return m_stage.ChangeMapOutCoroutine();
 			}
-			m_player.Enable = false;
+			m_player.SetEnable(false);
 
 			m_searchInDataList.Clear();
 			UpdateCharaActionButton();
@@ -263,22 +263,32 @@ namespace scene.game.ingame
 			UpdateCharaActionButton();
 
 			int doneCount = 0;
-			m_player.OnCharaActionButtonPressed(enemy.TransformPosition, () =>
+			m_player.SetEnable(false);
+			m_player.LookTarget(enemy.TransformPosition, () => { doneCount++; });
+			enemy.SetEnable(false);
+			enemy.LookTarget(m_player.transform.position, () => { doneCount++; });
+			while (doneCount < 2) { yield return null; }
+
+			doneCount = 0;
+			m_player.OnCharaActionButtonPressed(() =>
 			{
 				doneCount++;
 			});
 			string actionEvent = "";
-			enemy.OnCharaActionButtonPressed(m_player.transform.position, (e) =>
+			enemy.OnCharaActionButtonPressed((e) =>
 			{
 				actionEvent = e;
 				doneCount++;
 			});
 			while (doneCount < 2) { yield return null; }
 
+			m_player.SetEnable(true);
+			enemy.SetEnable(true);
+
 			if (string.IsNullOrEmpty(actionEvent) == false)
 			{
 				// enemy.ActionEventによるアクション
-				SetEventParam(actionEvent);
+				SetupEventParam(actionEvent);
 			}
 
 			if (callback != null)
@@ -514,45 +524,41 @@ namespace scene.game.ingame
 			m_player.EndDragEvent();
 		}
 
-		private IEnumerator UpdateCoroutine()
+		private void SetupEventParam(string eventParam)
 		{
-			while (true)
+			Debug.Log("SetupEventParam eventParam = " + eventParam);
+			m_eventParamList.Add(eventParam);
+			if (m_setupEventParamCoroutine == null)
 			{
-				if (m_eventParamList.Count <= 0)
-				{
-					yield return null;
-					continue;
-				}
-
-				if (m_isEventLock == true)
-				{
-					yield return null;
-					continue;
-				}
-
-				string eventParam = m_eventParamList[0];
-
-				m_player.Enable = false;
-
-				bool isDone = false;
-				m_ingameEvent(eventParam, () => { isDone = true; });
-				while (!isDone) { yield return null; }
-
-				m_player.Enable = true;
-				m_eventParamList.RemoveAt(0);
-
-				yield return null;
+				m_setupEventParamCoroutine = StartCoroutine(SetupEventParamCoroutine());
 			}
 		}
 
-		private void SetEventParam(string eventParam)
+		private IEnumerator SetupEventParamCoroutine()
 		{
-			m_eventParamList.Add(eventParam);
-		}
+			if (m_eventParamList.Count <= 0)
+			{
+				yield break;
+			}
 
-		public void SetIsEventLock(bool value)
-		{
-			m_isEventLock = value;
+			// ロック解除まで待機
+			while (m_isEventLock) { yield return null; }
+
+			m_player.SetEnable(false);
+
+			bool isDone = false;
+			string eventParam = m_eventParamList[0];
+			m_ingameEvent(eventParam, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
+			m_player.SetEnable(true);
+
+			m_eventParamList.RemoveAt(0);
+
+			// 再帰
+			yield return SetupEventParamCoroutine();
+
+			m_setupEventParamCoroutine = null;
 		}
 
 		public EnemyDataAsset.Data.ColorData GetColorData(int enemyId, int controllId)
@@ -567,12 +573,12 @@ namespace scene.game.ingame
 			return colorData;
 		}
 
-		public void PlayReaction(ReactionType type, int enemyControllId, UnityAction callback)
+		public void PlayMovieCharaReaction(ReactionType type, int enemyControllId, UnityAction callback)
 		{
-			StartCoroutine(PlayReactionCoroutine(type, enemyControllId, callback));
+			StartCoroutine(PlayMovieCharaReactionCoroutine(type, enemyControllId, callback));
 		}
 
-		private IEnumerator PlayReactionCoroutine(ReactionType type, int enemyControllId, UnityAction callback)
+		private IEnumerator PlayMovieCharaReactionCoroutine(ReactionType type, int enemyControllId, UnityAction callback)
 		{
 			int doneCount = 0;
 			int doneCountMax = 0;
@@ -580,9 +586,7 @@ namespace scene.game.ingame
 			doneCountMax++;
 			m_player.PlayReaction((world.PlayerChara.ReactionType)type, () => { doneCount++; });
 
-			doneCountMax++;
 			var enemy = m_stage.GetEnemy(enemyControllId);
-			UnityAction effectOutEvent = null;
 			switch (type)
 			{
 				case ReactionType.Delight:
@@ -591,15 +595,17 @@ namespace scene.game.ingame
 					}
 				case ReactionType.Restraint:
 					{
-						effectOutEvent = m_effectController.PlayLoop(
-							world.EffectController.LoopEffectType.Restaint,
+						doneCountMax++;
+						var effectOutEvent = m_effectController.PlayLoop(
+							world.EffectController.LoopEffectType.Restraint,
 							enemy.TransformPosition);
+						enemy.PlayReaction((world.Enemy.ReactionType)type, effectOutEvent, () => { doneCount++; });
+
 						break;
 					}
 			}
-			enemy.PlayReaction((world.Enemy.ReactionType)type, effectOutEvent, () => { doneCount++; });
 
-			while (doneCount < 2) { yield return null; }
+			while (doneCount < doneCountMax) { yield return null; }
 
 			if (callback != null)
 			{

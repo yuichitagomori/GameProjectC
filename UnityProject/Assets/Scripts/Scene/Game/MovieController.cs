@@ -11,15 +11,28 @@ namespace scene.game
 		[SerializeField]
 		private Image m_fade = null;
 
-		private game.Ingame m_ingame = null;
-		private game.Outgame m_outgame = null;
+
+
+		private UnityAction<Outgame.Target> m_outgameSetVisibleEvent;
+		private UnityAction<int, int, UnityAction> m_ingameChangeMapEvent;
+		private UnityAction<Ingame.ZoomType, float, UnityAction> m_ingamePlayMovieCameraEvent;
+		private UnityAction<ingame.IngameWorld.ReactionType, int, UnityAction> m_ingamePlayMovieCharaReactionEvent;
+		private UnityAction<int, UnityAction> m_outgamePlayMovieQuestClearInEvent;
+
+
 
 		public void Initialize(
-			Ingame ingame,
-			Outgame outgame)
+			UnityAction<Outgame.Target> outgameSetVisibleEvent,
+			UnityAction<int, int, UnityAction> ingameChangeMapEvent,
+			UnityAction<Ingame.ZoomType, float, UnityAction> ingamePlayMovieCameraEvent,
+			UnityAction<ingame.IngameWorld.ReactionType, int, UnityAction> ingamePlayMovieCharaReactionEvent,
+			UnityAction<int, UnityAction> outgamePlayMovieQuestClearInEvent)
 		{
-			m_ingame = ingame;
-			m_outgame = outgame;
+			m_outgameSetVisibleEvent = outgameSetVisibleEvent;
+			m_ingameChangeMapEvent = ingameChangeMapEvent;
+			m_ingamePlayMovieCameraEvent = ingamePlayMovieCameraEvent;
+			m_ingamePlayMovieCharaReactionEvent = ingamePlayMovieCharaReactionEvent;
+			m_outgamePlayMovieQuestClearInEvent = outgamePlayMovieQuestClearInEvent;
 
 			var fadeColor = m_fade.color;
 			fadeColor.a = 1.0f;
@@ -36,7 +49,11 @@ namespace scene.game
 			{
 				yield return FadeInCoroutine(1.0f);
 			}
-			yield return m_ingame.ChangeMapCoroutine(stageId, dataIndex, null);
+
+			bool isDone = false;
+			m_ingameChangeMapEvent(stageId, dataIndex, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
 			if (isFadeOut == true)
 			{
 				yield return FadeOutCoroutine(1.0f);
@@ -54,26 +71,29 @@ namespace scene.game
 
 		private IEnumerator PlayCoroutine(int movieId, int enemyControllId, UnityAction callback)
 		{
-			//float fadeTime = 0.5f;
-			//yield return FadeInCoroutine(fadeTime);
-			//m_outgame.ChangeMovieUI();
-			//yield return FadeOutCoroutine(fadeTime);
+			m_outgameSetVisibleEvent(Outgame.Target.None);
 
-			bool isDone = false;
-			m_ingame.UpdateMovieCamera(Ingame.ZoomType.In, 1.0f, true, () => { isDone = true; });
-			while (!isDone) { yield return null; };
+			int doneCount = 0;
+			m_ingamePlayMovieCameraEvent(Ingame.ZoomType.In, 1.0f, () => { doneCount++; });
+			while (doneCount < 1) { yield return null; };
 
-			//yield return FadeInCoroutine(fadeTime);
-			//m_outgame.ChangeGameUI();
-			//yield return FadeOutCoroutine(fadeTime);
+			doneCount = 0;
+			m_ingamePlayMovieCharaReactionEvent(ingame.IngameWorld.ReactionType.Restraint, enemyControllId, () => { doneCount++; });
+			while (doneCount < 1) { yield return null; };
 
-			isDone = false;
-			m_ingame.PlayReaction(ingame.IngameWorld.ReactionType.Restraint, enemyControllId, () => { isDone = true; });
-			while (!isDone) { yield return null; };
+			m_outgameSetVisibleEvent(Outgame.Target.Movie);
 
-			isDone = false;
-			m_ingame.UpdateMovieCamera(Ingame.ZoomType.Normal, 1.0f, true, () => { isDone = true; });
-			while (!isDone) { yield return null; };
+			doneCount = 0;
+			m_ingamePlayMovieCameraEvent(Ingame.ZoomType.QuestClear, 0.5f, () => { doneCount++; });
+			m_ingamePlayMovieCharaReactionEvent(ingame.IngameWorld.ReactionType.Delight, enemyControllId, () => { doneCount++; });
+			m_outgamePlayMovieQuestClearInEvent(0, () => { doneCount++; });
+			while (doneCount < 3) { yield return null; };
+
+			doneCount = 0;
+			m_ingamePlayMovieCameraEvent(Ingame.ZoomType.Normal, 1.0f, () => { doneCount++; });
+			while (doneCount < 1) { yield return null; };
+
+			m_outgameSetVisibleEvent(Outgame.Target.Game);
 
 			if (callback != null)
 			{

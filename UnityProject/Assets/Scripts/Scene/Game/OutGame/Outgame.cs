@@ -38,7 +38,7 @@ namespace scene.game
 			//m_renderPassMaterial.SetFloat("_FogValue", 0.0f);
 			//m_renderPassMaterial.SetFloat("_NoiseValue", 1.0f);
 			//m_renderPassMaterial.SetFloat("_Lerp", 1.0f);
-			var camera = GeneralRoot.Instance.GetIngame2Camera();
+			//var camera = GeneralRoot.Instance.GetIngame2Camera();
 			//m_rendererData = camera.GetComponent<UniversalAdditionalCameraData>();
 			//m_rendererData.SetRenderer(1);
 
@@ -46,6 +46,7 @@ namespace scene.game
 				cameraHandlerEventData,
 				playerHandlerEventData,
 				onCharaActionButtonEvent);
+			m_movieUI.Initialize();
 		}
 
 		//public IEnumerator GoCoroutine()
@@ -87,6 +88,11 @@ namespace scene.game
 			m_gameUI.UpdateCharaActionButton(data);
 		}
 
+		public void PlayMovieQuestClearIn(int rewardItemId, UnityAction callback)
+		{
+			m_movieUI.PlayMovieQuestClearIn(rewardItemId, callback);
+		}
+
 		//public IEnumerator PlayMapInCoroutine()
 		//{
 		//	float nowNoiseValue = 1.0f;
@@ -96,7 +102,7 @@ namespace scene.game
 		//	while (nowTime < time)
 		//	{
 		//		float t = nowTime / time;
-				
+
 		//		float setNoiseValue = nowNoiseValue + (nextNoiseValue - nowNoiseValue) * t;
 		//		m_renderPassMaterial.SetFloat("_NoiseValue", setNoiseValue);
 

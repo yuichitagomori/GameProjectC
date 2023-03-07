@@ -116,6 +116,24 @@ namespace scene.dialog
 		private Common.ElementList m_questElementList;
 
 		/// <summary>
+		/// タブボタン（詳細）
+		/// </summary>
+		[SerializeField]
+		private CommonUI.ButtonExpansion[] m_tabButtons;
+
+		/// <summary>
+		/// タブボタン（詳細）
+		/// </summary>
+		[SerializeField]
+		private CommonUI.SwitchSprite[] m_tabButtonSwitchs;
+
+		/// <summary>
+		/// 詳細表記
+		/// </summary>
+		[SerializeField]
+		private GameObject[] m_infoObjects;
+
+		/// <summary>
 		/// 依頼書説明テキスト
 		/// </summary>
 		[SerializeField]
@@ -129,11 +147,16 @@ namespace scene.dialog
 
 
 
-		private Data m_data;
+		/// <summary>
+		/// Finish時
+		/// </summary>
+		private UnityAction m_finishCallback = null;
 
-		private UnityAction m_finishCallback;
+		private Data m_data = null;
 
-		private int m_selectQuestIndex;
+		private int m_selectQuestIndex = 0;
+
+		private int m_selectTabButtonIndex = 0;
 
 
 
@@ -146,7 +169,6 @@ namespace scene.dialog
 		{
 			m_data = data;
 			m_finishCallback = finishCallback;
-			m_selectQuestIndex = 0;
 		}
 
 		public override void Ready(UnityAction callback)
@@ -186,7 +208,14 @@ namespace scene.dialog
 				questListElement.UpdateSelect(i == m_selectQuestIndex);
 			}
 
-			m_infoText.text = m_data.Quests[m_selectQuestIndex].Info;
+			for (int i = 0; i < m_tabButtons.Length; ++i)
+			{
+				int index = i;
+				m_tabButtons[i].SetupClickEvent(() =>
+				{
+					OnTabButtonPressed(index);
+				});
+			}
 
 			m_receiveButton.SetupClickEvent(() =>
 			{
@@ -194,6 +223,8 @@ namespace scene.dialog
 				m_sceneController.RemoveScene(this, null);
 			});
 			m_receiveButton.interactable = false;
+
+			UpdateInfo(true);
 
 			bool isDone = false;
 			m_animator.Play("In", () => { isDone = true; });
@@ -234,6 +265,38 @@ namespace scene.dialog
 			}
 		}
 
+		private void OnTabButtonPressed(int index)
+		{
+			if (m_selectTabButtonIndex == index)
+			{
+				return;
+			}
+
+			m_selectTabButtonIndex = index;
+			UpdateInfo(true);
+		}
+
+		private void UpdateInfo(bool isTabChange)
+		{
+			if (isTabChange == true)
+			{
+				for (int i = 0; i < m_tabButtonSwitchs.Length; ++i)
+				{
+					m_tabButtonSwitchs[i].Setup(i == m_selectTabButtonIndex);
+					m_infoObjects[i].SetActive(i == m_selectTabButtonIndex);
+				}
+			}
+
+			if (m_selectTabButtonIndex == 0)
+			{
+				m_infoText.text = m_data.Quests[m_selectQuestIndex].Info;
+			}
+			else
+			{
+
+			}
+		}
+
 		private void OnQuestElementSelect(int index)
 		{
 			int beforeIndex = m_selectQuestIndex;
@@ -244,8 +307,7 @@ namespace scene.dialog
 				var elements = m_questElementList.GetElements();
 				elements[beforeIndex].GetComponent<QuestListElement>().UpdateSelect(false);
 				elements[m_selectQuestIndex].GetComponent<QuestListElement>().UpdateSelect(true);
-
-				m_infoText.text = m_data.Quests[m_selectQuestIndex].Info;
+				UpdateInfo(false);
 			}
 		}
 	}

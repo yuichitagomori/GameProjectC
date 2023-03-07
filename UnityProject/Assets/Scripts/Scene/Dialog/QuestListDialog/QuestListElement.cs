@@ -55,13 +55,19 @@ namespace scene.dialog
 		private Common.ElementList m_difficultyRankElementList;
 
 		[SerializeField]
-		private Image m_buttonFrame;
+		private CommonUI.SwitchSprite m_switch;
 
+		/// <summary>
+		/// 完了表記オブジェクト
+		/// </summary>
 		[SerializeField]
-		private Sprite m_unselectSprite;
+		private GameObject m_doneObject;
 
+		/// <summary>
+		/// 遂行中表記オブジェクト
+		/// </summary>
 		[SerializeField]
-		private Sprite m_selectSprite;
+		private GameObject m_pregressObject;
 
 
 
@@ -78,18 +84,15 @@ namespace scene.dialog
 				elements[i].SetActive(i < m_data.DifficultyRank);
 			}
 			m_button.SetupClickEvent(OnSelected);
+			m_button.SetupActive(m_data.QuestState != QuestListDialog.Data.Quest.State.Clear);
+
+			m_doneObject.SetActive(m_data.QuestState == QuestListDialog.Data.Quest.State.Clear);
+			m_pregressObject.SetActive(m_data.QuestState == QuestListDialog.Data.Quest.State.Inprogress);
 		}
 
 		public void UpdateSelect(bool isSelected)
 		{
-			if (isSelected == true)
-			{
-				m_buttonFrame.sprite = m_selectSprite;
-			}
-			else
-			{
-				m_buttonFrame.sprite = m_unselectSprite;
-			}
+			m_switch.Setup(isSelected);
 		}
 
 		private void OnSelected()

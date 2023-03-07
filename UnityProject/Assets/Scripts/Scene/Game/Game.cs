@@ -39,8 +39,11 @@ namespace scene
 		private IEnumerator ReadyCoroutine(UnityAction callback)
 		{
 			m_movieController.Initialize(
-				m_ingame,
-				m_outgame);
+				m_outgame.SetVisible,
+				m_ingame.ChangeMap,
+				m_ingame.PlayMovieCamera,
+				m_ingame.PlayMovieCharaReaction,
+				m_outgame.PlayMovieQuestClearIn);
 
 			var searchTargetList = GeneralRoot.Instance.UserData.Data.SearchTargetList;
 			searchTargetList.Clear();
@@ -108,22 +111,21 @@ namespace scene
 
 		private void IngameEvent(string eventParam, UnityAction callback)
 		{
-			Debug.Log("eventParam = " + eventParam);
 			string[] eventType = eventParam.Split('_');
 			switch (eventType[0])
 			{
-				case "DropItem":
-					{
-						int id = int.Parse(eventType[1]);
-						StartCoroutine(DropItemCoroutine(id, callback));
-						break;
-					}
-				case "GetItem":
-					{
-						int id = int.Parse(eventType[1]);
-						StartCoroutine(GetItemCoroutine(id, callback));
-						break;
-					}
+				//case "DropItem":
+				//	{
+				//		int id = int.Parse(eventType[1]);
+				//		StartCoroutine(DropItemCoroutine(id, callback));
+				//		break;
+				//	}
+				//case "GetItem":
+				//	{
+				//		int id = int.Parse(eventType[1]);
+				//		StartCoroutine(GetItemCoroutine(id, callback));
+				//		break;
+				//	}
 				case "ChangeMap":
 					{
 						int mapId = int.Parse(eventType[1]);
@@ -131,36 +133,11 @@ namespace scene
 						StartCoroutine(ChangeMapCoroutine(mapId, dataIndex, callback));
 						break;
 					}
-				case "SearchIn":
+				case "OpenDialog":
 					{
-						int controllId = int.Parse(eventType[1]);
-						SearchIn(controllId, callback);
-						break;
-					}
-				case "SearchOut":
-					{
-						int controllId = int.Parse(eventType[1]);
-						SearchOut(controllId, callback);
-						break;
-					}
-				case "AddTarget":
-					{
-						int enemyId = int.Parse(eventType[1]);
-						int controllId = int.Parse(eventType[2]);
-						AddTarget(enemyId, controllId, callback);
-						break;
-					}
-				case "RemoveTarget":
-					{
-						int enemyId = int.Parse(eventType[1]);
-						int controllId = int.Parse(eventType[2]);
-						RemoveTarget(enemyId, controllId, callback);
-						break;
-					}
-				case "Shop":
-					{
-						int shopId = int.Parse(eventType[1]);
-						Shop(shopId, callback);
+						string dialogName = eventType[1];
+						int id = int.Parse(eventType[2]);
+						OpenDialog(dialogName, id, callback);
 						break;
 					}
 				case "Movie":
@@ -173,17 +150,17 @@ namespace scene
 			}
 		}
 
-		private IEnumerator DropItemCoroutine(int id, UnityAction callback)
-		{
-			yield return m_ingame.DropItemCoroutine(id);
-			callback();
-		}
+		//private IEnumerator DropItemCoroutine(int id, UnityAction callback)
+		//{
+		//	yield return m_ingame.DropItemCoroutine(id);
+		//	callback();
+		//}
 
-		private IEnumerator GetItemCoroutine(int id, UnityAction callback)
-		{
-			yield return m_ingame.GetItemCoroutine(id);
-			callback();
-		}
+		//private IEnumerator GetItemCoroutine(int id, UnityAction callback)
+		//{
+		//	yield return m_ingame.GetItemCoroutine(id);
+		//	callback();
+		//}
 
 		private IEnumerator ChangeMapCoroutine(int mapId, int dataIndex, UnityAction callback)
 		{
@@ -196,45 +173,46 @@ namespace scene
 			callback();
 		}
 
-		private void SearchIn(int controllId, UnityAction callback)
+		private void OpenDialog(string dialogName, int id, UnityAction callback)
 		{
-			m_ingame.SearchIn(controllId);
-			callback();
+			switch (dialogName)
+			{
+				case "QuestList":
+					{
+						StartCoroutine(OpenQuestListDialog(id, callback));
+						break;
+					}
+				case "Shop":
+					{
+						StartCoroutine(OpenShopDialog(id, callback));
+						break;
+					}
+				default:
+					{
+						callback();
+						break;
+					}
+			}
 		}
 
-		private void SearchOut(int controllId, UnityAction callback)
-		{
-			m_ingame.SearchOut(controllId);
-			callback();
-		}
-
-		private void AddTarget(int enemyId, int controllId, UnityAction callback)
-		{
-			//var searchTargetList = GeneralRoot.Instance.UserData.Data.SearchTargetList;
-			//searchTargetList.Add(new data.UserData.LocalSaveData.SearchTargetData(
-			//	enemyId,
-			//	controllId));
-			//UpdateOutgameSearchTarget(callback);
-			StartCoroutine(Test(enemyId, controllId, callback));
-		}
-
-		private IEnumerator Test(int enemyId, int controllId, UnityAction callback)
+		private IEnumerator OpenQuestListDialog(int questListId, UnityAction callback)
 		{
 			m_outgame.SetVisible(game.Outgame.Target.None);
 
 			bool isDone = false;
-			m_ingame.UpdateMovieCamera(game.Ingame.ZoomType.Out, 0.5f, false, () => { isDone = true; });
+			m_ingame.PlayMovieCamera(game.Ingame.ZoomType.Out, 0.5f, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			// クエストデータ
 			var quests = new List<dialog.QuestListDialog.Data.Quest>();
 			for (int i = 0; i < 10; ++i)
 			{
+				var questState = (dialog.QuestListDialog.Data.Quest.State)(i % 3);
 				quests.Add(new dialog.QuestListDialog.Data.Quest(
 					title: string.Format("QUEST{0}", (i + 1)),
 					info: string.Format("クエストじょうほう{0}", (i + i)),
 					difficultyRank: (i + 1),
-					questState: dialog.QuestListDialog.Data.Quest.State.Unprogressed,
+					questState: questState,
 					rewards: null));
 			}
 			int receiveQuestIndex = -1;
@@ -252,7 +230,7 @@ namespace scene
 			while (!isDone) { yield return null; }
 
 			isDone = false;
-			m_ingame.UpdateMovieCamera(game.Ingame.ZoomType.Normal, 0.25f, false, () => { isDone = true; });
+			m_ingame.PlayMovieCamera(game.Ingame.ZoomType.Normal, 0.25f, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			m_outgame.SetVisible(game.Outgame.Target.Game);
@@ -261,8 +239,8 @@ namespace scene
 			{
 				var searchTargetList = GeneralRoot.Instance.UserData.Data.SearchTargetList;
 				searchTargetList.Add(new data.UserData.LocalSaveData.SearchTargetData(
-					enemyId,
-					controllId));
+					30,
+					7));
 
 				isDone = false;
 				UpdateOutgameSearchTarget(() => { isDone = true; });
@@ -272,17 +250,24 @@ namespace scene
 			callback();
 		}
 
-		private void RemoveTarget(int enemyId, int controllId, UnityAction callback)
-		{
-			StartCoroutine(RemoveTargetCoroutine(enemyId, controllId, callback));
-		}
 
-		private void Shop(int shopId, UnityAction callback)
+
+		private IEnumerator OpenShopDialog(int shopId, UnityAction callback)
 		{
+			bool isDone = false;
 			m_sceneController.AddScene<dialog.ShopDialog>(
 				added: (s) =>
 				{
+					s.Setting(null, () => { isDone = true; });
 				});
+			while (!isDone) { yield return null; }
+
+			callback();
+		}
+
+		private void RemoveTarget(int enemyId, int controllId, UnityAction callback)
+		{
+			StartCoroutine(RemoveTargetCoroutine(enemyId, controllId, callback));
 		}
 
 		private IEnumerator RemoveTargetCoroutine(int enemyId, int controllId, UnityAction callback)
@@ -349,7 +334,6 @@ namespace scene
 
 		private IEnumerator OnCharaActionButtonPressedCoroutine(int controllId)
 		{
-			m_ingame.SetIsEventLock(true);
 			m_outgame.SetVisible(game.Outgame.Target.None);
 
 			bool isDone = false;
@@ -357,7 +341,6 @@ namespace scene
 			while (!isDone) { yield return null; }
 
 			m_outgame.SetVisible(game.Outgame.Target.Game);
-			m_ingame.SetIsEventLock(false);
 		}
 
 		private void UpdateOutgameObject()

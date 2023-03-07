@@ -8,12 +8,36 @@ namespace scene.dialog
 {
 	public class ShopDialog : SceneBase
 	{
+		public class Data
+		{
+		}
+
 		/// <summary>
 		/// アニメーター
 		/// </summary>
 		[SerializeField]
 		private AnimatorExpansion m_animator;
 
+
+
+		/// <summary>
+		/// Finish時
+		/// </summary>
+		private UnityAction m_finishCallback = null;
+
+		private Data m_data = null;
+
+
+		/// <summary>
+		/// 事前設定
+		/// </summary>
+		/// <param name="data"></param>
+		/// <param name="finishCallback"></param>
+		public void Setting(Data data, UnityAction finishCallback)
+		{
+			m_data = data;
+			m_finishCallback = finishCallback;
+		}
 
 		public override void Ready(UnityAction _callback)
 		{
@@ -25,15 +49,11 @@ namespace scene.dialog
 				}
 			}));
 		}
-
-		public override void Go()
-		{
-			StartCoroutine(GoCoroutine());
-		}
-
 		private IEnumerator ReadyCoroutine(UnityAction _callback)
 		{
-			yield return null;
+			bool isDone = false;
+			m_animator.Play("In", () => { isDone = true; });
+			while (!isDone) { yield return null; }
 
 			if (_callback != null)
 			{
@@ -41,13 +61,30 @@ namespace scene.dialog
 			}
 		}
 
-		private IEnumerator GoCoroutine()
+		public override void Go()
 		{
-			//bool isDone = false;
-			//m_animator.Play("Open", () => { isDone = true; });
-			//while (!isDone) { yield return null; }
+		}
 
-			yield return null;
+		public override void Finish(UnityAction callback)
+		{
+			StartCoroutine(FinishCoroutine(callback));
+		}
+
+		private IEnumerator FinishCoroutine(UnityAction callback)
+		{
+			bool isDone = false;
+			m_animator.Play("Out", () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
+			if (m_finishCallback != null)
+			{
+				m_finishCallback();
+			}
+
+			if (callback != null)
+			{
+				callback();
+			}
 		}
 	}
 }

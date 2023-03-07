@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.051239036, g: 0.16423878, b: 0.3602057, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -81267,7 +81267,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1449e4391ca9407479d3525aa834e938, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_actionEvent: AddTarget_30_7
+  m_actionEvent: OpenDialog_QuestList_1
   m_fbx: {fileID: 1477575501}
   m_events:
   - {fileID: 1477575500}
@@ -124270,7 +124270,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1449e4391ca9407479d3525aa834e938, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_actionEvent: AddTarget_30_6
+  m_actionEvent: OpenDialog_QuestList_1
   m_fbx: {fileID: 2120550803}
   m_events:
   - {fileID: 2120550802}

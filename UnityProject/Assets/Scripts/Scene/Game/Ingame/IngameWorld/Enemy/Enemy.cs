@@ -15,12 +15,6 @@ namespace scene.game.ingame.world
 			Restraint,  // 拘束
 		}
 
-		private enum ModeType
-		{
-			Free,
-			Reaction,
-		}
-
 		public enum NavmeshMoveType
 		{
 			Stop,		// 停止
@@ -62,11 +56,13 @@ namespace scene.game.ingame.world
 
 
 
-		private Transform m_transform = null;
+		private Transform m_transform;
 
-		private ModeType m_modeType = ModeType.Free;
+		private bool m_enable = true;
 
-		private Vector3[] m_navmeshPointList = null;
+		private Coroutine m_updateNavmeshCoroutine;
+
+		private Vector3[] m_navmeshPointList;
 
 		private Vector3 m_transformPosition = Vector3.zero;
 		public Vector3 TransformPosition => m_transformPosition;
@@ -77,7 +73,7 @@ namespace scene.game.ingame.world
 
 		private float m_nowWaitTime = 0.0f;
 
-		private UnityAction m_loopEffectOutEvent = null;
+		private UnityAction m_loopEffectOutEvent;
 
 
 		public void Initialize(
@@ -93,7 +89,6 @@ namespace scene.game.ingame.world
 			m_enemyId = enemyId;
 
 			m_transform = base.transform;
-			m_modeType = ModeType.Free;
 			m_navmeshPointList = navmeshPointList;
 			m_navAgent.enabled = false;
 
@@ -124,21 +119,22 @@ namespace scene.game.ingame.world
 				m_events[1].Initialize("", exitEvent, enterCallback, exitCallback);
 			}
 
+			m_transformPosition = m_transform.position;
+			m_transformRotation = m_transform.rotation;
+			int initializeNavmeshPointIndex = 0;
 			if (m_navmeshMoveType != NavmeshMoveType.Stop)
 			{
-				int initializeNavmeshPointIndex = UnityEngine.Random.Range(0, m_navmeshPointList.Length);
+				initializeNavmeshPointIndex = UnityEngine.Random.Range(0, m_navmeshPointList.Length);
 				Vector3 initializePos = m_navmeshPointList[initializeNavmeshPointIndex];
 				SetPosition(initializePos);
-				m_transformRotation = m_transform.rotation;
+				Vector3 randomDir = new Vector3(
+					UnityEngine.Random.Range(-1.0f, 1.0f),
+					0.0f,
+					UnityEngine.Random.Range(-1.0f, 1.0f)).normalized;
+				m_transformRotation = Quaternion.LookRotation(randomDir, Vector3.up);
 				m_transform.SetPositionAndRotation(m_transformPosition, m_transformRotation);
-				StartCoroutine(UpdateNavmeshCoroutine(initializeNavmeshPointIndex));
 			}
-			else
-			{
-				m_transformPosition = m_transform.position;
-				m_transformRotation = m_transform.rotation;
-				PlayLoopAnimation("Wait");
-			}
+			m_updateNavmeshCoroutine = StartCoroutine(UpdateNavmeshCoroutine(initializeNavmeshPointIndex));
 
 			var LODEventDatas = new Common.LODEvent.Data[]
 			{
@@ -150,6 +146,11 @@ namespace scene.game.ingame.world
 				LODEventDatas,
 				GeneralRoot.Instance.GetIngame2Camera().transform,
 				1.0f);
+		}
+
+		public void SetEnable(bool value)
+		{
+			m_enable = value;
 		}
 
 		public void SetSequenceTime(float value)
@@ -168,6 +169,11 @@ namespace scene.game.ingame.world
 		private void FixedUpdate()
 		{
 			if (m_transform == null) return;
+
+			if (m_enable == false)
+			{
+				// ここでは更新処理を止めなくてもよい（UpdateNavmeshCoroutine処理側で止めている）
+			}
 
 			m_nowWaitTime += Time.deltaTime;
 
@@ -196,27 +202,13 @@ namespace scene.game.ingame.world
 			Debug.Log("Enemy SearchOut");
 		}
 
-		public void OnCharaActionButtonPressed(Vector3 playerCharaPosition, UnityAction<string> callback)
+		public void OnCharaActionButtonPressed(UnityAction<string> callback)
 		{
-			StartCoroutine(OnCharaActionButtonPressedCoroutine(playerCharaPosition, callback));
+			StartCoroutine(OnCharaActionButtonPressedCoroutine(callback));
 		}
 
-		private IEnumerator OnCharaActionButtonPressedCoroutine(Vector3 playerCharaPosition, UnityAction<string> callback)
+		private IEnumerator OnCharaActionButtonPressedCoroutine(UnityAction<string> callback)
 		{
-			m_modeType = ModeType.Reaction;
-			string beforeAnimName = m_fbx.Anime.GetAnimationName();
-
-			var dir = playerCharaPosition - m_transformPosition;
-			var look = Quaternion.LookRotation(dir, Vector3.up);
-			float time = 0.0f;
-			while (time < 0.5f)
-			{
-				time += Time.deltaTime;
-				float t = time / 0.5f;
-				m_transformRotation = Quaternion.Lerp(m_transformRotation, look, t);
-				yield return null;
-			}
-
 			bool isTarget = false;
 			var searchTargetList = GeneralRoot.Instance.UserData.Data.SearchTargetList;
 			if (searchTargetList.Count > 0)
@@ -230,32 +222,58 @@ namespace scene.game.ingame.world
 				}
 			}
 
+			string beforeAnimName = m_fbx.Anime.GetAnimationName();
 			string actionEvent = "";
-			if (string.IsNullOrEmpty(m_actionEvent) == false)
+			if (isTarget == true)
+			{
+				// ムービー側で操作されることになるため、Navmesh更新を止める
+				actionEvent = string.Format("Movie_{0}_{1}", 1, m_controllId);
+				StopCoroutine(m_updateNavmeshCoroutine);
+			}
+			else if (string.IsNullOrEmpty(m_actionEvent) == false)
 			{
 				PlayLoopAnimation("ReactionYes");
 				yield return new WaitForSeconds(2.0f);
 
 				actionEvent = m_actionEvent;
-				m_modeType = ModeType.Free;
 				PlayLoopAnimation(beforeAnimName);
-			}
-			else if (isTarget == true)
-			{
-				actionEvent = string.Format("Movie_{0}_{1}", 1, m_controllId);
 			}
 			else
 			{
 				PlayLoopAnimation("ReactionNo");
 				yield return new WaitForSeconds(2.0f);
 
-				m_modeType = ModeType.Free;
 				PlayLoopAnimation(beforeAnimName);
 			}
 
 			if (callback != null)
 			{
 				callback(actionEvent);
+			}
+		}
+
+		public void LookTarget(Vector3 targetPosition, UnityAction callback)
+		{
+			StartCoroutine(LookTargetCoroutine(targetPosition, callback));
+		}
+
+		private IEnumerator LookTargetCoroutine(Vector3 targetPosition, UnityAction callback)
+		{
+			Vector3 targetPos = new Vector3(targetPosition.x, m_transformPosition.y, targetPosition.z);
+			var dir = targetPos - m_transformPosition;
+			var look = Quaternion.LookRotation(dir, Vector3.up);
+			float time = 0.0f;
+			while (time < 0.5f)
+			{
+				time += Time.deltaTime;
+				float t = time / 0.5f;
+				m_transformRotation = Quaternion.Lerp(m_transform.rotation, look, t);
+				yield return null;
+			}
+
+			if (callback != null)
+			{
+				callback();
 			}
 		}
 
@@ -325,12 +343,20 @@ namespace scene.game.ingame.world
 			m_fbx.Anime.Play(name, callback);
 		}
 
-		private IEnumerator UpdateNavmeshCoroutine(int navPointIndex)
+		private IEnumerator UpdateNavmeshCoroutine(int initializeNavmeshPointIndex)
 		{
+			// 目標地点更新
+			int navPointIndex = initializeNavmeshPointIndex + 1;
+			if (navPointIndex >= m_navmeshPointList.Length)
+			{
+				navPointIndex = 0;
+			}
+
 			if (m_navmeshPointList.Length <= 1)
 			{
 				// 目標地点無し
 				PlayLoopAnimation("Wait");
+				m_updateNavmeshCoroutine = null;
 				yield break;
 			}
 
@@ -338,8 +364,19 @@ namespace scene.game.ingame.world
 			{
 				// 移動しない
 				PlayLoopAnimation("Wait");
+				m_updateNavmeshCoroutine = null;
 				yield break;
 			}
+
+			if (m_navmeshMoveType == NavmeshMoveType.Stop)
+			{
+				// 停止
+				PlayLoopAnimation("Wait");
+				m_updateNavmeshCoroutine = null;
+				yield break;
+			}
+
+			while (!m_enable) { yield return null; }
 
 			m_navAgent.enabled = true;
 			yield return null;
@@ -378,23 +415,24 @@ namespace scene.game.ingame.world
 			int cornerIndex = 0;
 			while (cornerIndex < navCornerPathes.Length)
 			{
+				while (!m_enable) { yield return null; }
+
 				Vector3 nowPos = m_transformPosition;
 				Vector3 cornerPos = navCornerPathes[cornerIndex];
 				Vector3 dir = cornerPos - nowPos;
-				if (dir == Vector3.zero)
+				float distance = dir.magnitude;
+				if (distance < 0.1f)
 				{
+					SetPosition(cornerPos);
+					yield return null;
 					cornerIndex++;
 					continue;
 				}
 				float cornerLeapTime = 0.0f;
-				float cornerLeapAddTime = 1.0f / (dir.magnitude / m_navSpeed);
+				float cornerLeapAddTime = 1.0f / (distance / m_navSpeed);
 				while (1.0f > cornerLeapTime)
 				{
-					if (m_modeType == ModeType.Reaction)
-					{
-						yield return null;
-						continue;
-					}
+					while (!m_enable) { yield return null; }
 
 					SetPosition(Vector3.Lerp(nowPos, cornerPos, cornerLeapTime));
 					var look = Quaternion.LookRotation(dir, Vector3.up);
@@ -412,18 +450,9 @@ namespace scene.game.ingame.world
 				cornerIndex++;
 			}
 
-			if (UnityEngine.Random.Range(0, 2) > 0)
-			{
-				PlayLoopAnimation("Wait");
-				yield return new WaitForSeconds(UnityEngine.Random.Range(1.0f, 5.0f));
-			}
-
-			// 目標地点更新
-			navPointIndex++;
-			if (navPointIndex >= m_navmeshPointList.Length)
-			{
-				navPointIndex = 0;
-			}
+			// 目的地点への移動が完了すると、すこし待機
+			PlayLoopAnimation("Wait");
+			yield return new WaitForSeconds(UnityEngine.Random.Range(1.0f, 5.0f));
 
 			yield return UpdateNavmeshCoroutine(navPointIndex);
 		}
