@@ -8,12 +8,6 @@ namespace scene.game.ingame.world
 	[System.Serializable]
 	public class PlayerChara : MonoBehaviour
 	{
-		public enum ReactionType
-		{
-			Delight,	// 喜ぶ
-			Restraint,	// 拘束
-		}
-
 		[SerializeField]
 		private Rigidbody m_rigidbody = null;
 
@@ -43,12 +37,11 @@ namespace scene.game.ingame.world
 		private float m_moveSpeed = 0.0f;
 
 
-		public void Initialize()
+		public void Initialize(Transform ingameCameraTransform)
 		{
 			m_transform = base.transform;
 
-			var camera = GeneralRoot.Instance.GetIngame2Camera();
-			m_cameraTransform = camera.transform;
+			m_cameraTransform = ingameCameraTransform;
 
 			m_fbx.Anime.PlayLoop("Wait");
 			m_dustParticle.Stop();
@@ -119,27 +112,35 @@ namespace scene.game.ingame.world
 			}
 		}
 
-		public void PlayReaction(ReactionType type, UnityAction callback)
+		public void PlayReaction(IngameWorld.ReactionType type, UnityAction callback)
 		{
 			StartCoroutine(PlayReactionCoroutine(type, callback));
 		}
 
-		private IEnumerator PlayReactionCoroutine(ReactionType type, UnityAction callback)
+		private IEnumerator PlayReactionCoroutine(IngameWorld.ReactionType type, UnityAction callback)
 		{
 			switch (type)
 			{
-				case ReactionType.Delight:
+				case IngameWorld.ReactionType.DelightIn:
 					{
 						int doneCount = 0;
 						LookTarget(m_cameraTransform.position, () => { doneCount++; });
 						m_fbx.Anime.Play("ReactionDelight", () => { doneCount++; });
-						while (doneCount < 3) { yield return null; }
+						while (doneCount < 2) { yield return null; }
+
+						break;
+					}
+				case IngameWorld.ReactionType.DelightOut:
+					{
+						bool isDone = false;
+						m_fbx.Anime.Play("ReactionDelight", () => { isDone = true; });
+						while (!isDone) { yield return null; }
 
 						m_fbx.Anime.PlayLoop("Wait");
 
 						break;
 					}
-				case ReactionType.Restraint:
+				case IngameWorld.ReactionType.Restraint:
 					{
 						bool isDone = false;
 						m_fbx.Anime.Play("ReactionRestraint", () => { isDone = true; });

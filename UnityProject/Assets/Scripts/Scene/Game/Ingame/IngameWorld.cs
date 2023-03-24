@@ -11,7 +11,8 @@ namespace scene.game.ingame
 	{
 		public enum ReactionType
 		{
-			Delight,    // 喜ぶ
+			DelightIn,  // 喜ぶ
+			DelightOut,  // 喜ぶ
 			Restraint,  // 拘束
 		}
 
@@ -52,18 +53,13 @@ namespace scene.game.ingame
 		[SerializeField]
 		private world.EffectController m_effectController = null;
 
-		[SerializeField]
-		private EnemyDataAsset m_enemyAssetData = null;
 
 
-
-		private Game.GameMode m_gameMode = Game.GameMode.None;
-
-		//private data.UserData.LocalSaveData.AppMode m_appModeList = data.UserData.LocalSaveData.AppMode.None;
-
-		private UnityAction<int, StageScene, UnityAction<StageScene>> m_changeMapEvent;
+		private UnityAction<int, StageScene, UnityAction<StageScene>> m_loadMapEvent;
 
 		private UnityAction<string, UnityAction> m_ingameEvent;
+
+		private Transform m_ingameCameraTransform;
 
 		private UnityAction<SearchInData> m_updateCharaActionButtonEvent;
 
@@ -82,16 +78,18 @@ namespace scene.game.ingame
 
 
 		public void Initialize(
-			UnityAction<int, StageScene, UnityAction<StageScene>> changeMapEvent,
+			UnityAction<int, StageScene, UnityAction<StageScene>> loadMapEvent,
 			UnityAction<string, UnityAction> ingameEvent,
+			Transform ingameCameraTransform,
 			UnityAction<SearchInData> updateCharaActionButtonEvent,
 			UnityAction callback)
 		{
-			m_changeMapEvent = changeMapEvent;
+			m_loadMapEvent = loadMapEvent;
 			m_ingameEvent = ingameEvent;
+			m_ingameCameraTransform = ingameCameraTransform;
 			m_updateCharaActionButtonEvent = updateCharaActionButtonEvent;
 			
-			m_player.Initialize();
+			m_player.Initialize(m_ingameCameraTransform);
 			m_player.SetEnable(false);
 
 			m_renderPlate.Initialize();
@@ -101,16 +99,15 @@ namespace scene.game.ingame
 			callback();
 		}
 
-		public IEnumerator ChangeMapCoroutine(int stageId, int dataIndex)
+		public IEnumerator LoadMapCoroutine(int stageId, int dataIndex)
 		{
 			bool isDone = false;
 
-			m_changeMapEvent(stageId, m_stage, (stage) =>
+			m_loadMapEvent(stageId, m_stage, (stage) =>
 			{
 				m_stage = stage;
 				m_stage.Initialize(
-					m_player.transform,
-					m_enemyAssetData,
+					m_ingameCameraTransform,
 					SetupEventParam,
 					SetupEventParam);
 				isDone = true;
@@ -173,20 +170,20 @@ namespace scene.game.ingame
 			yield return item.SetActiveColoutine(false);
 		}
 
-		public IEnumerator ChangeMapInCoroutine()
+		public IEnumerator ChangeMapInCoroutine(float time)
 		{
 			if (m_stage != null)
 			{
-				yield return m_stage.ChangeMapInCoroutine();
+				yield return m_stage.ChangeMapInCoroutine(time);
 			}
 			m_player.SetEnable(true);
 		}
 
-		public IEnumerator ChangeMapOutCoroutine()
+		public IEnumerator ChangeMapOutCoroutine(float time)
 		{
 			if (m_stage != null)
 			{
-				yield return m_stage.ChangeMapOutCoroutine();
+				yield return m_stage.ChangeMapOutCoroutine(time);
 			}
 			m_player.SetEnable(false);
 
@@ -203,7 +200,7 @@ namespace scene.game.ingame
 			var data = m_searchInDataList.Find(d => (d.ControllId == controllId));
 			if (data == null)
 			{
-				SearchInData.ActionType type = (enemy.IsActionEvent() == false) ?
+				SearchInData.ActionType type = string.IsNullOrEmpty(enemy.GetActionEvent()) ?
 					SearchInData.ActionType.Action :
 					SearchInData.ActionType.Talk;
 				m_searchInDataList.Add(new SearchInData(
@@ -274,10 +271,8 @@ namespace scene.game.ingame
 			{
 				doneCount++;
 			});
-			string actionEvent = "";
-			enemy.OnCharaActionButtonPressed((e) =>
+			enemy.OnCharaActionButtonPressed(() =>
 			{
-				actionEvent = e;
 				doneCount++;
 			});
 			while (doneCount < 2) { yield return null; }
@@ -285,15 +280,25 @@ namespace scene.game.ingame
 			m_player.SetEnable(true);
 			enemy.SetEnable(true);
 
+			if (callback != null)
+			{
+				callback();
+			}
+		}
+
+		public void CheckEnemyActionEvent(int controllId)
+		{
+			var enemy = m_stage.GetEnemy(controllId);
+			if (enemy == null)
+			{
+				return;
+			}
+
+			string actionEvent = enemy.GetActionEvent();
 			if (string.IsNullOrEmpty(actionEvent) == false)
 			{
 				// enemy.ActionEventによるアクション
 				SetupEventParam(actionEvent);
-			}
-
-			if (callback != null)
-			{
-				callback();
 			}
 		}
 
@@ -506,21 +511,11 @@ namespace scene.game.ingame
 
 		public void OnPlayerDragEvent(Vector2 _dragVector)
 		{
-			if (m_gameMode != Game.GameMode.None)
-			{
-				return;
-			}
-
 			m_player.DragEvent(_dragVector);
 		}
 
 		public void OnPlayerEndDragEvent()
 		{
-			if (m_gameMode != Game.GameMode.None)
-			{
-				return;
-			}
-
 			m_player.EndDragEvent();
 		}
 
@@ -561,18 +556,6 @@ namespace scene.game.ingame
 			m_setupEventParamCoroutine = null;
 		}
 
-		public EnemyDataAsset.Data.ColorData GetColorData(int enemyId, int controllId)
-		{
-			var enemyData = m_enemyAssetData.List.Find(d => d.EnemyId == enemyId);
-			if (enemyData == null)
-			{
-				return null;
-			}
-
-			var colorData = enemyData.ColorDatas.Where(d => d.ColorId == controllId).First();
-			return colorData;
-		}
-
 		public void PlayMovieCharaReaction(ReactionType type, int enemyControllId, UnityAction callback)
 		{
 			StartCoroutine(PlayMovieCharaReactionCoroutine(type, enemyControllId, callback));
@@ -584,12 +567,16 @@ namespace scene.game.ingame
 			int doneCountMax = 0;
 
 			doneCountMax++;
-			m_player.PlayReaction((world.PlayerChara.ReactionType)type, () => { doneCount++; });
+			m_player.PlayReaction(type, () => { doneCount++; });
 
 			var enemy = m_stage.GetEnemy(enemyControllId);
 			switch (type)
 			{
-				case ReactionType.Delight:
+				case ReactionType.DelightIn:
+					{
+						break;
+					}
+				case ReactionType.DelightOut:
 					{
 						break;
 					}
@@ -599,8 +586,12 @@ namespace scene.game.ingame
 						var effectOutEvent = m_effectController.PlayLoop(
 							world.EffectController.LoopEffectType.Restraint,
 							enemy.TransformPosition);
-						enemy.PlayReaction((world.Enemy.ReactionType)type, effectOutEvent, () => { doneCount++; });
+						enemy.PlayReaction(type, effectOutEvent, () => { doneCount++; });
 
+						break;
+					}
+				default:
+					{
 						break;
 					}
 			}

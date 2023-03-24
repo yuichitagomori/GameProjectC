@@ -21,6 +21,7 @@ public struct Grid
     }
 	
     private static Grid data;
+    private static Grid Zero = new Grid(0, 0);
     private static Grid Up = new Grid(0, -1);
     private static Grid Down = new Grid(0, 1);
     private static Grid Right = new Grid(1, 0);
@@ -30,6 +31,7 @@ public struct Grid
     private static Grid DownLeft = new Grid(-1, 1);
     private static Grid UpLeft = new Grid(-1, -1);
 
+    public static Grid zero { get { return Zero; } }
     public static Grid up { get { return Up; } }
     public static Grid down { get { return Down; } }
     public static Grid right { get { return Right; } }

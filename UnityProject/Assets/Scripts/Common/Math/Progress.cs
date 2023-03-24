@@ -8,34 +8,34 @@ using System.Collections;
 public class Progress : MonoBehaviour
 {
 	public IEnumerator SetupCoroutine(
-		float _before,
-		float _after,
-		float _time,
-		AnimationCurve _curve,
-		UnityAction<float> _update,
-		UnityAction _callback)
+		float beforeValue,
+		float afterValue,
+		float time,
+		AnimationCurve curve,
+		UnityAction<float> update,
+		UnityAction callback)
 	{
 		float nowTime = 0.0f;
-		while (nowTime < _time)
+		while (nowTime < time)
 		{
 			nowTime += Time.deltaTime;
 
-			float par = Mathf.Min((nowTime / _time), 1.0f);
-			if (_curve != null)
+			float par = Mathf.Min((nowTime / time), 1.0f);
+			if (curve != null)
 			{
-				par = _curve.Evaluate(par);
+				par = curve.Evaluate(par);
 			}
-			float value = _before - ((_before - _after) * par);
-			if (_update != null)
+			float value = beforeValue - ((beforeValue - afterValue) * par);
+			if (update != null)
 			{
-				_update(value);
+				update(value);
 			}
 
 			yield return null;
 		}
-		if (_callback != null)
+		if (callback != null)
 		{
-			_callback();
+			callback();
 		}
 	}
 }

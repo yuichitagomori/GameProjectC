@@ -9,12 +9,6 @@ namespace scene.game.ingame.world
 	[System.Serializable]
 	public class Enemy : MonoBehaviour
 	{
-		public enum ReactionType
-		{
-			Delight,    // 喜ぶ
-			Restraint,  // 拘束
-		}
-
 		public enum NavmeshMoveType
 		{
 			Stop,		// 停止
@@ -79,9 +73,9 @@ namespace scene.game.ingame.world
 		public void Initialize(
 			int controllId,
 			int enemyId,
-			Transform playerTransform,
+			Transform ingameCameraTransform,
 			Vector3[] navmeshPointList,
-			EnemyDataAsset.Data.ColorData colorData,
+			data.resource.EnemyColorResource.Data.ColorData colorData,
 			UnityAction<string> enterCallback,
 			UnityAction<string> exitCallback)
 		{
@@ -144,7 +138,7 @@ namespace scene.game.ingame.world
 			};
 			m_lodEvent.Initialize(
 				LODEventDatas,
-				GeneralRoot.Instance.GetIngame2Camera().transform,
+				ingameCameraTransform,
 				1.0f);
 		}
 
@@ -202,15 +196,15 @@ namespace scene.game.ingame.world
 			Debug.Log("Enemy SearchOut");
 		}
 
-		public void OnCharaActionButtonPressed(UnityAction<string> callback)
+		public void OnCharaActionButtonPressed(UnityAction callback)
 		{
 			StartCoroutine(OnCharaActionButtonPressedCoroutine(callback));
 		}
 
-		private IEnumerator OnCharaActionButtonPressedCoroutine(UnityAction<string> callback)
+		private IEnumerator OnCharaActionButtonPressedCoroutine(UnityAction callback)
 		{
 			bool isTarget = false;
-			var searchTargetList = GeneralRoot.Instance.UserData.Data.SearchTargetList;
+			var searchTargetList = GeneralRoot.User.LocalSaveData.SearchTargetList;
 			if (searchTargetList.Count > 0)
 			{
 				var searchTarget = searchTargetList.Find(d =>
@@ -248,7 +242,7 @@ namespace scene.game.ingame.world
 
 			if (callback != null)
 			{
-				callback(actionEvent);
+				callback();
 			}
 		}
 
@@ -278,7 +272,7 @@ namespace scene.game.ingame.world
 		}
 
 		public void PlayReaction(
-			ReactionType type,
+			IngameWorld.ReactionType type,
 			UnityAction loopEffectOutEvent,
 			UnityAction callback)
 		{
@@ -286,23 +280,27 @@ namespace scene.game.ingame.world
 		}
 
 		private IEnumerator PlayReactionCoroutine(
-			ReactionType type,
+			IngameWorld.ReactionType type,
 			UnityAction loopEffectOutEvent,
 			UnityAction callback)
 		{
 			switch (type)
 			{
-				case ReactionType.Delight:
+				case IngameWorld.ReactionType.DelightIn:
 					{
 						bool isDone = false;
 						PlayAnimation("ReactionYes", () => { isDone = true; });
 						while (!isDone) { yield return null; }
 
+						break;
+					}
+				case IngameWorld.ReactionType.DelightOut:
+					{
 						PlayLoopAnimation("Wait");
 
 						break;
 					}
-				case ReactionType.Restraint:
+				case IngameWorld.ReactionType.Restraint:
 					{
 						bool isDone = false;
 						PlayAnimation("ReactionRestraint", () => { isDone = true; });
@@ -327,9 +325,33 @@ namespace scene.game.ingame.world
 			return m_fbx.HeadTransform;
 		}
 
-		public bool IsActionEvent()
+		public string GetActionEvent()
 		{
-			return string.IsNullOrEmpty(m_actionEvent);
+			if (string.IsNullOrEmpty(m_actionEvent) == false)
+			{
+				return m_actionEvent;
+			}
+
+			bool isTarget = false;
+			var searchTargetList = GeneralRoot.User.LocalSaveData.SearchTargetList;
+			if (searchTargetList.Count > 0)
+			{
+				var searchTarget = searchTargetList.Find(d =>
+					d.EnemyId == m_enemyId &&
+					d.ControllId == m_controllId);
+				if (searchTarget != null)
+				{
+					isTarget = true;
+				}
+			}
+
+			if (isTarget == true)
+			{
+				// ムービー再生指定
+				return string.Format("Movie_{0}_{1}", 1, m_controllId);
+			}
+
+			return "";
 		}
 
 		private void PlayLoopAnimation(string name)

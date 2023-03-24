@@ -20,6 +20,10 @@ namespace scene.game
 		[SerializeField]
 		private Material m_renderPassMaterial = null;
 
+
+		[SerializeField]
+		private Image m_fade = null;
+
 		[SerializeField]
 		private outgame.GameUI m_gameUI = null;
 
@@ -33,6 +37,7 @@ namespace scene.game
 		public void Initialize(
 			outgame.Handler.EventData cameraHandlerEventData,
 			outgame.Handler.EventData playerHandlerEventData,
+			Camera ingameCamera,
 			UnityAction<int> onCharaActionButtonEvent)
 		{
 			//m_renderPassMaterial.SetFloat("_FogValue", 0.0f);
@@ -42,9 +47,14 @@ namespace scene.game
 			//m_rendererData = camera.GetComponent<UniversalAdditionalCameraData>();
 			//m_rendererData.SetRenderer(1);
 
+			var fadeColor = m_fade.color;
+			fadeColor.a = 1.0f;
+			m_fade.color = fadeColor;
+
 			m_gameUI.Initialize(
 				cameraHandlerEventData,
 				playerHandlerEventData,
+				ingameCamera,
 				onCharaActionButtonEvent);
 			m_movieUI.Initialize();
 		}
@@ -134,5 +144,30 @@ namespace scene.game
 		//	}
 		//	m_renderPassMaterial.SetFloat("_NoiseValue", nextNoiseValue);
 		//}
+
+		public void Fade(bool isFadeIn, float fadeTime)
+		{
+			StartCoroutine(FadeCoroutine(isFadeIn, fadeTime));
+		}
+
+		private IEnumerator FadeCoroutine(bool isFadeIn, float fadeTime)
+		{
+			float nowTime = 0.0f;
+			while (nowTime < fadeTime)
+			{
+				nowTime += Time.deltaTime;
+				if (nowTime > fadeTime)
+				{
+					nowTime = fadeTime;
+				}
+
+				var fadeColor = m_fade.color;
+				float alpha = (isFadeIn) ? (nowTime / fadeTime) : 1.0f - (nowTime / fadeTime);
+				fadeColor.a = alpha;
+				m_fade.color = fadeColor;
+
+				yield return null;
+			}
+		}
 	}
 }

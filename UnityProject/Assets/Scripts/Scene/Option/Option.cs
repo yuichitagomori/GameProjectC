@@ -48,14 +48,14 @@ namespace scene
 		{
 			m_backButton.SetupClickEvent(OnBackButtonPressed);
 			
-			var userData = GeneralRoot.Instance.UserData.Data;
-			m_bgmSlider.value = userData.BgmVolume;
+			var localSaveData = GeneralRoot.User.LocalSaveData;
+			m_bgmSlider.value = localSaveData.BgmVolume;
 			m_bgmSlider.onValueChanged.AddListener((_value) =>
 			{
 				SetupBgmVolume(_value);
 			});
 
-			m_seSlider.value = userData.SEVolume;
+			m_seSlider.value = localSaveData.SEVolume;
 			m_seSlider.onValueChanged.AddListener((_value) =>
 			{
 				SetupSEVolume(_value);
@@ -76,14 +76,14 @@ namespace scene
 
 		private void SetupBgmVolume(float _volume)
 		{
-			var userData = GeneralRoot.Instance.UserData.Data;
-			userData.SetBgmVolume(_volume);
+			var localSaveData = GeneralRoot.User.LocalSaveData;
+			localSaveData.SetBgmVolume(_volume);
 		}
 
 		private void SetupSEVolume(float _volume)
 		{
-			var userData = GeneralRoot.Instance.UserData.Data;
-			userData.SetSEVolume(_volume);
+			var localSaveData = GeneralRoot.User.LocalSaveData;
+			localSaveData.SetSEVolume(_volume);
 		}
 
 		private void OnBackButtonPressed()
@@ -94,7 +94,7 @@ namespace scene
 		private IEnumerator OnBackButtonPressedCoroutine()
 		{
 			bool isDone = false;
-			GeneralRoot.Instance.UserData.Save(() => { isDone = true; });
+			GeneralRoot.User.Save(() => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			isDone = false;

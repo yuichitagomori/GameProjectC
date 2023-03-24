@@ -60,7 +60,7 @@ namespace scene.game.outgame
 		/// Begin時に原点から開始されるかどうか
 		/// </summary>
 		[SerializeField]
-		private bool m_isZeroBegin = false;
+		private bool m_isBeginLocalPosition = false;
 
 		/// <summary>
 		/// キーボード入力
@@ -229,8 +229,8 @@ namespace scene.game.outgame
 		/// <param name="e"></param>
 		public void OnBeginDrag(PointerEventData e)
 		{
-			//Debug.Log("OnBeginDrag");
-			if (m_isZeroBegin == true)
+			//Debug.Log("OnBeginDrag e.position = " + e.position);
+			if (m_isBeginLocalPosition == true)
 			{
 				m_beginVector = transform.position;
 			}
@@ -256,7 +256,7 @@ namespace scene.game.outgame
 		/// <param name="e"></param>
 		public void OnDrag(PointerEventData e)
 		{
-			//Debug.Log("OnDrag");
+			//Debug.Log("OnDrag e.position = " + e.position);
 			m_dragVector = e.position - m_beginVector;
 			m_vectorMagnitude = m_dragVector.magnitude;
 			if (m_type == HanderType.LengthFixed && m_vectorMagnitude > 50.0f)
@@ -299,7 +299,7 @@ namespace scene.game.outgame
 		public void OnPointerDown(PointerEventData e)
 		{
 			//Debug.Log("OnPointerDown");
-			if (m_isZeroBegin == true)
+			if (m_isBeginLocalPosition == true)
 			{
 				m_beginVector = transform.position;
 			}

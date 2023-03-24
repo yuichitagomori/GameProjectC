@@ -40,7 +40,7 @@ namespace scene.game.outgame
 		public struct SearchTargetIconColor
 		{
 			public int m_enemyId;
-			public EnemyDataAsset.Data.ColorData m_colorData;
+			public data.resource.EnemyColorResource.Data.ColorData m_colorData;
 		}
 
 		[System.Serializable]
@@ -129,6 +129,7 @@ namespace scene.game.outgame
 		public void Initialize(
 			outgame.Handler.EventData cameraHandlerEventData,
 			outgame.Handler.EventData playerHandlerEventData,
+			Camera ingameCamera,
 			UnityAction<int> onCharaActionButtonEvent)
 		{
 			m_cameraHandlerEventData = cameraHandlerEventData;
@@ -160,12 +161,11 @@ namespace scene.game.outgame
 			//	});
 			//}
 
-			StartCoroutine(UpdateCoroutine());
+			StartCoroutine(UpdateCoroutine(ingameCamera));
 		}
 
-		private IEnumerator UpdateCoroutine()
+		private IEnumerator UpdateCoroutine(Camera ingameCamera)
 		{
-			var ingameCamera = GeneralRoot.Instance.GetIngame2Camera();
 			var charaActionButtonElementsTransform = m_charaActionButtonElement.GetComponent<RectTransform>();
 			Vector2 convertUIPositionPar = new Vector2(
 				m_convertUIPositionHelperRect.rect.width / ingameCamera.pixelWidth,
@@ -259,23 +259,6 @@ namespace scene.game.outgame
 			m_playerHandlerEventData.ClickEvent(v);
 		}
 
-		public void UpdateMode(Game.GameMode mode)
-		{
-			switch (mode)
-			{
-				case Game.GameMode.None:
-					{
-						StartCoroutine(UpdateModeNoneCoroutine());
-						break;
-					}
-				case Game.GameMode.App:
-					{
-						StartCoroutine(UpdateModeAppCoroutine());
-						break;
-					}
-			}
-		}
-
 		private IEnumerator UpdateModeNoneCoroutine()
 		{
 			m_mainObject.SetActive(true);
@@ -297,60 +280,6 @@ namespace scene.game.outgame
 			m_mapNameAnime.Play("In", () => { isDone = true; });
 			while (!isDone) { yield return null; }
 		}
-
-		//public IEnumerator ChangeMapInCoroutine(int mapId)
-		//{
-		//	bool isDone = false;
-		//	m_mapNameAnime.Play("In", () => { isDone = true; });
-		//	while (!isDone) { yield return null; }
-
-		//	yield return PlayMapInCoroutine();
-		//}
-
-		//public IEnumerator ChangeMapOutCoroutine()
-		//{
-		//	bool isDone = false;
-		//	m_mapNameAnime.Play("Out", () => { isDone = true; });
-		//	while (!isDone) { yield return null; }
-
-		//	yield return PlayMapOutCoroutine();
-		//}
-
-		//public void ChangeMode(Game.Mode _mode)
-		//{
-		//	StartCoroutine(ChangeModeCoroutine(_mode));
-		//}
-
-		//private IEnumerator ChangeModeCoroutine(Game.Mode _mode)
-		//{
-		//	bool isDone = false;
-		//	switch (_mode)
-		//	{
-		//		case Game.Mode.None:
-		//			{
-		//				if (m_mode == Game.Mode.Search)
-		//				{
-		//					m_searchAnime.Play("Out", () => { isDone = true; });
-		//					while (!isDone) { yield return null; }
-		//				}
-		//				m_mode = Game.Mode.None;
-
-		//				break;
-		//			}
-		//		case Game.Mode.Search:
-		//			{
-		//				if (m_mode == Game.Mode.None)
-		//				{
-		//					m_searchAnime.Play("In", () => { isDone = true; });
-		//					while (!isDone) { yield return null; }
-		//					m_searchAnime.PlayLoop("Loop");
-		//				}
-		//				m_mode = Game.Mode.Search;
-
-		//				break;
-		//			}
-		//	}
-		//}
 
 		public void SetVisible(bool value)
 		{

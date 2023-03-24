@@ -67,9 +67,8 @@ namespace scene.game.ingame
 
 
 
-			public IEnumerator InitializeCoroutine(
-				Transform playerTransform,
-				EnemyDataAsset enemyDataAsset,
+			public void Initialize(
+				Transform ingameCameraTransform,
 				UnityAction<string> enterCallback,
 				UnityAction<string> exitCallback)
 			{
@@ -79,10 +78,9 @@ namespace scene.game.ingame
 				RenderSettings.fog = true;
 				RenderSettings.fogColor = m_fogColor;
 
-				yield return m_enemyController.InitializeCoroutine(
-					playerTransform,
+				m_enemyController.Initialize(
+					ingameCameraTransform,
 					m_navMeshController.GetNavMeshBasePoints(),
-					enemyDataAsset,
 					enterCallback,
 					exitCallback);
 
@@ -137,24 +135,17 @@ namespace scene.game.ingame
 		private WorldData m_worldData = null;
 
 
-		private Transform m_playerTransform = null;
-		private EnemyDataAsset m_enemyAssetData = null;
+		private Transform m_ingameCameraTransform = null;
 		private UnityAction<string> m_enterEvent = null;
 		private UnityAction<string> m_exitEvent = null;
 
 		public override void Ready(UnityAction callback)
 		{
-			StartCoroutine(ReadyCoroutine(callback));
-		}
-
-		private IEnumerator ReadyCoroutine(UnityAction callback)
-		{
 			m_worldData.SetSequenceTime(0.0f);
 			m_worldData.SetSkyboxTexture(m_worldData.SkyboxTextures[0]);
 
-			yield return m_worldData.InitializeCoroutine(
-				m_playerTransform,
-				m_enemyAssetData,
+			m_worldData.Initialize(
+				m_ingameCameraTransform,
 				m_enterEvent,
 				m_exitEvent);
 
@@ -167,32 +158,29 @@ namespace scene.game.ingame
 		}
 
 		public void Initialize(
-			Transform playerTransform,
-			EnemyDataAsset enemyAssetData,
+			Transform ingameCameraTransform,
 			UnityAction<string> enterEvent,
 			UnityAction<string> exitEvent)
 		{
-			m_playerTransform = playerTransform;
-			m_enemyAssetData = enemyAssetData;
+			m_ingameCameraTransform = ingameCameraTransform;
 			m_enterEvent = enterEvent;
 			m_exitEvent = exitEvent;
 		}
 
-		public IEnumerator ChangeMapOutCoroutine()
+		public IEnumerator ChangeMapOutCoroutine(float time)
 		{
 			var curve = AnimationCurve.EaseInOut(0.0f, 0.0f, 1.0f, 1.0f);
 
 			float nowTime = 0.0f;
-			float maxTime = 0.5f;
-			while (nowTime < maxTime)
+			while (nowTime < time)
 			{
 				nowTime += Time.deltaTime;
-				if (nowTime > maxTime)
+				if (nowTime > time)
 				{
-					nowTime = maxTime;
+					nowTime = time;
 				}
 
-				float t = nowTime / maxTime;
+				float t = nowTime / time;
 				float value = curve.Evaluate(1.0f - t);
 				m_worldData.SetSequenceTime(value);
 
@@ -201,21 +189,20 @@ namespace scene.game.ingame
 			m_worldData.SetSequenceTime(0.0f);
 		}
 
-		public IEnumerator ChangeMapInCoroutine()
+		public IEnumerator ChangeMapInCoroutine(float time)
 		{
 			var curve = AnimationCurve.EaseInOut(0.0f, 0.0f, 1.0f, 1.0f);
 
 			float nowTime = 0.0f;
-			float maxTime = 0.5f;
-			while (nowTime < maxTime)
+			while (nowTime < time)
 			{
 				nowTime += Time.deltaTime;
-				if (nowTime > maxTime)
+				if (nowTime > time)
 				{
-					nowTime = maxTime;
+					nowTime = time;
 				}
 
-				float t = nowTime / maxTime;
+				float t = nowTime / time;
 				float value = curve.Evaluate(t);
 				m_worldData.SetSequenceTime(value);
 

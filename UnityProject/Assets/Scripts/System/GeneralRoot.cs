@@ -12,12 +12,20 @@ using UnityEngine.Rendering.Universal;
 /// </summary>
 public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 {
-	//public readonly static string DEBUG_ANDROID = "Debug_Android";
-	//public readonly static string RELEASE_ANDROID = "Release_Android";
-	//public readonly static string DEBUG_IOS = "Debug_IOS";
-	//public readonly static string RELEASE_IOS = "Release_IOS";
-	//public readonly static string DEBUG_STANDALONE = "Debug_Standalone";
-	//public readonly static string RELEASE_STANDALONE = "Release_Standalone";
+	public static data.MasterData Master => Instance.m_masterData;
+
+	public static data.UserData User => Instance.m_userData;
+
+	public static data.ResourceData Resource => Instance.m_resourceData;
+
+
+
+	public readonly static string DEBUG_ANDROID = "Debug_Android";
+	public readonly static string RELEASE_ANDROID = "Release_Android";
+	public readonly static string DEBUG_IOS = "Debug_IOS";
+	public readonly static string RELEASE_IOS = "Release_IOS";
+	public readonly static string DEBUG_STANDALONE = "Debug_Standalone";
+	public readonly static string RELEASE_STANDALONE = "Release_Standalone";
 
 	//public readonly static string kVersionDataName = "versiondata";
 	//public readonly static string kBundleDataName = "bundledata";
@@ -50,29 +58,19 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 	/// アセット情報
 	/// </summary>
 	[SerializeField]
-	private data.AssetData m_assetData;
-	public data.AssetData AssetData { get { return m_assetData; } }
-
-	/// <summary>
-	/// SpriteStudio情報
-	/// </summary>
-	[SerializeField]
-	private data.SpriteStudioData m_ssData;
-	public data.SpriteStudioData SSData { get { return m_ssData; } }
+	private data.ResourceData m_resourceData;
 
 	/// <summary>
 	/// マスター情報
 	/// </summary>
 	[SerializeField]
 	private data.MasterData m_masterData;
-	public data.MasterData MasterData { get { return m_masterData; } }
 
 	/// <summary>
 	/// ユーザー情報
 	/// </summary>
 	[SerializeField]
 	private data.UserData m_userData;
-	public data.UserData UserData { get { return m_userData; } }
 
 	///// <summary>
 	///// サウンドシステム
@@ -95,27 +93,6 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 	/// </summary>
 	[SerializeField]
 	private GameObject m_foremostRayCast;
-
-	/// <summary>
-	/// カメラ
-	/// </summary>
-	[SerializeField]
-	private Camera m_ingameCamera;
-	public Camera GetIngameCamera() => m_ingameCamera;
-
-	/// <summary>
-	/// カメラ
-	/// </summary>
-	[SerializeField]
-	private Camera m_ingame2Camera;
-	public Camera GetIngame2Camera() => m_ingame2Camera;
-
-	/// <summary>
-	/// カメラ
-	/// </summary>
-	[SerializeField]
-	private Camera m_outgameCamera;
-	public Camera GetOutgameCamera() => m_outgameCamera;
 
 	/// <summary>
 	/// デバッグメニュー

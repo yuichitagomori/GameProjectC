@@ -8,26 +8,55 @@ namespace scene
 {
 	public class Game : SceneBase
 	{
-		public enum GameMode
-		{
-			None,
-			App,
-		}
-
 		[Header("Game")]
 
+		/// <summary>
+		/// インゲーム用カメラ
+		/// </summary>
+		[SerializeField]
+		private Camera m_ingameCamera;
+
+		/// <summary>
+		/// インゲーム用カメラ
+		/// </summary>
+		[SerializeField]
+		private Camera m_ingame2Camera;
+
+		/// <summary>
+		/// インゲーム用カメラトランスフォーム
+		/// </summary>
+		[SerializeField]
+		private Transform m_ingame2CameraTransform;
+
+		/// <summary>
+		/// インゲーム用カメラアニメーション
+		/// </summary>
+		[SerializeField]
+		private AnimatorExpansion m_ingame2CameraAnimator;
+
+		/// <summary>
+		/// アウトゲーム用カメラ
+		/// </summary>
+		[SerializeField]
+		private Camera m_outgameCamera;
+
+		/// <summary>
+		/// インゲーム管理
+		/// </summary>
 		[SerializeField]
 		private game.Ingame m_ingame = null;
 
+		/// <summary>
+		/// アウトゲーム管理
+		/// </summary>
 		[SerializeField]
 		private game.Outgame m_outgame = null;
 
+		/// <summary>
+		/// ムービー管理
+		/// </summary>
 		[SerializeField]
 		private game.MovieController m_movieController = null;
-
-
-
-		private GameMode m_gameMode = GameMode.None;
 
 
 
@@ -38,14 +67,17 @@ namespace scene
 
 		private IEnumerator ReadyCoroutine(UnityAction callback)
 		{
+			m_ingame2Camera.transform.SetPositionAndRotation(
+				Vector3.zero,
+				Quaternion.identity);
+
 			m_movieController.Initialize(
 				m_outgame.SetVisible,
-				m_ingame.ChangeMap,
 				m_ingame.PlayMovieCamera,
 				m_ingame.PlayMovieCharaReaction,
 				m_outgame.PlayMovieQuestClearIn);
 
-			var searchTargetList = GeneralRoot.Instance.UserData.Data.SearchTargetList;
+			var searchTargetList = GeneralRoot.User.LocalSaveData.SearchTargetList;
 			searchTargetList.Clear();
 			//for (int i = 0; i < 5; ++i)
 			//{
@@ -56,8 +88,10 @@ namespace scene
 
 			bool isDone = false;
 			m_ingame.Initialize(
-				changeMapEvent: ChangeMapEvent,
 				ingameEvent: IngameEvent,
+				ingameCameraParentTransform: m_ingame2CameraTransform,
+				ingameCameraAnimator: m_ingame2CameraAnimator,
+				loadMapEvent: LoadMapEvent,
 				updateCharaActionButtonEvent: UpdateCharaActionButton,
 				() => { isDone = true; });
 			while (!isDone) { yield return null; }
@@ -70,29 +104,30 @@ namespace scene
 					m_ingame.OnPlayerDragEvent,
 					m_ingame.OnPlayerEndDragEvent,
 					m_ingame.OnPlayerClickEvent),
+				m_ingame2Camera,
 				onCharaActionButtonEvent: OnCharaActionButtonPressed);
 
-			m_gameMode = GameMode.None;
-
 			UpdateOutgameObject();
+
+			yield return ChangeMapCoroutine(1, 0, true, null);
 
 			callback();
 		}
 
 		public override void Go()
 		{
-			StartCoroutine(m_movieController.ChangeMapCoroutine(1, 0, false, true, null));
+			m_outgame.Fade(false, 1.0f);
 		}
 
-		private void ChangeMapEvent(
+		private void LoadMapEvent(
 			int stageId,
 			game.ingame.StageScene beforeStage,
 			UnityAction<game.ingame.StageScene> addedEvent)
 		{
-			StartCoroutine(ChangeMapEventCoroutine(stageId, beforeStage, addedEvent));
+			StartCoroutine(LoadMapEventCoroutine(stageId, beforeStage, addedEvent));
 		}
 
-		private IEnumerator ChangeMapEventCoroutine(
+		private IEnumerator LoadMapEventCoroutine(
 			int stageId,
 			game.ingame.StageScene beforeStage,
 			UnityAction<game.ingame.StageScene> addedEvent)
@@ -128,9 +163,9 @@ namespace scene
 				//	}
 				case "ChangeMap":
 					{
-						int mapId = int.Parse(eventType[1]);
+						int stageId = int.Parse(eventType[1]);
 						int dataIndex = int.Parse(eventType[2]);
-						StartCoroutine(ChangeMapCoroutine(mapId, dataIndex, callback));
+						StartCoroutine(ChangeMapCoroutine(stageId, dataIndex, false, callback));
 						break;
 					}
 				case "OpenDialog":
@@ -162,15 +197,23 @@ namespace scene
 		//	callback();
 		//}
 
-		private IEnumerator ChangeMapCoroutine(int mapId, int dataIndex, UnityAction callback)
+		private IEnumerator ChangeMapCoroutine(int stageId, int dataIndex, bool isReady, UnityAction callback)
 		{
-			m_outgame.SetVisible(game.Outgame.Target.None);
+			if (isReady == false)
+			{
+				m_outgame.SetVisible(game.Outgame.Target.None);
+			}
 
-			yield return m_movieController.ChangeMapCoroutine(mapId, dataIndex, false, false, callback);
+			bool isDone = false;
+			m_ingame.ChangeMap(stageId, dataIndex, isReady, () => { isDone = true; });
+			while (!isDone) { yield return null; }
 
 			m_outgame.SetVisible(game.Outgame.Target.Game);
 
-			callback();
+			if (callback != null)
+			{
+				callback();
+			}
 		}
 
 		private void OpenDialog(string dialogName, int id, UnityAction callback)
@@ -187,6 +230,11 @@ namespace scene
 						StartCoroutine(OpenShopDialog(id, callback));
 						break;
 					}
+				case "Customize":
+					{
+						StartCoroutine(OpenCustomizeDialog(callback));
+						break;
+					}
 				default:
 					{
 						callback();
@@ -200,7 +248,7 @@ namespace scene
 			m_outgame.SetVisible(game.Outgame.Target.None);
 
 			bool isDone = false;
-			m_ingame.PlayMovieCamera(game.Ingame.ZoomType.Out, 0.5f, () => { isDone = true; });
+			m_ingame.PlayMovieCamera(game.Ingame.ZoomType.Pull, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			// クエストデータ
@@ -230,15 +278,16 @@ namespace scene
 			while (!isDone) { yield return null; }
 
 			isDone = false;
-			m_ingame.PlayMovieCamera(game.Ingame.ZoomType.Normal, 0.25f, () => { isDone = true; });
+			m_ingame.PlayMovieCamera(game.Ingame.ZoomType.Normal, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
+			Debug.Log("OpenQuestListDialog = " + game.Outgame.Target.Game);
 			m_outgame.SetVisible(game.Outgame.Target.Game);
 
 			if (receiveQuestIndex >= 0)
 			{
-				var searchTargetList = GeneralRoot.Instance.UserData.Data.SearchTargetList;
-				searchTargetList.Add(new data.UserData.LocalSaveData.SearchTargetData(
+				var searchTargetList = GeneralRoot.User.LocalSaveData.SearchTargetList;
+				searchTargetList.Add(new data.UserData.LocalSave.SearchTargetData(
 					30,
 					7));
 
@@ -250,12 +299,23 @@ namespace scene
 			callback();
 		}
 
-
-
 		private IEnumerator OpenShopDialog(int shopId, UnityAction callback)
 		{
 			bool isDone = false;
 			m_sceneController.AddScene<dialog.ShopDialog>(
+				added: (s) =>
+				{
+					s.Setting(null, () => { isDone = true; });
+				});
+			while (!isDone) { yield return null; }
+
+			callback();
+		}
+
+		private IEnumerator OpenCustomizeDialog(UnityAction callback)
+		{
+			bool isDone = false;
+			m_sceneController.AddScene<dialog.CustomizeDialog>(
 				added: (s) =>
 				{
 					s.Setting(null, () => { isDone = true; });
@@ -272,7 +332,7 @@ namespace scene
 
 		private IEnumerator RemoveTargetCoroutine(int enemyId, int controllId, UnityAction callback)
 		{
-			var searchTargetList = GeneralRoot.Instance.UserData.Data.SearchTargetList;
+			var searchTargetList = GeneralRoot.User.LocalSaveData.SearchTargetList;
 			var targetData = searchTargetList.Find(d => d.EnemyId == enemyId && d.ControllId == controllId);
 			if (targetData == null)
 			{
@@ -341,6 +401,8 @@ namespace scene
 			while (!isDone) { yield return null; }
 
 			m_outgame.SetVisible(game.Outgame.Target.Game);
+
+			m_ingame.CheckEnemyActionEvent(controllId);
 		}
 
 		private void UpdateOutgameObject()
@@ -350,54 +412,34 @@ namespace scene
 
 		private void UpdateOutgameSearchTarget(UnityAction callback)
 		{
-			var searchTargetList = GeneralRoot.Instance.UserData.Data.SearchTargetList;
-			game.outgame.GameUI.SearchTargetIconColor colorData = default;
+			var searchTargetList = GeneralRoot.User.LocalSaveData.SearchTargetList;
+			game.outgame.GameUI.SearchTargetIconColor iconColorData = default;
 			if (searchTargetList.Count > 0)
 			{
-				colorData = new game.outgame.GameUI.SearchTargetIconColor()
+				var enemyColorResource = GeneralRoot.Resource.EnemyColorResource;
+				data.resource.EnemyColorResource.Data.ColorData colorData = null;
+				int enemyId = searchTargetList[0].EnemyId;
+				var enemyData = enemyColorResource.Find(enemyId);
+				if (enemyData != null)
 				{
-					m_enemyId = searchTargetList[0].EnemyId,
-					m_colorData = m_ingame.GetColorData(
-					searchTargetList[0].EnemyId,
-					searchTargetList[0].ControllId)
+					int controllId = searchTargetList[0].ControllId;
+					colorData = enemyData.Find(controllId);
+				}
+				iconColorData = new game.outgame.GameUI.SearchTargetIconColor()
+				{
+					m_enemyId = enemyId,
+					m_colorData = colorData
 				};
 			}
 			else
 			{
-				colorData = new game.outgame.GameUI.SearchTargetIconColor()
+				iconColorData = new game.outgame.GameUI.SearchTargetIconColor()
 				{
 					m_enemyId = -1,
 					m_colorData = null
 				};
 			}
-			m_outgame.UpdateSearchTarget(colorData, callback);
-		}
-
-		private void OnAppButtonPressed()
-		{
-			//if (m_gameMode == GameMode.None)
-			//{
-			//	m_gameMode = GameMode.App;
-			//}
-			//else
-			//{
-			//	m_gameMode = GameMode.None;
-			//}
-			//m_ingame.UpdateMode(m_gameMode);
-			//m_outgame.UpdateMode(m_gameMode);
-		}
-
-		private void OnAppIconButtonPressed(int index)
-		{
-			if (m_gameMode != GameMode.App)
-			{
-				return;
-			}
-			UpdateOutgameObject();
-		}
-
-		private void OnInfoButtonPressed()
-		{
+			m_outgame.UpdateSearchTarget(iconColorData, callback);
 		}
 	}
 }

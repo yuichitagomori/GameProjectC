@@ -40,22 +40,22 @@ public class LocalizeText : MonoBehaviour
 	/// <summary>
 	/// 文字設定
 	/// </summary>
-	/// <param name="_id"></param>
-	/// <param name="_param"></param>
-	public void SetText(int _id, string[] _param)
+	/// <param name="id"></param>
+	/// <param name="param"></param>
+	public void SetText(int id, string[] param)
 	{
-		m_id = _id;
-		m_param = _param;
+		m_id = id;
+		m_param = param;
 		SetText();
 	}
 
 	/// <summary>
 	/// 文字設定
 	/// </summary>
-	/// <param name="_id"></param>
-	public void SetText(int _id)
+	/// <param name="id"></param>
+	public void SetText(int id)
 	{
-		m_id = _id;
+		m_id = id;
 		m_param = null;
 		SetText();
 	}
@@ -88,33 +88,29 @@ public class LocalizeText : MonoBehaviour
 		}
 	}
 
-	public static string GetString(int _id)
+	public static string GetString(int id)
 	{
-		if (_id == -1)
+		if (id == -1)
 		{
 			return "";
 		}
 
-		string localizeText = "";
-		var localizeMaster = GeneralRoot.Instance.MasterData.LocalizeData;
+		var localizeMaster = GeneralRoot.Master.Localize;
 		if (localizeMaster == null)
 		{
 			// マスターデータロード前に呼ばれている（CommonDialogの「所持数」等）
 			return "";
 		}
 
-		var localizeMasterData = localizeMaster.Find(_id);
-		if (localizeMasterData != null)
+		var localizeMasterData = localizeMaster.Find(id);
+		if (localizeMasterData == null)
 		{
-			var saveData = GeneralRoot.Instance.UserData;
-			int index = 0;//(int)saveData.Param.m_language;
-			localizeText = localizeMasterData.TextList[index];
+			Debug.LogError(string.Format("存在しないローカライズID（ID:{0}）", id));
+			return id.ToString();
 		}
-		else
-		{
-			Debug.LogError(string.Format("存在しないローカライズID（ID:{0}）", _id));
-			localizeText = _id.ToString();
-		}
-		return localizeText;
+
+		//var saveData = GeneralRoot.Instance.UserData;
+		int index = 0;//(int)saveData.Param.m_language;
+		return localizeMasterData.Texts[index];
 	}
 }

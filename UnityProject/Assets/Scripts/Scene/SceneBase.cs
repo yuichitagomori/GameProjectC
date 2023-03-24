@@ -45,8 +45,6 @@ namespace scene
 		[SerializeField]
 		private List<LocalizeText> m_localizeTextList;
 
-
-
 		/// <summary>
 		/// シーン管理
 		/// </summary>
@@ -61,11 +59,6 @@ namespace scene
 		public void Initialize(scene.SceneController sceneController)
 		{
 			m_sceneController = sceneController;
-
-			if (m_canvas != null)
-			{
-				m_canvas.worldCamera = GeneralRoot.Instance.GetOutgameCamera();
-			}
 
 			for (int i = 0; i < m_localizeTextList.Count; ++i)
 			{

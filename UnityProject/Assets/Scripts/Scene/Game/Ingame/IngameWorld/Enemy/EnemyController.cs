@@ -26,14 +26,14 @@ namespace scene.game.ingame.world
 
         private List<Enemy> m_enemyList = new List<Enemy>();
 
-        public IEnumerator InitializeCoroutine(
-            Transform playerTransform,
+        public void Initialize(
+            Transform ingameCameraTransform,
             Vector3[] navmeshPointList,
-            EnemyDataAsset enemyDataAsset,
             UnityAction<string> enterCallback,
             UnityAction<string> exitCallback)
 		{
-            yield return null;
+            var enemyColorResource = GeneralRoot.Resource.EnemyColorResource;
+
             m_enemyList.Clear();
             for (int i = 0; i < m_dataList.Count; ++i)
             {
@@ -44,12 +44,12 @@ namespace scene.game.ingame.world
                     int enemyId = m_dataList[i].EnemyID;
                     int controllId = m_enemyList.Count + 1;
                     int colorId = m_enemyList.Count + 1;
-                    EnemyDataAsset.Data enemyData = enemyDataAsset.List.Find(d => d.EnemyId == enemyId);
-                    EnemyDataAsset.Data.ColorData colorData = enemyData.ColorDatas.Where(d => d.ColorId == colorId).First();
+                    data.resource.EnemyColorResource.Data enemyData = enemyColorResource.Find(enemyId);
+                    data.resource.EnemyColorResource.Data.ColorData colorData = enemyData.ColorDatas.Where(d => d.ColorId == colorId).First();
                     enemy.Initialize(
                         controllId,
                         enemyId,
-                        playerTransform,
+                        ingameCameraTransform,
                         navmeshPointList,
                         colorData,
                         enterCallback,
