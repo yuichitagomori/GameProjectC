@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 8
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4acbfc3d68df03d4786937febf195772, type: 3}
+  m_Name: CustomizePartsEffect
+  m_EditorClassIdentifier: 
+  m_datas:
+  - m_name: 101
+    m_id: 101
+    m_category: 1
+    m_param: 1
+  - m_name: 201
+    m_id: 201
+    m_category: 1
+    m_param: 2
+  - m_name: 301
+    m_id: 301
+    m_category: 1
+    m_param: 3
+  - m_name: 401
+    m_id: 401
+    m_category: 1
+    m_param: 4
+  - m_name: 501
+    m_id: 501
+    m_category: 1
+    m_param: 5
+  - m_name: 601
+    m_id: 601
+    m_category: 1
+    m_param: 6

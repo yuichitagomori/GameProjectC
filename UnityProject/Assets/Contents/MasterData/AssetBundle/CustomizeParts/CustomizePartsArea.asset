@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 8
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1de338095520c5e408097df9d769a985, type: 3}
+  m_Name: CustomizePartsArea
+  m_EditorClassIdentifier: 
+  m_datas:
+  - m_name: 101
+    m_id: 101
+    m_grids:
+    - x: 0
+      y: 0
+  - m_name: 201
+    m_id: 201
+    m_grids:
+    - x: 0
+      y: 0
+  - m_name: 301
+    m_id: 301
+    m_grids:
+    - x: 1
+      y: 0
+    - x: 1
+      y: 1
+    - x: 0
+      y: 1
+  - m_name: 401
+    m_id: 401
+    m_grids:
+    - x: 0
+      y: 0
+    - x: 1
+      y: 0
+    - x: 1
+      y: 1
+    - x: 0
+      y: 1
+  - m_name: 501
+    m_id: 501
+    m_grids:
+    - x: 0
+      y: -1
+    - x: 1
+      y: -1
+    - x: 1
+      y: 0
+    - x: 1
+      y: 1
+    - x: 0
+      y: 1
+  - m_name: 601
+    m_id: 601
+    m_grids:
+    - x: -1
+      y: -1
+    - x: 0
+      y: -1
+    - x: 0
+      y: 0
+    - x: 1
+      y: 0
+    - x: 0
+      y: 1
+    - x: -1
+      y: 1
