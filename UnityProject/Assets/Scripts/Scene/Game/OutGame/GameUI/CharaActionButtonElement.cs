@@ -15,9 +15,9 @@ namespace scene.game.outgame
 		}
 
         [SerializeField]
-        private AnimatorExpansion m_anime;
+        private Common.AnimatorExpansion m_anime;
 
-        public AnimatorExpansion Anime => m_anime;
+        public Common.AnimatorExpansion Anime => m_anime;
 
         [SerializeField]
         private CommonUI.ButtonExpansion m_button;

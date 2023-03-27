@@ -21,7 +21,7 @@ namespace scene.game.outgame
 		/// クエストクリア演出アニメーター
 		/// </summary>
 		[SerializeField]
-		private AnimatorExpansion m_questClearAnimator;
+		private Common.AnimatorExpansion m_questClearAnimator;
 
 		/// <summary>
 		/// クエストクリア演出進行ボタン

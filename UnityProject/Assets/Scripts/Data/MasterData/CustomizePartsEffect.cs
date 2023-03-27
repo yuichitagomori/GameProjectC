@@ -9,9 +9,13 @@ namespace data.master
 		[System.Serializable]
 		public class Data : DataBase
 		{
+			public enum CaterogyType
+			{
+				SpeedUp = 1,
+			}
 			[SerializeField]
-			private int m_category = 0;
-			public int Category => m_category;
+			private CaterogyType m_category = 0;
+			public CaterogyType Category => m_category;
 
 			[SerializeField]
 			private int m_param = 0;
@@ -20,7 +24,7 @@ namespace data.master
 
 			public Data(
 				int id,
-				int category,
+				CaterogyType category,
 				int param)
 			{
 				m_name = id.ToString();
@@ -37,7 +41,7 @@ namespace data.master
 		public override Data CreateData(string[] csvParam)
 		{
 			int id = int.Parse(csvParam[0]);
-			int category = int.Parse(csvParam[1]);
+			Data.CaterogyType category = (Data.CaterogyType)int.Parse(csvParam[1]);
 			int param = int.Parse(csvParam[2]);
 			return new Data(
 				id,

@@ -95,7 +95,7 @@ namespace scene.dialog
 		/// アニメーター
 		/// </summary>
 		[SerializeField]
-		private AnimatorExpansion m_animator;
+		private Common.AnimatorExpansion m_animator;
 
 		/// <summary>
 		/// 閉じるボタン

@@ -36,6 +36,8 @@ namespace scene.game.ingame.world
 
 		private float m_moveSpeed = 0.0f;
 
+		private float m_moveSpeedMax = 0.0f;
+
 
 		public void Initialize(Transform ingameCameraTransform)
 		{
@@ -44,7 +46,6 @@ namespace scene.game.ingame.world
 			m_cameraTransform = ingameCameraTransform;
 
 			m_fbx.Anime.PlayLoop("Wait");
-			m_dustParticle.Stop();
 
 			StartCoroutine(UpdateCoroutine());
 		}
@@ -57,7 +58,6 @@ namespace scene.game.ingame.world
 			if (m_fbx.Anime.GetAnimationName() == "Wait")
 			{
 				m_fbx.Anime.PlayLoop("Walk");
-				m_dustParticle.Play();
 			}
 		}
 
@@ -68,13 +68,36 @@ namespace scene.game.ingame.world
 			if (m_fbx.Anime.GetAnimationName() == "Walk")
 			{
 				m_fbx.Anime.PlayLoop("Wait");
-				m_dustParticle.Stop();
 			};
 		}
 
 		public void SetEnable(bool value)
 		{
 			m_enable = value;
+		}
+
+		public void UpdateParam()
+		{
+			var localSaveData = GeneralRoot.User.LocalSaveData;
+			var customizeData = localSaveData.Customize;
+			var customizePartsMaster = GeneralRoot.Master.CustomizeParts;
+			var customizePartsEffectMaster = GeneralRoot.Master.CustomizePartsEffect;
+			m_moveSpeedMax = 5.0f;
+			for (int i = 0; i < customizeData.BoardPartsDatas.Length; ++i)
+			{
+				var boardPartsData = customizeData.BoardPartsDatas[i];
+				var userPartsData = localSaveData.UniqueItemList.Find(d => d.UniqueId == boardPartsData.UniqueId);
+				var customizePartsMasterData = customizePartsMaster.Find(userPartsData.Id);
+				var customizePartsEffectMasterData = customizePartsEffectMaster.Find(customizePartsMasterData.EffectId);
+				switch (customizePartsEffectMasterData.Category)
+				{
+					case data.master.CustomizePartsEffect.Data.CaterogyType.SpeedUp:
+						{
+							m_moveSpeedMax += customizePartsEffectMasterData.Param;
+							break;
+						}
+				}
+			}
 		}
 
 		public void OnCharaActionButtonPressed(UnityAction callback)
@@ -165,6 +188,7 @@ namespace scene.game.ingame.world
 			if (m_enable == false)
 			{
 				m_rigidbody.velocity = Vector3.zero;
+				m_dustParticle.Stop();
 				return;
 			}
 
@@ -188,8 +212,20 @@ namespace scene.game.ingame.world
 				{
 					m_moveSpeed = 1.0f;
 				}
-				Vector3 moveVector = m_moveVector * 20.0f * m_moveSpeed;
+				Vector3 moveVector = m_moveVector * m_moveSpeed * m_moveSpeedMax;
 				m_rigidbody.velocity = new Vector3(moveVector.x, velocityY, moveVector.z);
+			}
+
+			float magnitude = m_rigidbody.velocity.magnitude;
+			if (magnitude > 10.0f &&
+				m_dustParticle.isStopped == true)
+			{
+				m_dustParticle.Play();
+			}
+			if (magnitude <= 10.0f &&
+				m_dustParticle.isPlaying == true)
+			{
+				m_dustParticle.Stop();
 			}
 		}
 

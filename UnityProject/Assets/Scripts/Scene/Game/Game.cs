@@ -32,7 +32,7 @@ namespace scene
 		/// インゲーム用カメラアニメーション
 		/// </summary>
 		[SerializeField]
-		private AnimatorExpansion m_ingame2CameraAnimator;
+		private Common.AnimatorExpansion m_ingame2CameraAnimator;
 
 		/// <summary>
 		/// アウトゲーム用カメラ
@@ -315,11 +315,19 @@ namespace scene
 		private IEnumerator OpenCustomizeDialog(UnityAction callback)
 		{
 			bool isDone = false;
+			m_ingame.PlayMovieCamera(game.Ingame.ZoomType.Customize, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
+			isDone = false;
 			m_sceneController.AddScene<dialog.CustomizeDialog>(
 				added: (s) =>
 				{
 					s.Setting(null, () => { isDone = true; });
 				});
+			while (!isDone) { yield return null; }
+
+			isDone = false;
+			m_ingame.PlayMovieCamera(game.Ingame.ZoomType.Normal, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			callback();

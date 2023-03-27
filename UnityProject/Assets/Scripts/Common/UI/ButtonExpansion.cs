@@ -20,7 +20,7 @@ namespace CommonUI
 		/// アニメーター
 		/// </summary>
 		[SerializeField]
-		private AnimatorExpansion m_animator;
+		private Common.AnimatorExpansion m_animator;
 
 		[SerializeField]
 		private GameObject m_raycast;
@@ -79,7 +79,7 @@ namespace CommonUI
 		{
 			if (m_animator == null)
 			{
-				m_animator = GetComponent<AnimatorExpansion>();
+				m_animator = GetComponent<Common.AnimatorExpansion>();
 			}
 
 			transition = Transition.None;

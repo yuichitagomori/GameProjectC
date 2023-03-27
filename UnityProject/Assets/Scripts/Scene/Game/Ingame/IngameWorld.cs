@@ -91,6 +91,7 @@ namespace scene.game.ingame
 			
 			m_player.Initialize(m_ingameCameraTransform);
 			m_player.SetEnable(false);
+			m_player.UpdateParam();
 
 			m_renderPlate.Initialize();
 
@@ -547,6 +548,19 @@ namespace scene.game.ingame
 			while (!isDone) { yield return null; }
 
 			m_player.SetEnable(true);
+			string[] eventType = eventParam.Split('_');
+			switch (eventType[0])
+			{
+				case "OpenDialog":
+					{
+						if (eventType[1] == "Customize")
+						{
+							// カスタマイズにより能力が変動しているので、更新
+							m_player.UpdateParam();
+						}
+						break;
+					}
+			}
 
 			m_eventParamList.RemoveAt(0);
 

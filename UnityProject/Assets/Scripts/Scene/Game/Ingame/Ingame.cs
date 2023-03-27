@@ -13,7 +13,8 @@ namespace scene.game
 			Normal,
 			Approach,
 			Pull,
-			QuestClear
+			QuestClear,
+			Customize,
 		}
 
 		[SerializeField]
@@ -30,7 +31,7 @@ namespace scene.game
 
 		private Transform m_cameraParentTransform;
 
-		private AnimatorExpansion m_cameraAnimator;
+		private Common.AnimatorExpansion m_cameraAnimator;
 
 		private Vector3 m_cameraDragEuler = Vector3.zero;
 
@@ -41,7 +42,7 @@ namespace scene.game
 		public void Initialize(
 			UnityAction<string, UnityAction> ingameEvent,
 			Transform ingameCameraParentTransform,
-			AnimatorExpansion ingameCameraAnimator,
+			Common.AnimatorExpansion ingameCameraAnimator,
 			UnityAction<int, ingame.StageScene, UnityAction<ingame.StageScene>> loadMapEvent,
 			UnityAction<ingame.IngameWorld.SearchInData> updateCharaActionButtonEvent,
 			UnityAction callback)
@@ -288,6 +289,11 @@ namespace scene.game
 									m_cameraAnimator.Play("QuestClearToNormalAngle", () => { isDone = true; });
 									break;
 								}
+							case ZoomType.Customize:
+								{
+									m_cameraAnimator.Play("CustomizeToNormalAngle", () => { isDone = true; });
+									break;
+								}
 							default:
 								{
 									isDone = true;
@@ -337,6 +343,23 @@ namespace scene.game
 							case ZoomType.Approach:
 								{
 									m_cameraAnimator.Play("ApproachToQuestClearAngle", () => { isDone = true; });
+									break;
+								}
+							default:
+								{
+									isDone = true;
+									break;
+								}
+						}
+						break;
+					}
+				case ZoomType.Customize:
+					{
+						switch (m_cameraZoomType)
+						{
+							case ZoomType.Normal:
+								{
+									m_cameraAnimator.Play("NormalToCustomizeAngle", () => { isDone = true; });
 									break;
 								}
 							default:

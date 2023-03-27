@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.IO;
+using System.Linq;
 
 namespace data
 {
@@ -94,68 +95,84 @@ namespace data
 			private List<SearchTargetData> m_searchTargetList;
 			public List<SearchTargetData> SearchTargetList => m_searchTargetList;
 
-			#region カスタマイズ
-
 			[System.Serializable]
-			public class CustomizeBoardPartsData
+			public class CustomizeData
 			{
-				public enum Rotate
+				[System.Serializable]
+				public class BoardPartsData
 				{
-					Z0,
-					Z90,
-					Z180,
-					Z270,
+					public enum Rotate
+					{
+						Z0,
+						Z90,
+						Z180,
+						Z270,
+					}
+
+					[SerializeField]
+					private int m_uniqueId;
+					public int UniqueId => m_uniqueId;
+
+					[SerializeField]
+					private Grid m_grid;
+					public Grid Grid => m_grid;
+
+					[SerializeField]
+					private Rotate m_rot;
+					public Rotate Rot => m_rot;
+
+					public BoardPartsData(
+						int uniqueId,
+						Grid grid,
+						Rotate rot)
+					{
+						m_uniqueId = uniqueId;
+						m_grid = grid;
+						m_rot = rot;
+					}
+
+					public void UpdateGrid(Grid grid)
+					{
+						m_grid = grid;
+					}
+
+					public void UpdateRotate(Rotate rot)
+					{
+						m_rot = rot;
+					}
 				}
 
 				[SerializeField]
-				private int m_uniqueId;
-				public int UniqueId => m_uniqueId;
+				private BoardPartsData[] m_boardPartsDatas;
+				public BoardPartsData[] BoardPartsDatas => m_boardPartsDatas;
 
-				[SerializeField]
-				private Grid m_grid;
-				public Grid Grid => m_grid;
+				public BoardPartsData Find(int uniqueId)
+				{
+					return m_boardPartsDatas.FirstOrDefault(d => d.UniqueId == uniqueId);
+				}
 
-				[SerializeField]
-				private Rotate m_rot;
-				public Rotate Rot => m_rot;
-
-				public CustomizeBoardPartsData(
+				public void Add(
 					int uniqueId,
 					Grid grid,
-					Rotate rot)
+					BoardPartsData.Rotate rot)
 				{
-					m_uniqueId = uniqueId;
-					m_grid = grid;
-					m_rot = rot;
+					m_boardPartsDatas = m_boardPartsDatas
+						.Append(new BoardPartsData(uniqueId, grid, rot))
+						.ToArray();
 				}
 
-				public void UpdateGrid(Grid grid)
+				public void Remove(
+					int uniqueId)
 				{
-					m_grid = grid;
-				}
-
-				public void UpdateRotate(Rotate rot)
-				{
-					m_rot = rot;
+					m_boardPartsDatas = m_boardPartsDatas
+						.Where(d => d.UniqueId != uniqueId)
+						.ToArray();
 				}
 			}
 
 			[SerializeField]
-			private List<CustomizeBoardPartsData> m_customizeBoardPartsDataList;
-			public List<CustomizeBoardPartsData> CustomizeBoardPartsDataList => m_customizeBoardPartsDataList;
-
-			public void AddCustomizeBoardPartsData(
-				int uniqueId,
-				Grid grid,
-				CustomizeBoardPartsData.Rotate rot)
-			{
-				m_customizeBoardPartsDataList.Add(new CustomizeBoardPartsData(
-					uniqueId,
-					grid,
-					rot));
-			}
-
-			#endregion
+			private CustomizeData m_customize;
+			public CustomizeData Customize => m_customize;
 
 			/// <summary>
 			/// BGMボリューム

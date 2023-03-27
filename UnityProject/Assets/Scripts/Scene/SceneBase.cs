@@ -43,7 +43,7 @@ namespace scene
 		/// 翻訳をかけるテキストリスト
 		/// </summary>
 		[SerializeField]
-		private List<LocalizeText> m_localizeTextList;
+		private List<CommonUI.LocalizeText> m_localizeTextList;
 
 		/// <summary>
 		/// シーン管理
@@ -94,7 +94,7 @@ namespace scene
 		/// テキストリスト設定
 		/// </summary>
 		/// <param name="localizeTextList"></param>
-		public void SetTextList(List<LocalizeText> localizeTextList)
+		public void SetTextList(List<CommonUI.LocalizeText> localizeTextList)
 		{
 			m_localizeTextList = localizeTextList;
 		}

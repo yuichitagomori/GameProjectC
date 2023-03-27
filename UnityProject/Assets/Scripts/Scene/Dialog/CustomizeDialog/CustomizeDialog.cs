@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 
 using UniqueItem = data.UserData.LocalSave.UniqueItem;
-using BoardPartsData = data.UserData.LocalSave.CustomizeBoardPartsData;
+using BoardPartsData = data.UserData.LocalSave.CustomizeData.BoardPartsData;
 
 namespace scene.dialog
 {
@@ -20,7 +20,7 @@ namespace scene.dialog
 		/// アニメーター
 		/// </summary>
 		[SerializeField]
-		private AnimatorExpansion m_animator;
+		private Common.AnimatorExpansion m_animator;
 
 		/// <summary>
 		/// 閉じるボタン
@@ -32,7 +32,7 @@ namespace scene.dialog
 		/// タイトル
 		/// </summary>
 		[SerializeField]
-		private Text m_titleText;
+		private CommonUI.TextExpansion m_titleText;
 
 		/// <summary>
 		/// カスタマイズボード
@@ -56,7 +56,7 @@ namespace scene.dialog
 		/// パーツリストのアニメーター
 		/// </summary>
 		[SerializeField]
-		private AnimatorExpansion m_partsListAnimator;
+		private Common.AnimatorExpansion m_partsListAnimator;
 
 		/// <summary>
 		/// パーツ一覧のパーツ
@@ -69,6 +69,12 @@ namespace scene.dialog
 		/// </summary>
 		[SerializeField]
 		private Common.ElementList m_partsListCarousel;
+
+		/// <summary>
+		/// 選択中パーツ詳細テキスト
+		/// </summary>
+		[SerializeField]
+		private CommonUI.TextExpansion m_partsInfoText;
 
 
 
@@ -147,8 +153,10 @@ namespace scene.dialog
 				OnBoardPartsRotateButtonPressed,
 				OnBoardPartsDecisionButtonPressed);
 
-			UpdatePartsView();
-			UpdateBoardView();
+			m_selectIndex = 0;
+
+			// キャッシュ値、パーツ一覧表記、ボード表記の初期化をここでまとめて行う。
+			ChangePartsList();
 
 			bool isDone = false;
 			m_animator.Play("In", () => { isDone = true; });
@@ -208,8 +216,8 @@ namespace scene.dialog
 			while (!isDone) { yield return null; }
 
 			m_partsListAnimator.Play("Default");
-			UpdatePartsView();
-			UpdateBoardView();
+
+			ChangePartsList();
 		}
 
 		private void OnPartsListLeftButtonPressed()
@@ -230,6 +238,29 @@ namespace scene.dialog
 			while (!isDone) { yield return null; }
 
 			m_partsListAnimator.Play("Default");
+
+			ChangePartsList();
+		}
+
+		private void ChangePartsList()
+		{
+			var localSaveData = GeneralRoot.User.LocalSaveData;
+			var customizeData = localSaveData.Customize;
+			var selectParts = m_userCustomizePartsList[m_selectIndex];
+			var boardPartsData = customizeData.Find(selectParts.UniqueId);
+			if (boardPartsData != null)
+			{
+				// ボード内にセットされているパーツなので、そのパーツの位置をキャッシュ
+				m_cacheSelectBoardPartsGrid = boardPartsData.Grid;
+				m_cacheSelectBoardPartsRotate = boardPartsData.Rot;
+			}
+			else
+			{
+				// 初期化
+				m_cacheSelectBoardPartsGrid = Grid.Create(3, 3);
+				m_cacheSelectBoardPartsRotate = BoardPartsData.Rotate.Z0;
+			}
+
 			UpdatePartsView();
 			UpdateBoardView();
 		}
@@ -268,16 +299,25 @@ namespace scene.dialog
 		{
 			var selectParts = m_userCustomizePartsList[m_selectIndex];
 			var localSaveData = GeneralRoot.User.LocalSaveData;
-			var boardPartsDataList = localSaveData.CustomizeBoardPartsDataList;
-			var selectBoardParts = boardPartsDataList.Find(d => d.UniqueId == selectParts.UniqueId);
+			var customizeData = localSaveData.Customize;
+			var selectBoardParts = customizeData.Find(selectParts.UniqueId);
 			if (selectBoardParts != null)
 			{
-				selectBoardParts.UpdateGrid(m_cacheSelectBoardPartsGrid);
-				selectBoardParts.UpdateRotate(m_cacheSelectBoardPartsRotate);
+				if (selectBoardParts.Grid == m_cacheSelectBoardPartsGrid &&
+					selectBoardParts.Rot == m_cacheSelectBoardPartsRotate)
+				{
+					// 同じ位置、同じ回転の同じピースが決定された場合は削除
+					customizeData.Remove(selectParts.UniqueId);
+				}
+				else
+				{
+					selectBoardParts.UpdateGrid(m_cacheSelectBoardPartsGrid);
+					selectBoardParts.UpdateRotate(m_cacheSelectBoardPartsRotate);
+				}
 			}
 			else
 			{
-				localSaveData.AddCustomizeBoardPartsData(
+				customizeData.Add(
 					selectParts.UniqueId,
 					m_cacheSelectBoardPartsGrid,
 					m_cacheSelectBoardPartsRotate);
@@ -328,20 +368,20 @@ namespace scene.dialog
 			var selectParts = m_userCustomizePartsList[m_selectIndex];
 			var userCustomizePartsList = localSaveData.UniqueItemList.FindAll(d =>
 				d.Category == UniqueItem.CategoryType.CustomizeParts);
-			var boardPartsDataList = localSaveData.CustomizeBoardPartsDataList;
+			var customizeData = localSaveData.Customize;
 
 			var customizePartsResource = GeneralRoot.Resource.CustomizePartsResource;
 			var customizePartsMaster = GeneralRoot.Master.CustomizeParts;
 			var customizePartsAreaMaster = GeneralRoot.Master.CustomizePartsArea;
-			for (int i = 0; i < boardPartsDataList.Count; ++i)
+			for (int i = 0; i < customizeData.BoardPartsDatas.Length; ++i)
 			{
-				var boardParts = boardPartsDataList[i];
+				var boardParts = customizeData.BoardPartsDatas[i];
 				var userParts = userCustomizePartsList.Find(d => d.UniqueId == boardParts.UniqueId);
 				var customizePartsMasterData = customizePartsMaster.Find(userParts.Id);
 				var customizePartsAreaMasterData = customizePartsAreaMaster.Find(customizePartsMasterData.AreaId);
 				var customizePartsResourceData = customizePartsResource.Find(customizePartsMasterData.SpriteId);
 				var stateType = (boardParts.UniqueId == selectParts.UniqueId) ?
-					board.CustomizeBoardPartsView.Data.Type.Setting :
+					board.CustomizeBoardPartsView.Data.Type.Selecting :
 					board.CustomizeBoardPartsView.Data.Type.Seted;
 				partsViewDataList.Add(new board.CustomizeBoardPartsView.Data(
 					boardParts,
@@ -350,10 +390,14 @@ namespace scene.dialog
 					stateType));
 			}
 
+			bool isNotSetPartsView = !customizeData.BoardPartsDatas.Any(d =>
+				d.UniqueId == selectParts.UniqueId &&
+				d.Grid == m_cacheSelectBoardPartsGrid &&
+				d.Rot == m_cacheSelectBoardPartsRotate);
+			if (isNotSetPartsView == true)
 			{
 				// 選択中パーツとして追加
-				var userParts = userCustomizePartsList.Find(d => d.UniqueId == selectParts.UniqueId);
-				var customizePartsMasterData = customizePartsMaster.Find(userParts.Id);
+				var customizePartsMasterData = customizePartsMaster.Find(selectParts.Id);
 				var customizePartsAreaMasterData = customizePartsAreaMaster.Find(customizePartsMasterData.AreaId);
 				var customizePartsResourceData = customizePartsResource.Find(customizePartsMasterData.SpriteId);
 				var boardPartsData = new BoardPartsData(
@@ -419,7 +463,7 @@ namespace scene.dialog
 		private void UpdatePartsView()
 		{
 			var localSaveData = GeneralRoot.User.LocalSaveData;
-			var boardPartsDataList = localSaveData.CustomizeBoardPartsDataList;
+			var customizeData = localSaveData.Customize;
 
 			var customizePartsMaster = GeneralRoot.Master.CustomizeParts;
 			var customizePartsResource = GeneralRoot.Resource.CustomizePartsResource;
@@ -441,7 +485,7 @@ namespace scene.dialog
 						var partsView = element[i].GetComponent<CustomizePartsView>();
 						partsView.UpdateView(new CustomizePartsView.Data(
 							customizePartsResourceData.Sprite,
-							boardPartsDataList.Any(d => d.UniqueId == userParts.UniqueId)));
+							customizeData.Find(userParts.UniqueId) != null));
 					}
 				}
 			}
@@ -449,13 +493,13 @@ namespace scene.dialog
 			{
 				for (int i = 0; i < element.Count; ++i)
 				{
-					// 0, 1, 2, 3, 4, 5, 6
-					//-3,-2,-1, 0, 1, 2, 3(0を中央にするため-3)
-					//-1, 0, 1, 2, 3, 4, 5(selectIndexにより+2)
-					// 2, 0, 1, 2, 3, 4, 5(負数は要素数を足す+3)
-					// 2, 0, 1, 2, 0, 1, 2(結果から要素数で割ったあまりにより%3)
+					// 0, 1, 2, 3, 4, 5, 6, 7, 8
+					//-4,-3,-2,-1, 0, 1, 2, 3, 4(0を中央にするため-4)
+					//-1, 0, 1, 2, 3, 4, 5, 6, 7(selectIndexにより+2)
+					// 2, 0, 1, 2, 3, 4, 5, 6, 7(負数は要素数を足す+3)
+					// 2, 0, 1, 2, 0, 1, 2, 0, 1(結果から要素数で割ったあまりにより%3)
 
-					int index = (i - 3 + m_selectIndex);
+					int index = (i - 4 + m_selectIndex);
 					while (index < 0) { index += m_userCustomizePartsList.Count; }
 					index = index % m_userCustomizePartsList.Count;
 					var userParts = m_userCustomizePartsList[index];
@@ -465,7 +509,7 @@ namespace scene.dialog
 					var partsView = element[i].GetComponent<CustomizePartsView>();
 					partsView.UpdateView(new CustomizePartsView.Data(
 						customizePartsResourceData.Sprite,
-						boardPartsDataList.Any(d => d.UniqueId == userParts.UniqueId)));
+						customizeData.Find(userParts.UniqueId) != null));
 				}
 			}
 
@@ -482,9 +526,15 @@ namespace scene.dialog
 				switchObj.Setup(i == m_selectIndex);
 			}
 
-			// リセット
-			m_cacheSelectBoardPartsGrid = Grid.Create(3, 3);
-			m_cacheSelectBoardPartsRotate = BoardPartsData.Rotate.Z0;
+			// パーツ効果テキスト
+			{
+				var selectParts = m_userCustomizePartsList[m_selectIndex];
+				var customizePartsMasterData = customizePartsMaster.Find(selectParts.Id);
+				var customizePartsEffectMaster = GeneralRoot.Master.CustomizePartsEffect;
+				var customizePartsEffectMasterData = customizePartsEffectMaster.Find(customizePartsMasterData.EffectId);
+				string effectText = string.Format("速度＋{0}", customizePartsEffectMasterData.Param);
+				m_partsInfoText.text = effectText;
+			}
 		}
 	}
 }

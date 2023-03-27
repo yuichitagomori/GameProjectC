@@ -7,8 +7,7 @@ using UnityEngine.Events;
 
 namespace scene.dialog
 {
-	[System.Serializable]
-	public class CustomizeBoard
+	public class CustomizeBoard : MonoBehaviour
 	{
 		/// <summary>
 		/// データクラス
@@ -66,6 +65,12 @@ namespace scene.dialog
 		private CommonUI.ButtonExpansion m_decisionButton;
 
 		/// <summary>
+		/// 決定ボタン
+		/// </summary>
+		[SerializeField]
+		private CommonUI.TextExpansion m_decisionButtonText;
+
+		/// <summary>
 		/// パーツ表示要素
 		/// </summary>
 		[SerializeField]
@@ -90,6 +95,9 @@ namespace scene.dialog
 
 		public void UpdateView(Data data)
 		{
+			var selectParts = data.PartsViewDatas.FirstOrDefault(d => d.StateType == board.CustomizeBoardPartsView.Data.Type.Selecting);
+			var notSetParts = data.PartsViewDatas.FirstOrDefault(d => d.StateType == board.CustomizeBoardPartsView.Data.Type.NotSet);
+
 			List<Grid> useGridAreaList = new List<Grid>();
 			var elementList = m_partsViewElement.GetElements();
 			for (int i = 0; i < elementList.Count; ++i)
@@ -104,42 +112,48 @@ namespace scene.dialog
 				var partsView = elementList[i].GetComponent<board.CustomizeBoardPartsView>();
 				partsView.UpdateView(data.PartsViewDatas[i]);
 
-				if (data.PartsViewDatas[i].StateType == board.CustomizeBoardPartsView.Data.Type.Seted)
+				if (data.PartsViewDatas[i].StateType != board.CustomizeBoardPartsView.Data.Type.Seted)
 				{
-					useGridAreaList.AddRange(data.PartsViewDatas[i].GetUseAreaGrids());
+					continue;
 				}
+				useGridAreaList.AddRange(data.PartsViewDatas[i].GetUseAreaGrids());
 			}
 
-			var selectParts = data.PartsViewDatas.FirstOrDefault(d => d.StateType == board.CustomizeBoardPartsView.Data.Type.NotSet);
-			if (selectParts != null)
+			Grid[] useGridArea = null;
+			if (notSetParts != null)
 			{
-				var useGridArea = selectParts.GetUseAreaGrids();
-				string json = JsonUtility.ToJson(useGridArea[0]);
-				m_moveRightButton.SetupActive(!useGridArea.Any(d => d.x >= 6));
-				m_moveLeftButton.SetupActive(!useGridArea.Any(d => d.x <= 1));
-				m_moveUpButton.SetupActive(!useGridArea.Any(d => d.y <= 1));
-				m_moveDownButton.SetupActive(!useGridArea.Any(d => d.y >= 6));
-				m_rotateButton.SetupActive(true);
-
-				bool isDecision = true;
-				for (int i = 0; i < useGridArea.Length; ++i)
-				{
-					if (useGridAreaList.Contains(useGridArea[i]) == true)
-					{
-						isDecision = false;
-						break;
-					}
-				}
-				m_decisionButton.SetupActive(isDecision);
+				useGridArea = notSetParts.GetUseAreaGrids();
 			}
 			else
 			{
-				m_moveRightButton.SetupActive(false);
-				m_moveLeftButton.SetupActive(false);
-				m_moveUpButton.SetupActive(false);
-				m_moveDownButton.SetupActive(false);
-				m_rotateButton.SetupActive(false);
-				m_decisionButton.SetupActive(false);
+				useGridArea = selectParts.GetUseAreaGrids();
+			}
+
+			m_moveRightButton.SetupActive(!useGridArea.Any(d => d.x >= 6));
+			m_moveLeftButton.SetupActive(!useGridArea.Any(d => d.x <= 1));
+			m_moveUpButton.SetupActive(!useGridArea.Any(d => d.y <= 1));
+			m_moveDownButton.SetupActive(!useGridArea.Any(d => d.y >= 6));
+			m_rotateButton.SetupActive(true);
+
+			bool isDecision = true;
+			for (int i = 0; i < useGridArea.Length; ++i)
+			{
+				if (useGridAreaList.Contains(useGridArea[i]) == true)
+				{
+					isDecision = false;
+					break;
+				}
+			}
+			m_decisionButton.SetupActive(isDecision);
+
+			if (selectParts != null && notSetParts == null)
+			{
+				// 同じパーツが、セット済みで同じ場所にある
+				m_decisionButtonText.text = "はずす";
+			}
+			else
+			{
+				m_decisionButtonText.text = "はめる";
 			}
 		}
 	}

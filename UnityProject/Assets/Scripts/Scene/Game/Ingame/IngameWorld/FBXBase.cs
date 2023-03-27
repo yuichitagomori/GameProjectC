@@ -24,8 +24,8 @@ namespace scene.game.ingame.world
 		public GameObject FBXObject => m_fbxObject;
 
 		[SerializeField]
-		private AnimatorExpansion m_anime = null;
-		public AnimatorExpansion Anime => m_anime;
+		private Common.AnimatorExpansion m_anime = null;
+		public Common.AnimatorExpansion Anime => m_anime;
 
 		[SerializeField]
 		private Model[] m_models = null;

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
-using BoardPartsData = data.UserData.LocalSave.CustomizeBoardPartsData;
+using BoardPartsData = data.UserData.LocalSave.CustomizeData.BoardPartsData;
 
 namespace scene.dialog.board
 {
@@ -17,12 +17,12 @@ namespace scene.dialog.board
 		/// <summary>
 		/// マス目サイズ
 		/// </summary>
-		private int GridSize = 60;
+		private int GridSize = 48;
 
 		/// <summary>
 		/// マス目サイズ
 		/// </summary>
-		private int HalfGridSize = 30;
+		private int HalfGridSize = 24;
 
 		/// <summary>
 		/// データクラス
@@ -35,7 +35,7 @@ namespace scene.dialog.board
 			public enum Type
 			{
 				Seted,
-				Setting,
+				Selecting,
 				NotSet,
 			}
 
@@ -132,7 +132,7 @@ namespace scene.dialog.board
 		/// パーツのアニメーション
 		/// </summary>
 		[SerializeField]
-		private AnimatorExpansion m_partsAnimation;
+		private Common.AnimatorExpansion m_partsAnimation;
 
 
 
@@ -181,9 +181,9 @@ namespace scene.dialog.board
 						m_partsAnimation.Play("Seted");
 						break;
 					}
-				case Data.Type.Setting:
+				case Data.Type.Selecting:
 					{
-						m_partsAnimation.Play("Setting");
+						m_partsAnimation.Play("Selecting");
 						break;
 					}
 				case Data.Type.NotSet:
@@ -210,11 +210,11 @@ namespace scene.dialog.board
 
 		private float GetPivotParam(int spriteSize)
 		{
-			const int One = 92; // 60 + 32
-			const int Two = 152; // 120 + 32
-			const int Three = 212; // 180 + 32
-			const int Fore = 272; // 240 + 32
-			const int Five = 332; // 300 + 32
+			const int One = 80;		// HalfGridSize + 32
+			const int Two = 128;	// HalfGridSize * 2 + 32
+			const int Three = 176;	// HalfGridSize * 3 + 32
+			const int Fore = 224;	// HalfGridSize * 4 + 32
+			const int Five = 272;	// HalfGridSize * 5 + 32
 			switch (spriteSize)
 			{
 				case One:

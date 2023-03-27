@@ -77,13 +77,13 @@ namespace scene.game.outgame
 		private Text m_mapNameText = null;
 
 		[SerializeField]
-		private AnimatorExpansion m_mapNameAnime = null;
+		private Common.AnimatorExpansion m_mapNameAnime = null;
 
 		[SerializeField]
 		private List<SearchTargetIconTexture> m_searchTargetIconTextureList = null;
 
 		[SerializeField]
-		private AnimatorExpansion m_searchFrameAnime = null;
+		private Common.AnimatorExpansion m_searchFrameAnime = null;
 
 		[SerializeField]
 		private Image m_searchTargetImage = null;
