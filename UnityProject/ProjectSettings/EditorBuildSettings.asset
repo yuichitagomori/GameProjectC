@@ -28,5 +28,8 @@ EditorBuildSettings:
     guid: b223e76a019493c4d8994c52a00e2fd2
   - enabled: 1
     path: Assets/Scenes/Dialog/QuestListDialog.unity
+    guid: a8f4bc8d2e85c414996f2b7c4876ff71
+  - enabled: 1
+    path: Assets/Scenes/Dialog/CustomizeDialog.unity
     guid: 49befc419f1742541a10f9e8f41957f0
   m_configObjects: {}
