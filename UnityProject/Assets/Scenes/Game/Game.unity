@@ -766,7 +766,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 91247599}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.9, z: -1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 516092336}
@@ -9885,7 +9885,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: be422db7cf2575b409ded8f00392c580, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 875a02748495f2548b9885d195a7861e, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -15388,7 +15388,6 @@ MonoBehaviour:
   m_player: {fileID: 902560122}
   m_renderPlate: {fileID: 1123830443}
   m_effectController: {fileID: 1203624357}
-  m_enemyColorData: {fileID: 11400000, guid: 04270806cc3d1bc47b82d580a8450cea, type: 2}
 --- !u!1 &2106495884
 GameObject:
   m_ObjectHideFlags: 0

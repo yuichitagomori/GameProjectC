@@ -1580,27 +1580,28 @@ MonoBehaviour:
       m_id: 601
       m_uniqueId: 8
     m_searchTargetList: []
-    m_customizeBoardPartsDataList:
-    - m_uniqueId: 0
-      m_grid:
-        x: 2
-        y: 2
-      m_rot: 0
-    - m_uniqueId: 1
-      m_grid:
-        x: 5
-        y: 2
-      m_rot: 0
-    - m_uniqueId: 2
-      m_grid:
-        x: 2
-        y: 5
-      m_rot: 0
-    - m_uniqueId: 3
-      m_grid:
-        x: 5
-        y: 5
-      m_rot: 0
+    m_customize:
+      m_boardPartsDatas:
+      - m_uniqueId: 0
+        m_grid:
+          x: 2
+          y: 2
+        m_rot: 0
+      - m_uniqueId: 1
+        m_grid:
+          x: 5
+          y: 2
+        m_rot: 0
+      - m_uniqueId: 2
+        m_grid:
+          x: 2
+          y: 5
+        m_rot: 0
+      - m_uniqueId: 3
+        m_grid:
+          x: 5
+          y: 5
+        m_rot: 0
     m_bgmVolume: 0.5
     m_seVolume: 0.5
 --- !u!4 &1215556396
