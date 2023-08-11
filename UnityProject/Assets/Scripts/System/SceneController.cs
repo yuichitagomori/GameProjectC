@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 
 namespace scene
 {
@@ -13,6 +13,14 @@ namespace scene
 	/// </summary>
 	public class SceneController : MonoBehaviour
 	{
+		private string[] PCSceneNames = new string[]
+		{
+			"CommonDialog",
+			"QuestListDialog",
+			"ShopDialog",
+			"CustomizeDialog",
+		};
+
 		/// <summary>
 		/// 遷移アニメーター
 		/// </summary>
@@ -83,15 +91,15 @@ namespace scene
 				}));
 		}
 
-		/// <summary>
-		/// シーン追加
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="added"></param>
-		public void AddScene<T>(UnityAction<T> added = null) where T : SceneBase
-		{
-			AddScene<T>(typeof(T).Name, added);
-		}
+		///// <summary>
+		///// シーン追加
+		///// </summary>
+		///// <typeparam name="T"></typeparam>
+		///// <param name="added"></param>
+		//public void AddScene<T>(UnityAction<T> added = null) where T : SceneBase
+		//{
+		//	AddScene<T>(typeof(T).Name, added);
+		//}
 
 		/// <summary>
 		/// シーン追加
@@ -102,6 +110,14 @@ namespace scene
 			string sceneName,
 			UnityAction<T> added = null) where T : SceneBase
 		{
+			if (PCSceneNames.Contains(sceneName) == true)
+			{
+				if (GeneralRoot.Instance.IsPCPlatform())
+				{
+					sceneName = string.Format("{0}PC", sceneName);
+				}
+			}
+
 			if (m_coroutine != null)
 			{
 				return;
@@ -268,7 +284,7 @@ namespace scene
 
 			m_scenes.Remove(scene);
 
-			string sceneName = scene.SceneName;
+			string sceneName = scene.name;
 			yield return RemoveSceneCoroutine(sceneName);
 
 			if (callback != null)

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
@@ -8,31 +9,51 @@ namespace scene
 {
 	public class Game : SceneBase
 	{
+		public class NpcReleaseData
+		{
+			public class Data
+			{
+				private int m_npcId;
+				public int NPCId => m_npcId;
+
+				private List<int> m_colorIdList = new List<int>();
+				public List<int> ColorIdList => m_colorIdList;
+
+				public Data(int npcId, int colorId)
+				{
+					m_npcId = npcId;
+					m_colorIdList.Add(colorId);
+				}
+			}
+
+			private List<Data> m_dataList = new List<Data>();
+
+			public bool IsRelease(game.ingame.world.NPC npc)
+			{
+				var data = Find(npc.NPCId);
+				if (data == null)
+				{
+					return false;
+				}
+				if (data.ColorIdList.Contains(npc.ColorId) == false)
+				{
+					return false;
+				}
+				return true;
+			}
+
+			public Data Find(int npcId)
+			{
+				return m_dataList.Find(d => d.NPCId == npcId);
+			}
+
+			public void Add(int npcId, int colorId)
+			{
+				m_dataList.Add(new Data(npcId, colorId));
+			}
+		}
+
 		[Header("Game")]
-
-		/// <summary>
-		/// インゲーム用カメラ
-		/// </summary>
-		[SerializeField]
-		private Camera m_ingameCamera;
-
-		/// <summary>
-		/// インゲーム用カメラ
-		/// </summary>
-		[SerializeField]
-		private Camera m_ingame2Camera;
-
-		/// <summary>
-		/// インゲーム用カメラトランスフォーム
-		/// </summary>
-		[SerializeField]
-		private Transform m_ingame2CameraTransform;
-
-		/// <summary>
-		/// インゲーム用カメラアニメーション
-		/// </summary>
-		[SerializeField]
-		private Common.AnimatorExpansion m_ingame2CameraAnimator;
 
 		/// <summary>
 		/// アウトゲーム用カメラ
@@ -60,6 +81,10 @@ namespace scene
 
 
 
+		private NpcReleaseData m_npcReleaseData = new NpcReleaseData();
+
+
+
 		public override void Ready(UnityAction callback)
 		{
 			StartCoroutine(ReadyCoroutine(callback));
@@ -67,56 +92,48 @@ namespace scene
 
 		private IEnumerator ReadyCoroutine(UnityAction callback)
 		{
-			m_ingame2Camera.transform.SetPositionAndRotation(
-				Vector3.zero,
-				Quaternion.identity);
-
-			m_movieController.Initialize(
-				m_outgame.SetVisible,
-				m_ingame.PlayMovieCamera,
-				m_ingame.PlayMovieCharaReaction,
-				m_outgame.PlayMovieQuestClearIn);
-
-			var searchTargetList = GeneralRoot.User.LocalSaveData.SearchTargetList;
-			searchTargetList.Clear();
-			//for (int i = 0; i < 5; ++i)
-			//{
-			//	searchTargetList.Add(new data.UserData.LocalSaveData.SearchTargetData(
-			//		enemyId: 30,
-			//		controllId: i + 1));
-			//}
+			m_movieController.Initialize(OnMovieStart);
 
 			bool isDone = false;
 			m_ingame.Initialize(
 				ingameEvent: IngameEvent,
-				ingameCameraParentTransform: m_ingame2CameraTransform,
-				ingameCameraAnimator: m_ingame2CameraAnimator,
 				loadMapEvent: LoadMapEvent,
 				updateCharaActionButtonEvent: UpdateCharaActionButton,
 				() => { isDone = true; });
-			while (!isDone) { yield return null; }
 			m_outgame.Initialize(
-				cameraHandlerEventData: new game.outgame.Handler.EventData(
-					m_ingame.OnCameraDragEvent,
-					m_ingame.OnCameraEndDragEvent,
-					m_ingame.OnCameraClickEvent),
-				playerHandlerEventData: new game.outgame.Handler.EventData(
-					m_ingame.OnPlayerDragEvent,
-					m_ingame.OnPlayerEndDragEvent,
-					m_ingame.OnPlayerClickEvent),
-				m_ingame2Camera,
-				onCharaActionButtonEvent: OnCharaActionButtonPressed);
+				charaActionButtonEvent: OnCharaActionButtonPressed,
+				cameraBeginMoveEvent: m_ingame.CameraBeginMoveEvent,
+				cameraMoveEvent: m_ingame.CameraMoveEvent,
+				cameraEndMoveEvent: m_ingame.CameraEndMoveEvent,
+				charaBeginMoveEvent: m_ingame.CharaBeginMoveEvent,
+				charaMoveEvent: m_ingame.CharaMoveEvent,
+				charaEndMoveEvent: m_ingame.CharaEndMoveEvent,
+				cameraZoomEvent: m_ingame.CameraZoomEvent);
 
-			UpdateOutgameObject();
-
-			yield return ChangeMapCoroutine(1, 0, true, null);
+			while (!isDone) { yield return null; }
 
 			callback();
 		}
 
 		public override void Go()
 		{
-			m_outgame.Fade(false, 1.0f);
+			StartCoroutine(GoCoroutine());
+		}
+
+		private IEnumerator GoCoroutine()
+		{
+			yield return ChangeMapCoroutine(1, 0, true, null);
+
+			bool isDone = false;
+			m_outgame.Fade(false, 1.0f, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
+			m_ingame.Go();
+			m_outgame.Go();
+
+			isDone = false;
+			m_movieController.Play(1, () => { isDone = true; });
+			while (!isDone) { yield return null; }
 		}
 
 		private void LoadMapEvent(
@@ -149,18 +166,13 @@ namespace scene
 			string[] eventType = eventParam.Split('_');
 			switch (eventType[0])
 			{
-				//case "DropItem":
-				//	{
-				//		int id = int.Parse(eventType[1]);
-				//		StartCoroutine(DropItemCoroutine(id, callback));
-				//		break;
-				//	}
-				//case "GetItem":
-				//	{
-				//		int id = int.Parse(eventType[1]);
-				//		StartCoroutine(GetItemCoroutine(id, callback));
-				//		break;
-				//	}
+				case "AddTarget":
+					{
+						//int subCharaId = int.Parse(eventType[1]);
+						//int controllId = int.Parse(eventType[2]);
+						//StartCoroutine(AddTargetCoroutine(subCharaId, controllId, callback));
+						break;
+					}
 				case "ChangeMap":
 					{
 						int stageId = int.Parse(eventType[1]);
@@ -171,44 +183,25 @@ namespace scene
 				case "OpenDialog":
 					{
 						string dialogName = eventType[1];
-						int id = int.Parse(eventType[2]);
+						int id = (eventType.Length > 2) ? int.Parse(eventType[2]) : -1;
 						OpenDialog(dialogName, id, callback);
-						break;
-					}
-				case "Movie":
-					{
-						int movieId = int.Parse(eventType[1]);
-						int controllId = int.Parse(eventType[2]);
-						m_movieController.Play(movieId, controllId, callback);
 						break;
 					}
 			}
 		}
 
-		//private IEnumerator DropItemCoroutine(int id, UnityAction callback)
-		//{
-		//	yield return m_ingame.DropItemCoroutine(id);
-		//	callback();
-		//}
-
-		//private IEnumerator GetItemCoroutine(int id, UnityAction callback)
-		//{
-		//	yield return m_ingame.GetItemCoroutine(id);
-		//	callback();
-		//}
-
 		private IEnumerator ChangeMapCoroutine(int stageId, int dataIndex, bool isReady, UnityAction callback)
 		{
 			if (isReady == false)
 			{
-				m_outgame.SetVisible(game.Outgame.Target.None);
+				//m_outgame.SetVisible(game.Outgame.Target.None);
 			}
 
 			bool isDone = false;
 			m_ingame.ChangeMap(stageId, dataIndex, isReady, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
-			m_outgame.SetVisible(game.Outgame.Target.Game);
+			//m_outgame.SetVisible(game.Outgame.Target.Game);
 
 			if (callback != null)
 			{
@@ -222,17 +215,18 @@ namespace scene
 			{
 				case "QuestList":
 					{
-						StartCoroutine(OpenQuestListDialog(id, callback));
+						//StartCoroutine(OpenCommonDialog("テストタイトル", "テストメッセージ", new string[] { "テスト１", "テスト２" }, callback));
+						//StartCoroutine(OpenQuestListDialog(id, callback));
 						break;
 					}
 				case "Shop":
 					{
-						StartCoroutine(OpenShopDialog(id, callback));
+						//StartCoroutine(OpenShopDialog(id, callback));
 						break;
 					}
 				case "Customize":
 					{
-						StartCoroutine(OpenCustomizeDialog(callback));
+						//StartCoroutine(OpenCustomizeDialog(callback));
 						break;
 					}
 				default:
@@ -243,150 +237,29 @@ namespace scene
 			}
 		}
 
-		private IEnumerator OpenQuestListDialog(int questListId, UnityAction callback)
+		private IEnumerator OpenCommonDialog(string title, string message, string[] buttonNames, UnityAction callback)
 		{
-			m_outgame.SetVisible(game.Outgame.Target.None);
-
 			bool isDone = false;
-			m_ingame.PlayMovieCamera(game.Ingame.ZoomType.Pull, () => { isDone = true; });
-			while (!isDone) { yield return null; }
-
-			// クエストデータ
-			var quests = new List<dialog.QuestListDialog.Data.Quest>();
-			for (int i = 0; i < 10; ++i)
-			{
-				var questState = (dialog.QuestListDialog.Data.Quest.State)(i % 3);
-				quests.Add(new dialog.QuestListDialog.Data.Quest(
-					title: string.Format("QUEST{0}", (i + 1)),
-					info: string.Format("クエストじょうほう{0}", (i + i)),
-					difficultyRank: (i + 1),
-					questState: questState,
-					rewards: null));
-			}
-			int receiveQuestIndex = -1;
-			var data = new dialog.QuestListDialog.Data(
-				title: "QUEST LIST",
-				quests: quests.ToArray(),
-				receiveEvent: (index) => { receiveQuestIndex = index; });
-
-			isDone = false;
-			m_sceneController.AddScene<dialog.QuestListDialog>(
+			var data = dialog.CommonDialog.Data.CreateYesNoData(title, message, buttonNames, new UnityAction[] { null, null });
+			m_sceneController.AddScene<dialog.CommonDialog>(
+				"CommonDialog",
 				added: (s) =>
 				{
 					s.Setting(data, () => { isDone = true; });
 				});
 			while (!isDone) { yield return null; }
 
-			isDone = false;
-			m_ingame.PlayMovieCamera(game.Ingame.ZoomType.Normal, () => { isDone = true; });
-			while (!isDone) { yield return null; }
-
-			Debug.Log("OpenQuestListDialog = " + game.Outgame.Target.Game);
-			m_outgame.SetVisible(game.Outgame.Target.Game);
-
-			if (receiveQuestIndex >= 0)
-			{
-				var searchTargetList = GeneralRoot.User.LocalSaveData.SearchTargetList;
-				searchTargetList.Add(new data.UserData.LocalSave.SearchTargetData(
-					30,
-					7));
-
-				isDone = false;
-				UpdateOutgameSearchTarget(() => { isDone = true; });
-				while (!isDone) { yield return null; }
-			}
-
 			callback();
-		}
-
-		private IEnumerator OpenShopDialog(int shopId, UnityAction callback)
-		{
-			bool isDone = false;
-			m_sceneController.AddScene<dialog.ShopDialog>(
-				added: (s) =>
-				{
-					s.Setting(null, () => { isDone = true; });
-				});
-			while (!isDone) { yield return null; }
-
-			callback();
-		}
-
-		private IEnumerator OpenCustomizeDialog(UnityAction callback)
-		{
-			bool isDone = false;
-			m_ingame.PlayMovieCamera(game.Ingame.ZoomType.Customize, () => { isDone = true; });
-			while (!isDone) { yield return null; }
-
-			isDone = false;
-			m_sceneController.AddScene<dialog.CustomizeDialog>(
-				added: (s) =>
-				{
-					s.Setting(null, () => { isDone = true; });
-				});
-			while (!isDone) { yield return null; }
-
-			isDone = false;
-			m_ingame.PlayMovieCamera(game.Ingame.ZoomType.Normal, () => { isDone = true; });
-			while (!isDone) { yield return null; }
-
-			callback();
-		}
-
-		private void RemoveTarget(int enemyId, int controllId, UnityAction callback)
-		{
-			StartCoroutine(RemoveTargetCoroutine(enemyId, controllId, callback));
-		}
-
-		private IEnumerator RemoveTargetCoroutine(int enemyId, int controllId, UnityAction callback)
-		{
-			var searchTargetList = GeneralRoot.User.LocalSaveData.SearchTargetList;
-			var targetData = searchTargetList.Find(d => d.EnemyId == enemyId && d.ControllId == controllId);
-			if (targetData == null)
-			{
-				if (callback != null)
-				{
-					callback();
-				}
-				yield break;
-			}
-
-			searchTargetList.Remove(targetData);
-			bool isDone = false;
-			UpdateOutgameSearchTarget(() => { isDone = true; });
-			while (!isDone) { yield return null; }
-
-			m_ingame.RemoveTarget(controllId);
-
-			if (callback != null)
-			{
-				callback();
-			}
 		}
 
 		private void UpdateCharaActionButton(game.ingame.IngameWorld.SearchInData data)
 		{
 			if (data != null)
 			{
-				game.outgame.CharaActionButtonElement.ActionType type = game.outgame.CharaActionButtonElement.ActionType.Active;
-				switch (data.Type)
-				{
-					case game.ingame.IngameWorld.SearchInData.ActionType.Action:
-						{
-							type = game.outgame.CharaActionButtonElement.ActionType.Active;
-							break;
-						}
-					case game.ingame.IngameWorld.SearchInData.ActionType.Talk:
-						{
-							type = game.outgame.CharaActionButtonElement.ActionType.Talk;
-							break;
-						}
-				}
-				var buttonData = new game.outgame.GameUI.CharaActionButtonData(
-					data.EnemyId,
+				var buttonData = new game.outgame.window.MainWindow.CharaActionButtonData(
+					data.Category,
 					data.ControllId,
-					data.Target,
-					type);
+					game.outgame.window.CharaActionButtonElement.ActionType.Active);
 				m_outgame.UpdateCharaActionButton(buttonData);
 			}
 			else
@@ -395,59 +268,100 @@ namespace scene
 			}
 		}
 
-		private void OnCharaActionButtonPressed(int controllId)
+		private void OnCharaActionButtonPressed(game.ingame.world.ActionTargetBase.Category category, int controllId)
 		{
-			StartCoroutine(OnCharaActionButtonPressedCoroutine(controllId));
+			StartCoroutine(OnCharaActionButtonPressedCoroutine(category, controllId));
 		}
 
-		private IEnumerator OnCharaActionButtonPressedCoroutine(int controllId)
+		private IEnumerator OnCharaActionButtonPressedCoroutine(game.ingame.world.ActionTargetBase.Category category, int controllId)
 		{
-			m_outgame.SetVisible(game.Outgame.Target.None);
-
 			bool isDone = false;
-			m_ingame.OnCharaActionButtonPressed(controllId, () => { isDone = true; });
+			m_ingame.OnCharaActionButtonPressed(category, controllId, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
-			m_outgame.SetVisible(game.Outgame.Target.Game);
-
-			m_ingame.CheckEnemyActionEvent(controllId);
-		}
-
-		private void UpdateOutgameObject()
-		{
-			UpdateOutgameSearchTarget(null);
-		}
-
-		private void UpdateOutgameSearchTarget(UnityAction callback)
-		{
-			var searchTargetList = GeneralRoot.User.LocalSaveData.SearchTargetList;
-			game.outgame.GameUI.SearchTargetIconColor iconColorData = default;
-			if (searchTargetList.Count > 0)
+			if (category == game.ingame.world.ActionTargetBase.Category.NPC)
 			{
-				var enemyColorResource = GeneralRoot.Resource.EnemyColorResource;
-				data.resource.EnemyColorResource.Data.ColorData colorData = null;
-				int enemyId = searchTargetList[0].EnemyId;
-				var enemyData = enemyColorResource.Find(enemyId);
-				if (enemyData != null)
+				var npc = m_ingame.GetNPC(controllId);
+				//if (m_npcReleaseData.IsRelease(npc) == true)
 				{
-					int controllId = searchTargetList[0].ControllId;
-					colorData = enemyData.Find(controllId);
+					yield return m_ingame.DeleteNPCCoroutine(controllId);
 				}
-				iconColorData = new game.outgame.GameUI.SearchTargetIconColor()
-				{
-					m_enemyId = enemyId,
-					m_colorData = colorData
-				};
 			}
-			else
+		}
+
+		private void OnMovieStart(string param, UnityAction callback)
+		{
+			string[] paramStrings = param.Split(',');
+			switch (paramStrings[0])
 			{
-				iconColorData = new game.outgame.GameUI.SearchTargetIconColor()
-				{
-					m_enemyId = -1,
-					m_colorData = null
-				};
+				case "WaitTime":
+					{
+						float time = float.Parse(paramStrings[1]);
+						StartCoroutine(WaitTimeCoroutine(time, callback));
+						break;
+					}
+				case "Data":
+					{
+						paramStrings = paramStrings.Skip(1).ToArray();
+						UpdateData(paramStrings);
+						if (callback != null)
+						{
+							callback();
+						}
+						break;
+					}
+				case "Ingame":
+					{
+						paramStrings = paramStrings.Skip(1).ToArray();
+						m_ingame.OnMovieStart(paramStrings, callback);
+						break;
+					}
+				case "Outgame":
+					{
+						paramStrings = paramStrings.Skip(1).ToArray();
+						m_outgame.OnMovieStart(paramStrings, callback);
+						break;
+					}
+				default:
+					{
+						if (callback != null)
+						{
+							callback();
+						}
+						break;
+					}
 			}
-			m_outgame.UpdateSearchTarget(iconColorData, callback);
+		}
+
+		private IEnumerator WaitTimeCoroutine(float time, UnityAction callback)
+		{
+			yield return new WaitForSeconds(time);
+			if (callback != null)
+			{
+				callback();
+			}
+		}
+
+		private void UpdateData(string[] paramStrings)
+		{
+			switch (paramStrings[0])
+			{
+				case "AddReleaseData":
+					{
+						int npcId = int.Parse(paramStrings[1]);
+						int colorId = int.Parse(paramStrings[2]);
+						var data = m_npcReleaseData.Find(npcId);
+						if (data != null)
+						{
+							data.ColorIdList.Add(colorId);
+						}
+						else
+						{
+							m_npcReleaseData.Add(npcId, colorId);
+						}
+						break;
+					}
+			}
 		}
 	}
 }

@@ -1,65 +1,65 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using UnityEngine.Playables;
 
 namespace scene.game
 {
 	public class MovieController : MonoBehaviour
 	{
-		private UnityAction<Outgame.Target> m_outgameSetVisibleEvent;
-		private UnityAction<Ingame.ZoomType, UnityAction> m_ingamePlayMovieCameraEvent;
-		private UnityAction<ingame.IngameWorld.ReactionType, int, UnityAction> m_ingamePlayMovieCharaReactionEvent;
-		private UnityAction<int, UnityAction> m_outgamePlayMovieQuestClearInEvent;
-
-
-
-		public void Initialize(
-			UnityAction<Outgame.Target> outgameSetVisibleEvent,
-			UnityAction<Ingame.ZoomType, UnityAction> ingamePlayMovieCameraEvent,
-			UnityAction<ingame.IngameWorld.ReactionType, int, UnityAction> ingamePlayMovieCharaReactionEvent,
-			UnityAction<int, UnityAction> outgamePlayMovieQuestClearInEvent)
+		[System.Serializable]
+		public class MovieData
 		{
-			m_outgameSetVisibleEvent = outgameSetVisibleEvent;
-			m_ingamePlayMovieCameraEvent = ingamePlayMovieCameraEvent;
-			m_ingamePlayMovieCharaReactionEvent = ingamePlayMovieCharaReactionEvent;
-			m_outgamePlayMovieQuestClearInEvent = outgamePlayMovieQuestClearInEvent;
+			[SerializeField]
+			private int m_controllId;
+			public int ControllId => m_controllId;
+
+			[SerializeField]
+			private string[] m_paramStrings;
+			public string[] ParamStrings => m_paramStrings;
 		}
 
-		public void Play(int movieId, int enemyControllId, UnityAction callback)
+		[SerializeField]
+		private MovieData[] m_movieDatas;
+
+
+		private UnityAction<string, UnityAction> m_playMovieEvent;
+
+		public void Initialize(UnityAction<string, UnityAction> playMovieEvent)
 		{
-			StartCoroutine(PlayCoroutine(movieId, enemyControllId, callback));
+			m_playMovieEvent = playMovieEvent;
 		}
 
-		private IEnumerator PlayCoroutine(int movieId, int enemyControllId, UnityAction callback)
+		public void Play(int controllId, UnityAction callback)
 		{
-			m_outgameSetVisibleEvent(Outgame.Target.None);
+			StartCoroutine(PlayCoroutine(controllId, callback));
+		}
 
-			int doneCount = 0;
-			m_ingamePlayMovieCameraEvent(Ingame.ZoomType.Approach, () => { doneCount++; });
-			while (doneCount < 1) { yield return null; };
+		private IEnumerator PlayCoroutine(
+			int controllId,
+			UnityAction callback)
+		{
+			var data = m_movieDatas.FirstOrDefault(d => d.ControllId == controllId);
+			if (data == null)
+			{
+				if (callback != null)
+				{
+					callback();
+				}
+				yield break;
+			}
 
-			doneCount = 0;
-			m_ingamePlayMovieCharaReactionEvent(ingame.IngameWorld.ReactionType.Restraint, enemyControllId, () => { doneCount++; });
-			while (doneCount < 1) { yield return null; };
-
-			m_outgameSetVisibleEvent(Outgame.Target.Movie);
-
-			doneCount = 0;
-			m_ingamePlayMovieCameraEvent(Ingame.ZoomType.QuestClear, () => { doneCount++; });
-			while (doneCount < 1) { yield return null; };
-
-			doneCount = 0;
-			m_ingamePlayMovieCharaReactionEvent(ingame.IngameWorld.ReactionType.DelightIn, enemyControllId, () => { doneCount++; });
-			m_outgamePlayMovieQuestClearInEvent(0, () => { doneCount++; });
-			while (doneCount < 2) { yield return null; };
-
-			doneCount = 0;
-			m_ingamePlayMovieCameraEvent(Ingame.ZoomType.Normal, () => { doneCount++; });
-			while (doneCount < 1) { yield return null; };
-
-			m_outgameSetVisibleEvent(Outgame.Target.Game);
+			bool isDone = false;
+			for (int i = 0; i < data.ParamStrings.Length; ++i)
+			{
+				isDone = false;
+				string param = data.ParamStrings[i];
+				m_playMovieEvent(param, () => { isDone = true; });
+				while (!isDone) { yield return null; }
+			}
 
 			if (callback != null)
 			{

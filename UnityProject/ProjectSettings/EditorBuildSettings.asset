@@ -24,11 +24,20 @@ EditorBuildSettings:
     path: Assets/Scenes/Game/Stage/Stage002.unity
     guid: 6197a57da984c7c4da7e79ed4b10bba7
   - enabled: 1
+    path: Assets/Scenes/Game/Stage/Stage003.unity
+    guid: 365848092b9ea674b808dfd50fdd73eb
+  - enabled: 1
     path: Assets/Scenes/Dialog/CommonDialog.unity
     guid: b223e76a019493c4d8994c52a00e2fd2
   - enabled: 1
+    path: Assets/Scenes/Dialog/CommonDialogPC.unity
+    guid: 7acf890188fd88648aa68b7c056273af
+  - enabled: 1
     path: Assets/Scenes/Dialog/QuestListDialog.unity
     guid: a8f4bc8d2e85c414996f2b7c4876ff71
+  - enabled: 1
+    path: Assets/Scenes/Dialog/QuestListDialogPC.unity
+    guid: f04ff0b854268024cbc32a907b1fb953
   - enabled: 1
     path: Assets/Scenes/Dialog/CustomizeDialog.unity
     guid: 49befc419f1742541a10f9e8f41957f0

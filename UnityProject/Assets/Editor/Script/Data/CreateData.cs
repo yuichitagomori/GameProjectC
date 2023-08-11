@@ -78,7 +78,7 @@ namespace data
 		[MenuItem("Assets/Create/ScriptableObject/ResourceData/EnemyColor")]
 		public static void CreateEnemyColor()
 		{
-			CreateResourceAsset<resource.EnemyColorResource, resource.EnemyColorResource.Data>
+			CreateResourceAsset<resource.ColorResource, resource.ColorResource.Data>
 				("EnemyColor/EnemyColor");
 		}
 

@@ -12,20 +12,6 @@ namespace scene
 	{
 		[Header("SceneBase")]
 
-		[SerializeField]
-		private string m_sceneName;
-		public string SceneName
-		{
-			get
-			{
-				if (string.IsNullOrEmpty(m_sceneName) == false)
-				{
-					return m_sceneName;
-				}
-				return GetType().Name;
-			}
-		}
-
 		/// <summary>
 		/// キャンバス
 		/// </summary>

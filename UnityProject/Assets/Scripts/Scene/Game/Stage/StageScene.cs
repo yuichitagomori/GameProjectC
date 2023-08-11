@@ -51,10 +51,10 @@ namespace scene.game.ingame
 			//public Material[] MapMaterials => m_mapMaterials;
 
 			[SerializeField]
-			private world.EnemyController m_enemyController = null;
+			private world.NPCController m_npcController = null;
 
 			[SerializeField]
-			private world.ObjectBase[] m_objectList = null;
+			private world.ObjectController m_objectController = null;
 
 			[SerializeField]
 			private world.ItemBase[] m_itemList = null;
@@ -69,8 +69,7 @@ namespace scene.game.ingame
 
 			public void Initialize(
 				Transform ingameCameraTransform,
-				UnityAction<string> enterCallback,
-				UnityAction<string> exitCallback)
+				UnityAction<string> eventCallback)
 			{
 				RenderSettings.skybox = m_skyboxMaterial;
 				RenderSettings.sun = m_directionLight;  // この処理はなくても大丈夫そう
@@ -78,25 +77,19 @@ namespace scene.game.ingame
 				RenderSettings.fog = true;
 				RenderSettings.fogColor = m_fogColor;
 
-				m_enemyController.Initialize(
+				m_npcController.Initialize(
 					ingameCameraTransform,
 					m_navMeshController.GetNavMeshBasePoints(),
-					enterCallback,
-					exitCallback);
+					eventCallback);
+				m_objectController.Initialize(eventCallback);
 
-				for (int i = 0; i < m_objectList.Length; ++i)
-				{
-					m_objectList[i].Initialize(
-						enterCallback,
-						exitCallback);
-				}
 				for (int i = 0; i < m_itemList.Length; ++i)
 				{
-					m_itemList[i].Initialize(enterCallback);
+					m_itemList[i].Initialize(eventCallback);
 				}
 				for (int i = 0; i < m_eventList.Length; ++i)
 				{
-					m_eventList[i].Initialize(enterCallback, exitCallback);
+					m_eventList[i].Initialize(eventCallback);
 				}
 			}
 
@@ -107,7 +100,7 @@ namespace scene.game.ingame
 				{
 					m_mapMaterials[i].SetFloat("_SequenceTime", value);
 				}
-				m_enemyController.SetSequenceTime(value);
+				m_npcController.SetSequenceTime(value);
 			}
 
 			public void SetSkyboxTexture(Texture texture)
@@ -120,24 +113,57 @@ namespace scene.game.ingame
 				return m_positionDataList[index];
 			}
 
-			public world.Enemy GetEnemy(int controllId)
+			public world.NPC GetNPC(int controllId)
 			{
-				return m_enemyController.GetEnemy(controllId);
+				return m_npcController.GetNPC(controllId);
+			}
+
+			public void DeleteNPC(int controllId)
+			{
+				m_npcController.DeleteNPC(controllId);
+			}
+
+			public world.ObjectBase GetObject(int controllId)
+			{
+				return m_objectController.GetObject(controllId);
 			}
 
 			public world.ItemBase GetItem(int id)
 			{
 				return m_itemList.Where(d => d.ID == id).First();
 			}
+
+			public void OnMovieStart(string[] paramStrings, UnityAction callback)
+			{
+				switch (paramStrings[0])
+				{
+					case "AddNPC":
+						{
+							int characterId = int.Parse(paramStrings[1]);
+							int colorId = int.Parse(paramStrings[2]);
+							int count = int.Parse(paramStrings[3]);
+							m_npcController.AddNPC(characterId, colorId, count, callback);
+							break;
+						}
+				}
+			}
 		}
 
 		[SerializeField]
-		private WorldData m_worldData = null;
+		private WorldData m_worldData;
 
 
-		private Transform m_ingameCameraTransform = null;
-		private UnityAction<string> m_enterEvent = null;
-		private UnityAction<string> m_exitEvent = null;
+
+		private Transform m_ingameCameraTransform;
+		private UnityAction<string> m_eventCallback;
+
+		public void Initialize(
+			Transform ingameCameraTransform,
+			UnityAction<string> eventCallback)
+		{
+			m_ingameCameraTransform = ingameCameraTransform;
+			m_eventCallback = eventCallback;
+		}
 
 		public override void Ready(UnityAction callback)
 		{
@@ -146,8 +172,7 @@ namespace scene.game.ingame
 
 			m_worldData.Initialize(
 				m_ingameCameraTransform,
-				m_enterEvent,
-				m_exitEvent);
+				m_eventCallback);
 
 			callback();
 		}
@@ -155,16 +180,6 @@ namespace scene.game.ingame
 		public override void Go()
 		{
 			StartCoroutine(UpdateSkyboxCoroutine());
-		}
-
-		public void Initialize(
-			Transform ingameCameraTransform,
-			UnityAction<string> enterEvent,
-			UnityAction<string> exitEvent)
-		{
-			m_ingameCameraTransform = ingameCameraTransform;
-			m_enterEvent = enterEvent;
-			m_exitEvent = exitEvent;
 		}
 
 		public IEnumerator ChangeMapOutCoroutine(float time)
@@ -216,9 +231,19 @@ namespace scene.game.ingame
 			return m_worldData.GetPositionData(index);
 		}
 
-		public world.Enemy GetEnemy(int controllId)
+		public world.NPC GetNPC(int controllId)
 		{
-			return m_worldData.GetEnemy(controllId);
+			return m_worldData.GetNPC(controllId);
+		}
+
+		public void DeleteNPC(int controllId)
+		{
+			m_worldData.DeleteNPC(controllId);
+		}
+
+		public world.ObjectBase GetObject(int controllId)
+		{
+			return m_worldData.GetObject(controllId);
 		}
 
 		public world.ItemBase GetItem(int id)
@@ -241,6 +266,18 @@ namespace scene.game.ingame
 					index = 0;
 				}
 				yield return wait;
+			}
+		}
+
+		public void OnMovieStart(string[] paramStrings, UnityAction callback)
+		{
+			switch (paramStrings[0])
+			{
+				default:
+					{
+						m_worldData.OnMovieStart(paramStrings, callback);
+						break;
+					}
 			}
 		}
 	}

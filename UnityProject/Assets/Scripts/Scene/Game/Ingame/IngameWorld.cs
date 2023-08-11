@@ -18,37 +18,25 @@ namespace scene.game.ingame
 
 		public class SearchInData
 		{
-			public enum ActionType
-			{
-				Action,
-				Talk
-			}
-			private int m_enemyId;
-			public int EnemyId => m_enemyId;
+			private world.ActionTargetBase.Category m_category;
+			public world.ActionTargetBase.Category Category => m_category;
 
 			private int m_controllId;
 			public int ControllId => m_controllId;
 
-			private Transform m_target;
-			public Transform Target => m_target;
+			private world.ActionTargetBase m_target;
+			public world.ActionTargetBase Target => m_target;
 
-			private ActionType m_type;
-			public ActionType Type => m_type;
-
-			public SearchInData(int enemyId, int controllId, Transform target, ActionType type)
+			public SearchInData(world.ActionTargetBase.Category category, int controllId, world.ActionTargetBase target)
 			{
-				m_enemyId = enemyId;
+				m_category = category;
 				m_controllId = controllId;
 				m_target = target;
-				m_type = type;
 			}
 		}
 
 		[SerializeField]
 		private world.PlayerChara m_player = null;
-
-		[SerializeField]
-		private world.RenderPlate m_renderPlate = null;
 
 		[SerializeField]
 		private world.EffectController m_effectController = null;
@@ -67,7 +55,7 @@ namespace scene.game.ingame
 
 		private List<string> m_eventParamList = new List<string>();
 
-		private Coroutine m_setupEventParamCoroutine;
+		//private Coroutine m_setupEventParamCoroutine;
 
 		private bool m_isEventLock = false;
 
@@ -93,9 +81,9 @@ namespace scene.game.ingame
 			m_player.SetEnable(false);
 			m_player.UpdateParam();
 
-			m_renderPlate.Initialize();
-
 			m_effectController.Initialize();
+
+			StartCoroutine(SetupEventParamCoroutine());
 
 			callback();
 		}
@@ -109,7 +97,6 @@ namespace scene.game.ingame
 				m_stage = stage;
 				m_stage.Initialize(
 					m_ingameCameraTransform,
-					SetupEventParam,
 					SetupEventParam);
 				isDone = true;
 			});
@@ -192,53 +179,58 @@ namespace scene.game.ingame
 			UpdateCharaActionButton();
 		}
 
-		public void SearchIn(int controllId)
+		public void SearchIn(world.ActionTargetBase.Category category, int controllId)
 		{
-			var enemy = m_stage.GetEnemy(controllId);
-			enemy.SearchIn();
-
-			var transform = enemy.GetHeadTransform();
-			var data = m_searchInDataList.Find(d => (d.ControllId == controllId));
-			if (data == null)
+			var actionTarget = GetActionTarget(category, controllId);
+			if (actionTarget == null)
 			{
-				SearchInData.ActionType type = string.IsNullOrEmpty(enemy.GetActionEvent()) ?
-					SearchInData.ActionType.Action :
-					SearchInData.ActionType.Talk;
-				m_searchInDataList.Add(new SearchInData(
-					enemy.EnemyId,
-					controllId,
-					transform,
-					type));
-				UpdateCharaActionButton();
+				return;
 			}
-		}
 
-		public void SearchOut(int controllId)
-		{
-			var enemy = m_stage.GetEnemy(controllId);
-			enemy.SearchOut();
+			actionTarget.SearchIn();
 
 			var data = m_searchInDataList.Find(d => (d.ControllId == controllId));
 			if (data != null)
 			{
-				m_searchInDataList.Remove(data);
-				UpdateCharaActionButton();
+				return;
 			}
+
+			m_searchInDataList.Add(new SearchInData(
+				category,
+				controllId,
+				actionTarget));
+			UpdateCharaActionButton();
 		}
 
-		public void RemoveTarget(int controllId)
+		public void SearchOut(world.ActionTargetBase.Category category, int controllId)
 		{
+			var actionTarget = GetActionTarget(category, controllId);
+			if (actionTarget == null)
+			{
+				return;
+			}
+
+			actionTarget.SearchOut();
+
+			var data = m_searchInDataList.Find(d => (d.ControllId == controllId));
+			if (data == null)
+			{
+				return;
+			}
+
+			m_searchInDataList.Remove(data);
+			UpdateCharaActionButton();
 		}
 
-		public void OnCharaActionButtonPressed(int controllId, UnityAction callback)
+		public void OnCharaActionButtonPressed(world.ActionTargetBase.Category category, int controllId, UnityAction callback)
 		{
-			StartCoroutine(OnCharaActionButtonPressedCoroutine(controllId, callback));
+			StartCoroutine(OnCharaActionButtonPressedCoroutine(category, controllId, callback));
 		}
 
-		private IEnumerator OnCharaActionButtonPressedCoroutine(int controllId, UnityAction callback)
+		private IEnumerator OnCharaActionButtonPressedCoroutine(world.ActionTargetBase.Category category, int controllId, UnityAction callback)
 		{
-			var enemy = m_stage.GetEnemy(controllId);
-			if (enemy == null)
+			world.ActionTargetBase actionTarget = GetActionTarget(category, controllId);
+			if (actionTarget == null)
 			{
 				if (callback != null)
 				{
@@ -247,7 +239,7 @@ namespace scene.game.ingame
 				yield break;
 			}
 
-			var data = m_searchInDataList.Find(d => (d.ControllId == controllId));
+			var data = m_searchInDataList.Find(d => (d.Category == category && d.ControllId == controllId));
 			if (data == null)
 			{
 				if (callback != null)
@@ -261,25 +253,31 @@ namespace scene.game.ingame
 			UpdateCharaActionButton();
 
 			int doneCount = 0;
+			int doneCountMax = 1;
 			m_player.SetEnable(false);
-			m_player.LookTarget(enemy.TransformPosition, () => { doneCount++; });
-			enemy.SetEnable(false);
-			enemy.LookTarget(m_player.transform.position, () => { doneCount++; });
-			while (doneCount < 2) { yield return null; }
+			m_player.LookTarget(actionTarget.TransformPosition, () => { doneCount++; });
+			if (category == world.ActionTargetBase.Category.NPC)
+			{
+				doneCountMax++;
+				actionTarget.SetEnable(false);
+				var npc = (world.NPC)actionTarget;
+				npc.LookTarget(m_player.transform.position, () => { doneCount++; });
+			}
+			while (doneCount < doneCountMax) { yield return null; }
 
 			doneCount = 0;
 			m_player.OnCharaActionButtonPressed(() =>
 			{
 				doneCount++;
 			});
-			enemy.OnCharaActionButtonPressed(() =>
+			actionTarget.OnCharaActionButtonPressed(() =>
 			{
 				doneCount++;
 			});
 			while (doneCount < 2) { yield return null; }
 
 			m_player.SetEnable(true);
-			enemy.SetEnable(true);
+			actionTarget.SetEnable(true);
 
 			if (callback != null)
 			{
@@ -287,39 +285,33 @@ namespace scene.game.ingame
 			}
 		}
 
-		public void CheckEnemyActionEvent(int controllId)
+		public world.ActionTargetBase GetActionTarget(world.ActionTargetBase.Category category, int controllId)
 		{
-			var enemy = m_stage.GetEnemy(controllId);
-			if (enemy == null)
+			world.ActionTargetBase actionTarget = null;
+			switch (category)
 			{
-				return;
+				case world.ActionTargetBase.Category.NPC:
+					{
+						actionTarget = m_stage.GetNPC(controllId);
+						break;
+					}
 			}
+			return actionTarget;
+		}
 
-			string actionEvent = enemy.GetActionEvent();
-			if (string.IsNullOrEmpty(actionEvent) == false)
-			{
-				// enemy.ActionEventによるアクション
-				SetupEventParam(actionEvent);
-			}
+		public IEnumerator DeleteNPCCoroutine(int controllId)
+		{
+			var npc = GetActionTarget(world.ActionTargetBase.Category.NPC, controllId);
+			bool isDone = false;
+			m_effectController.Play(world.EffectController.PlayEffectType.Delete, npc.TransformPosition, ()=> { isDone = true; });
+			m_stage.DeleteNPC(controllId);
+			while (!isDone) { yield return null; }
 		}
 
 		private void UpdateCharaActionButton()
 		{
 			if (m_searchInDataList.Count > 0)
 			{
-				m_searchInDataList.Sort((a, b) =>
-				{
-					float disA = (a.Target.position - m_player.transform.position).magnitude;
-					float disB = (a.Target.position - m_player.transform.position).magnitude;
-					if (disA > disB)
-					{
-						return 1;
-					}
-					else
-					{
-						return -1;
-					}
-				});
 				m_updateCharaActionButtonEvent(m_searchInDataList[0]);
 			}
 			else
@@ -510,9 +502,9 @@ namespace scene.game.ingame
 
 		//}
 
-		public void OnPlayerDragEvent(Vector2 _dragVector)
+		public void OnPlayerDragEvent(Vector2 direction)
 		{
-			m_player.DragEvent(_dragVector);
+			m_player.DragEvent(direction);
 		}
 
 		public void OnPlayerEndDragEvent()
@@ -522,60 +514,65 @@ namespace scene.game.ingame
 
 		private void SetupEventParam(string eventParam)
 		{
-			Debug.Log("SetupEventParam eventParam = " + eventParam);
+			Debug.Log("eventParam = " + eventParam);
 			m_eventParamList.Add(eventParam);
-			if (m_setupEventParamCoroutine == null)
-			{
-				m_setupEventParamCoroutine = StartCoroutine(SetupEventParamCoroutine());
-			}
 		}
 
 		private IEnumerator SetupEventParamCoroutine()
 		{
-			if (m_eventParamList.Count <= 0)
+			while (true)
 			{
-				yield break;
-			}
+				if (m_eventParamList.Count <= 0)
+				{
+					yield return null;
+					continue;
+				}
 
-			// ロック解除まで待機
-			while (m_isEventLock) { yield return null; }
+				// ロック解除まで待機
+				while (m_isEventLock) { yield return null; }
 
-			m_player.SetEnable(false);
+				m_player.SetEnable(false);
 
-			bool isDone = false;
-			string eventParam = m_eventParamList[0];
-			m_ingameEvent(eventParam, () => { isDone = true; });
-			while (!isDone) { yield return null; }
+				bool isDone = false;
+				string eventParam = m_eventParamList[0];
+				m_ingameEvent(eventParam, () => { isDone = true; });
+				while (!isDone) { yield return null; }
 
-			m_player.SetEnable(true);
-			string[] eventType = eventParam.Split('_');
-			switch (eventType[0])
-			{
-				case "OpenDialog":
-					{
-						if (eventType[1] == "Customize")
+				m_player.SetEnable(true);
+				string[] eventType = eventParam.Split('_');
+				switch (eventType[0])
+				{
+					case "OpenDialog":
 						{
-							// カスタマイズにより能力が変動しているので、更新
-							m_player.UpdateParam();
+							if (eventType[1] == "Customize")
+							{
+								// カスタマイズにより能力が変動しているので、更新
+								m_player.UpdateParam();
+							}
+							break;
 						}
-						break;
-					}
+				}
+
+				m_eventParamList.RemoveAt(0);
+
+				yield return null;
 			}
-
-			m_eventParamList.RemoveAt(0);
-
-			// 再帰
-			yield return SetupEventParamCoroutine();
-
-			m_setupEventParamCoroutine = null;
 		}
 
-		public void PlayMovieCharaReaction(ReactionType type, int enemyControllId, UnityAction callback)
+		public void PlayMovieCharaReaction(
+			ReactionType type,
+			world.ActionTargetBase.Category category,
+			int controllId,
+			UnityAction callback)
 		{
-			StartCoroutine(PlayMovieCharaReactionCoroutine(type, enemyControllId, callback));
+			StartCoroutine(PlayMovieCharaReactionCoroutine(type, category, controllId, callback));
 		}
 
-		private IEnumerator PlayMovieCharaReactionCoroutine(ReactionType type, int enemyControllId, UnityAction callback)
+		private IEnumerator PlayMovieCharaReactionCoroutine(
+			ReactionType type,
+			world.ActionTargetBase.Category category,
+			int controllId,
+			UnityAction callback)
 		{
 			int doneCount = 0;
 			int doneCountMax = 0;
@@ -583,7 +580,7 @@ namespace scene.game.ingame
 			doneCountMax++;
 			m_player.PlayReaction(type, () => { doneCount++; });
 
-			var enemy = m_stage.GetEnemy(enemyControllId);
+			world.ActionTargetBase actionTarget = GetActionTarget(category, controllId);
 			switch (type)
 			{
 				case ReactionType.DelightIn:
@@ -599,8 +596,8 @@ namespace scene.game.ingame
 						doneCountMax++;
 						var effectOutEvent = m_effectController.PlayLoop(
 							world.EffectController.LoopEffectType.Restraint,
-							enemy.TransformPosition);
-						enemy.PlayReaction(type, effectOutEvent, () => { doneCount++; });
+							actionTarget.TransformPosition);
+						actionTarget.PlayReaction(type, effectOutEvent, () => { doneCount++; });
 
 						break;
 					}
@@ -625,6 +622,28 @@ namespace scene.game.ingame
 				return Vector3.zero;
 			}
 			return m_player.transform.position;
+		}
+
+		public world.ActionTargetBase GetActionTarget()
+		{
+			if (m_searchInDataList.Count <= 0)
+			{
+				return null;
+			}
+
+			return m_searchInDataList[0].Target;
+		}
+
+		public void OnMovieStart(string[] paramStrings, UnityAction callback)
+		{
+			switch (paramStrings[0])
+			{
+				default:
+					{
+						m_stage.OnMovieStart(paramStrings, callback);
+						break;
+					}
+			}
 		}
 	}
 }

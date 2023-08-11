@@ -8,10 +8,24 @@ namespace scene.game.outgame
 	/// <summary>
 	/// ハンドルイベント受け取りクラス
 	/// </summary>
-	public class Handler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
+	[System.Serializable]
+	public class Handler :
+		MonoBehaviour,
+		IBeginDragHandler,
+		IDragHandler,
+		IEndDragHandler,
+		IPointerDownHandler,
+		IPointerUpHandler,
+		IPointerClickHandler
 	{
 		public class EventData
 		{
+			/// <summary>
+			/// ドラッグ開始時イベント
+			/// </summary>
+			private UnityAction<Vector2> m_beginDragEvent = null;
+			public UnityAction<Vector2> BeginDragEvent => m_beginDragEvent;
+
 			/// <summary>
 			/// ドラッグ時イベント
 			/// </summary>
@@ -30,63 +44,59 @@ namespace scene.game.outgame
 			private UnityAction<Vector2> m_clickEvent = null;
 			public UnityAction<Vector2> ClickEvent => m_clickEvent;
 
-			public EventData(UnityAction<Vector2> dragEvent, UnityAction endDragEvent, UnityAction<Vector2> clickEvent)
+			///// <summary>
+			///// マウスが乗った時のイベント
+			///// </summary>
+			//private UnityAction<Vector2> m_mouseEnterEvent = null;
+			//public UnityAction<Vector2> MouseEnterEvent => m_mouseEnterEvent;
+
+			///// <summary>
+			///// マウスが外れた時のイベント
+			///// </summary>
+			//private UnityAction m_mouseExitEvent = null;
+			//public UnityAction MouseExitEvent => m_mouseExitEvent;
+
+			public EventData(
+				UnityAction<Vector2> beginDragEvent,
+				UnityAction<Vector2> dragEvent,
+				UnityAction endDragEvent,
+				UnityAction<Vector2> clickEvent)
 			{
+				m_beginDragEvent = beginDragEvent;
 				m_dragEvent = dragEvent;
 				m_endDragEvent = endDragEvent;
 				m_clickEvent = clickEvent;
 			}
+
+			//public EventData(
+			//	UnityAction<Vector2> dragEvent,
+			//	UnityAction endDragEvent,
+			//	UnityAction<Vector2> clickEvent,
+			//	UnityAction<Vector2> mouseEnterEvent,
+			//	UnityAction mouseExitEvent)
+			//{
+			//	m_dragEvent = dragEvent;
+			//	m_endDragEvent = endDragEvent;
+			//	m_clickEvent = clickEvent;
+			//	m_mouseEnterEvent = mouseEnterEvent;
+			//	m_mouseExitEvent = mouseExitEvent;
+			//}
 		}
 
-		private enum HanderType
-		{
-			BeginFixed,
-			LengthFixed,
-		}
-
+		[SerializeField]
 		/// <summary>
-		/// ハンドルタイプ
+		/// ドラッグ判定とする為の最低の長さ
 		/// </summary>
-		[SerializeField]
-		private HanderType m_type = HanderType.BeginFixed;
-
-		[SerializeField]
-		private GameObject m_beginObject = null;
-
-		[SerializeField]
-		private GameObject m_endObject = null;
-
-		/// <summary>
-		/// Begin時に原点から開始されるかどうか
-		/// </summary>
-		[SerializeField]
-		private bool m_isBeginLocalPosition = false;
-
-		/// <summary>
-		/// キーボード入力
-		/// </summary>
-		[SerializeField]
-		private bool m_isInputKey = false;
+		private float m_dragLength = 0.0f;
 
 		/// <summary>
 		/// イベントデータ
 		/// </summary>
 		private EventData m_eventData = null;
 
-		/// <summary>
-		/// 開始座標
-		/// </summary>
-		private Vector2 m_beginVector = Vector3.zero;
+		private Vector2 m_beginPosition = Vector2.zero;
 
-		/// <summary>
-		/// 方向
-		/// </summary>
-		private Vector2 m_dragVector = Vector2.zero;
-
-		/// <summary>
-		/// 方向の長さ
-		/// </summary>
-		private float m_vectorMagnitude = 0.0f;
+		private Vector2 m_dragPosition = Vector2.zero;
 
 
 
@@ -97,103 +107,19 @@ namespace scene.game.outgame
 				yield break;
 			}
 
-			const float keyDragLength = 100.0f;
-			System.Collections.Generic.Dictionary<KeyCode, bool> IsKeyDown = new System.Collections.Generic.Dictionary<KeyCode, bool>()
-			{
-				{ KeyCode.W, false },
-				{ KeyCode.S, false },
-				{ KeyCode.A, false },
-				{ KeyCode.D, false }
-			};
-
 			while (true)
 			{
-				if (m_isInputKey == true)
+				if (m_beginPosition == Vector2.zero ||
+					m_dragPosition == Vector2.zero)
 				{
-					// 移動量測定
-					if (Input.GetKeyDown(KeyCode.W) == true)
-					{
-						IsKeyDown[KeyCode.W] = true;
-					}
-					if (Input.GetKeyDown(KeyCode.S) == true)
-					{
-						IsKeyDown[KeyCode.S] = true;
-					}
-					if (Input.GetKeyDown(KeyCode.A) == true)
-					{
-						IsKeyDown[KeyCode.A] = true;
-					}
-					if (Input.GetKeyDown(KeyCode.D) == true)
-					{
-						IsKeyDown[KeyCode.D] = true;
-					}
-
-					if (Input.GetKeyUp(KeyCode.W) == true)
-					{
-						IsKeyDown[KeyCode.W] = false;
-					}
-					if (Input.GetKeyUp(KeyCode.S) == true)
-					{
-						IsKeyDown[KeyCode.S] = false;
-					}
-					if (Input.GetKeyUp(KeyCode.A) == true)
-					{
-						IsKeyDown[KeyCode.A] = false;
-					}
-					if (Input.GetKeyUp(KeyCode.D) == true)
-					{
-						IsKeyDown[KeyCode.D] = false;
-					}
-
-					Vector2 drag = Vector2.zero;
-					if (IsKeyDown[KeyCode.W] == true)
-					{
-						drag += new Vector2(0.0f, 1.0f);
-					}
-					if (IsKeyDown[KeyCode.S] == true)
-					{
-						drag += new Vector2(0.0f, -1.0f);
-					}
-					if (IsKeyDown[KeyCode.A] == true)
-					{
-						drag += new Vector2(-1.0f, 0.0f);
-					}
-					if (IsKeyDown[KeyCode.D] == true)
-					{
-						drag += new Vector2(1.0f, 0.0f);
-					}
-
-					if (drag != Vector2.zero)
-					{
-						m_dragVector = drag.normalized * keyDragLength;
-						m_vectorMagnitude = keyDragLength;
-					}
-					else
-					{
-						if (m_eventData != null && m_eventData.EndDragEvent != null &&
-							m_dragVector != Vector2.zero)
-						{
-							m_eventData.EndDragEvent.Invoke();
-						}
-
-						m_dragVector = Vector2.zero;
-						m_vectorMagnitude = 0.0f;
-					}
+					yield return null;
+					continue;
 				}
 
-				if (m_vectorMagnitude >= 1.0f)
+				Vector2 dir = m_beginPosition - m_dragPosition;
+				if (dir.magnitude >= m_dragLength)
 				{
-					//Debug.Log("m_dragVector = " + m_dragVector);
-					m_eventData.DragEvent.Invoke(m_dragVector);
-
-					if (m_beginObject != null)
-					{
-						m_beginObject.transform.position = m_beginVector;
-					}
-					if (m_endObject != null)
-					{
-						m_endObject.transform.position = m_beginVector + m_dragVector;
-					}
+					m_eventData.DragEvent(m_dragPosition);
 				}
 
 				yield return null;
@@ -207,18 +133,6 @@ namespace scene.game.outgame
 		public void Initialize(EventData eventData)
 		{
 			m_eventData = eventData;
-			m_beginVector = Vector3.zero;
-			m_dragVector = Vector2.zero;
-			m_vectorMagnitude = 0.0f;
-
-			if (m_beginObject != null)
-			{
-				m_beginObject.SetActive(false);
-			}
-			if (m_endObject != null)
-			{
-				m_endObject.SetActive(false);
-			}
 
 			StartCoroutine(UpdateCoroutine());
 		}
@@ -230,24 +144,15 @@ namespace scene.game.outgame
 		public void OnBeginDrag(PointerEventData e)
 		{
 			//Debug.Log("OnBeginDrag e.position = " + e.position);
-			if (m_isBeginLocalPosition == true)
-			{
-				m_beginVector = transform.position;
-			}
-			else
-			{
-				m_beginVector = e.position;
-			}
-			m_vectorMagnitude = 0.0f;
 
-			if (m_beginObject != null)
+			if (m_eventData == null || m_eventData.BeginDragEvent == null)
 			{
-				m_beginObject.SetActive(true);
+				return;
 			}
-			if (m_endObject != null)
-			{
-				m_endObject.SetActive(true);
-			}
+
+			m_eventData.BeginDragEvent(e.position);
+
+			m_beginPosition = e.position;
 		}
 
 		/// <summary>
@@ -257,12 +162,8 @@ namespace scene.game.outgame
 		public void OnDrag(PointerEventData e)
 		{
 			//Debug.Log("OnDrag e.position = " + e.position);
-			m_dragVector = e.position - m_beginVector;
-			m_vectorMagnitude = m_dragVector.magnitude;
-			if (m_type == HanderType.LengthFixed && m_vectorMagnitude > 50.0f)
-			{
-				m_beginVector = e.position - m_dragVector.normalized * 50.0f;
-			}
+
+			m_dragPosition = e.position;
 		}
 
 		/// <summary>
@@ -272,24 +173,16 @@ namespace scene.game.outgame
 		public void OnEndDrag(PointerEventData e)
 		{
 			//Debug.Log("OnEndDrag");
-			m_dragVector = Vector2.zero;
-			m_vectorMagnitude = 0.0f;
 
 			if (m_eventData == null || m_eventData.EndDragEvent == null)
 			{
 				return;
 			}
 
-			m_eventData.EndDragEvent.Invoke();
+			m_eventData.EndDragEvent();
 
-			if (m_beginObject != null)
-			{
-				m_beginObject.SetActive(false);
-			}
-			if (m_endObject != null)
-			{
-				m_endObject.SetActive(false);
-			}
+			m_beginPosition = Vector2.zero;
+			m_dragPosition = Vector2.zero;
 		}
 
 		/// <summary>
@@ -299,15 +192,13 @@ namespace scene.game.outgame
 		public void OnPointerDown(PointerEventData e)
 		{
 			//Debug.Log("OnPointerDown");
-			if (m_isBeginLocalPosition == true)
+
+			if (m_eventData == null || m_eventData.BeginDragEvent == null)
 			{
-				m_beginVector = transform.position;
+				return;
 			}
-			else
-			{
-				m_beginVector = e.position;
-			}
-			m_vectorMagnitude = 0.0f;
+
+			m_eventData.BeginDragEvent(e.position);
 		}
 
 		/// <summary>
@@ -317,15 +208,13 @@ namespace scene.game.outgame
 		public void OnPointerUp(PointerEventData e)
 		{
 			//Debug.Log("OnPointerUp");
-			m_beginVector = Vector2.zero;
-			m_vectorMagnitude = 0.0f;
 
 			if (m_eventData == null || m_eventData.EndDragEvent == null)
 			{
 				return;
 			}
 
-			m_eventData.EndDragEvent.Invoke();
+			m_eventData.EndDragEvent();
 		}
 
 		/// <summary>
@@ -334,12 +223,38 @@ namespace scene.game.outgame
 		/// <param name="e"></param>
 		public void OnPointerClick(PointerEventData e)
 		{
-			if (m_eventData == null || m_eventData.EndDragEvent == null)
+			if (m_eventData == null || m_eventData.ClickEvent == null)
 			{
 				return;
 			}
 
-			m_eventData.ClickEvent.Invoke(e.position);
+			m_eventData.ClickEvent(e.position);
 		}
+
+		///// <summary>
+		///// マウスが乗った時に呼ばれる
+		///// </summary>
+		//public void OnMouseEnter()
+		//{
+		//	if (m_eventData == null || m_eventData.MouseEnterEvent == null)
+		//	{
+		//		return;
+		//	}
+
+		//	m_eventData.MouseEnterEvent(Input.mousePosition);
+		//}
+
+		///// <summary>
+		///// マウスが乗った時に呼ばれる
+		///// </summary>
+		//public void OnMouseExit()
+		//{
+		//	if (m_eventData == null || m_eventData.MouseExitEvent == null)
+		//	{
+		//		return;
+		//	}
+
+		//	m_eventData.MouseExitEvent();
+		//}
 	}
 }

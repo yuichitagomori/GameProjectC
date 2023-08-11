@@ -116,13 +116,13 @@ namespace scene.dialog
 		/// タイトル
 		/// </summary>
 		[SerializeField]
-		private Text m_titleText;
+		private CommonUI.TextExpansion m_titleText;
 
 		/// <summary>
 		/// メッセージ
 		/// </summary>
 		[SerializeField]
-		private Text m_messageText;
+		private CommonUI.TextExpansion m_messageText;
 
 		/// <summary>
 		/// 閉じるボタンオブジェクト
@@ -140,13 +140,24 @@ namespace scene.dialog
 		/// ボタンテキスト
 		/// </summary>
 		[SerializeField]
-		private Text[] m_buttonTexts;
+		private CommonUI.TextExpansion[] m_buttonTexts;
+
+		/// <summary>
+		/// （PC限定）選択中ボタン矢印
+		/// </summary>
+		[SerializeField]
+		private GameObject[] m_buttonArrow;
 
 
 
 		private Data m_data;
 
 		private UnityAction m_finishCallback;
+
+		/// <summary>
+		/// （PC限定）選択中ボタン番号
+		/// </summary>
+		private int m_selectIndex = 0;
 
 		/// <summary>
 		/// 事前設定
@@ -169,18 +180,21 @@ namespace scene.dialog
 			m_titleText.text = m_data.Title;
 			m_messageText.text = m_data.Message;
 
-			if (m_data.DialogType == Data.Type.YesNo)
+			if (GeneralRoot.Instance.IsPCPlatform() == false)
 			{
-				m_closeButtonObject.SetActive(false);
-			}
-			else
-			{
-				m_closeButtonObject.SetActive(true);
-				m_closeButton.SetupClickEvent(() =>
+				if (m_data.DialogType == Data.Type.YesNo)
 				{
-					m_sceneController.RemoveScene(this, null);
-				});
-				m_closeButton.interactable = false;
+					m_closeButtonObject.SetActive(false);
+				}
+				else
+				{
+					m_closeButtonObject.SetActive(true);
+					m_closeButton.SetupClickEvent(() =>
+					{
+						m_sceneController.RemoveScene(this, null);
+					});
+					m_closeButton.SetupActive(false);
+				}
 			}
 
 			if (m_data.DialogType != Data.Type.Notification)
@@ -201,7 +215,10 @@ namespace scene.dialog
 						m_sceneController.RemoveScene(this, null);
 					});
 					m_buttonTexts[index].text = m_data.ButtonNames[index];
-					m_buttons[index].interactable = false;
+					m_buttons[index].SetupActive(false);
+
+					bool isArrowView = (GeneralRoot.Instance.IsPCPlatform() == true && m_selectIndex == index);
+					m_buttonArrow[index].SetActive(isArrowView);
 				}
 			}
 			else
@@ -216,17 +233,59 @@ namespace scene.dialog
 			m_animator.Play("In", () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
-			if (m_closeButtonObject.activeInHierarchy == true)
+			if (GeneralRoot.Instance.IsPCPlatform() == false)
 			{
-				m_closeButton.interactable = true;
+				if (m_closeButtonObject.activeInHierarchy == true)
+				{
+					m_closeButton.SetupActive(true);
+				}
 			}
 
 			for (int i = 0; i < m_buttonObjects.Length; ++i)
 			{
-				if (m_buttonObjects[i].activeInHierarchy == true)
+				int index = i;
+				if (m_buttonObjects[index].activeInHierarchy == true)
 				{
-					m_buttons[i].interactable = true;
+					bool isActive = true;
+					if (GeneralRoot.Instance.IsPCPlatform() == true)
+					{
+						isActive = (m_selectIndex == index);
+					}
+					m_buttons[index].SetupActive(isActive);
 				}
+			}
+
+			// PC設定
+			if (GeneralRoot.Instance.IsPCPlatform() == true)
+			{
+				var input = GeneralRoot.Instance.Input;
+				input.UpdateEvent(system.InputSystem.Type.Press, KeyCode.A, () =>
+				{
+					if (m_selectIndex > 0)
+					{
+						m_selectIndex--;
+						UpdateButton();
+					}
+				});
+				input.UpdateEvent(system.InputSystem.Type.Press, KeyCode.D, () =>
+				{
+					if (m_selectIndex < 1)
+					{
+						m_selectIndex++;
+						UpdateButton();
+					}
+				});
+				input.UpdateEvent(system.InputSystem.Type.Press, KeyCode.Space, () =>
+				{
+					OnButtonPressed(m_selectIndex);
+				});
+				input.UpdateEvent(system.InputSystem.Type.Press, KeyCode.X, () =>
+				{
+					if (m_data.DialogType != Data.Type.YesNo)
+					{
+						m_sceneController.RemoveScene(this, null);
+					}
+				});
 			}
 
 			if (callback != null)
@@ -268,6 +327,26 @@ namespace scene.dialog
 				m_data.ButtonActions[index]();
 			}
 			m_sceneController.RemoveScene(this, null);
+		}
+
+		/// <summary>
+		/// （PC限定）ボタン状態更新
+		/// </summary>
+		private void UpdateButton()
+		{
+			for (int i = 0; i < m_buttonObjects.Length; ++i)
+			{
+				int index = i;
+				if (m_data.ButtonNames.Length <= index)
+				{
+					m_buttonObjects[index].SetActive(false);
+					continue;
+				}
+
+				bool isArrowView = (GeneralRoot.Instance.IsPCPlatform() == true && m_selectIndex == index);
+				m_buttonArrow[index].SetActive(isArrowView);
+				m_buttons[index].SetupActive(isArrowView);
+			}
 		}
 	}
 }

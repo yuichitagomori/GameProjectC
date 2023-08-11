@@ -32,7 +32,7 @@ namespace scene.game.ingame.world
 		public Model[] Models => m_models;
 
 		[SerializeField]
-		private Transform m_headTransform = null;
-		public Transform HeadTransform => m_headTransform;
+		private Transform m_armatureRootTransform = null;
+		public Transform ArmatureRootTransform => m_armatureRootTransform;
 	}
 }

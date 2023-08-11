@@ -3,7 +3,17 @@ guid: 798bb16da47a3ec42a07e7b77350de85
 ModelImporter:
   serializedVersion: 20300
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Face
+    second: {fileID: 2100000, guid: 672a094735c927e439634fb34e4b50ce, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material
+    second: {fileID: 2100000, guid: 63cfead1c4b3a6b43ad5c0a2029da9d4, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -123,7 +133,7 @@ ModelImporter:
       takeName: Armature|Wait
       internalID: -2379892911138293782
       firstFrame: 0
-      lastFrame: 60
+      lastFrame: 120
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -152,7 +162,7 @@ ModelImporter:
       takeName: Armature|Walk
       internalID: 8349542763059015795
       firstFrame: 0
-      lastFrame: 40
+      lastFrame: 80
       wrapMode: 0
       orientationOffsetY: 0
       level: 0

@@ -45,17 +45,35 @@ namespace scene.dialog
 			}
 		}
 
+		/// <summary>
+		/// ボタン
+		/// </summary>
         [SerializeField]
         private CommonUI.ButtonExpansion m_button;
 
+		/// <summary>
+		/// クエスト名
+		/// </summary>
 		[SerializeField]
-		private Text m_titleText;
+		private CommonUI.TextExpansion m_titleText;
 
+		/// <summary>
+		/// 難易度表記要素リスト
+		/// </summary>
 		[SerializeField]
 		private Common.ElementList m_difficultyRankElementList;
 
+		/// <summary>
+		/// ボタン画像切り替え
+		/// </summary>
 		[SerializeField]
 		private CommonUI.SwitchSprite m_switch;
+
+		/// <summary>
+		/// 選択時表示オブジェクト(矢印)
+		/// </summary>
+		[SerializeField]
+		private GameObject m_selectObject;
 
 		/// <summary>
 		/// 完了表記オブジェクト
@@ -93,6 +111,7 @@ namespace scene.dialog
 		public void UpdateSelect(bool isSelected)
 		{
 			m_switch.Setup(isSelected);
+			m_selectObject.SetActive(isSelected);
 		}
 
 		private void OnSelected()

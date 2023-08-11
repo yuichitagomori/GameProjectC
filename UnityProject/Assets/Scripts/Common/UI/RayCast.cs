@@ -1,4 +1,5 @@
-﻿using UnityEngine.UI;
+﻿using UnityEngine;
+using UnityEngine.UI;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -6,6 +7,7 @@ using UnityEditor;
 
 namespace CommonUI
 {
+    [RequireComponent(typeof(CanvasRenderer))]
     public class RayCast : Graphic
     {
         protected override void OnPopulateMesh(VertexHelper vh)

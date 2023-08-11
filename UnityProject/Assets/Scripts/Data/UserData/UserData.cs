@@ -20,24 +20,6 @@ namespace data
 		public class LocalSave
 		{
 			[System.Serializable]
-			public class SearchTargetData
-			{
-				[SerializeField]
-				private int m_enemyId;
-				public int EnemyId => m_enemyId;
-
-				[SerializeField]
-				private int m_controllId;
-				public int ControllId => m_controllId;
-
-				public SearchTargetData(int enemyId, int controllId)
-				{
-					m_enemyId = enemyId;
-					m_controllId = controllId;
-				}
-			}
-
-			[System.Serializable]
 			public class Item
 			{
 				public enum CategoryType
@@ -91,9 +73,6 @@ namespace data
 			public List<UniqueItem> UniqueItemList => m_uniqueItemList;
 
 
-			[SerializeField]
-			private List<SearchTargetData> m_searchTargetList;
-			public List<SearchTargetData> SearchTargetList => m_searchTargetList;
 
 			[System.Serializable]
 			public class CustomizeData

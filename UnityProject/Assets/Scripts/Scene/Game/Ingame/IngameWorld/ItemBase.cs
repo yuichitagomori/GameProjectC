@@ -44,7 +44,7 @@ namespace scene.game.ingame.world
 				while (!isDone) { yield return null; }
 				m_fbx.Anime.PlayLoop("Wait");
 
-				m_event.Initialize(m_eventCallback, null);
+				m_event.Initialize(m_eventCallback);
 			}
 			else
 			{

@@ -15,10 +15,10 @@ namespace scene.game.ingame.world
 		private FBXBase m_fbx = null;
 
 		[SerializeField]
-		private Material m_faceMaterial = null;
+		private Transform m_faceChangerTransform = null;
 
 		[SerializeField]
-		private Texture[] m_faceTextureList = null;
+		private Material m_faceMaterial = null;
 
 		[SerializeField]
 		private ParticleSystem m_dustParticle = null;
@@ -50,10 +50,10 @@ namespace scene.game.ingame.world
 			StartCoroutine(UpdateCoroutine());
 		}
 
-		public void DragEvent(Vector2 dragVector)
+		public void DragEvent(Vector2 direction)
 		{
 			Vector3 euler = new Vector3(0.0f, m_cameraTransform.eulerAngles.y, 0.0f);
-			m_moveVector = (Quaternion.Euler(euler) * new Vector3(dragVector.x, 0.0f, dragVector.y)).normalized;
+			m_moveVector = (Quaternion.Euler(euler) * new Vector3(direction.x, 0.0f, direction.y)).normalized;
 
 			if (m_fbx.Anime.GetAnimationName() == "Wait")
 			{
@@ -93,7 +93,7 @@ namespace scene.game.ingame.world
 				{
 					case data.master.CustomizePartsEffect.Data.CaterogyType.SpeedUp:
 						{
-							m_moveSpeedMax += customizePartsEffectMasterData.Param;
+							m_moveSpeedMax += customizePartsEffectMasterData.Param * 2;
 							break;
 						}
 				}
@@ -183,6 +183,13 @@ namespace scene.game.ingame.world
 
 		private void FixedUpdate()
 		{
+			// enable = false 状態でも表情切り替えを行いたいので、手前で更新処理をはさむ
+			int offsetUIndex = Mathf.RoundToInt(m_faceChangerTransform.localPosition.x * 100);
+			int offsetVIndex = Mathf.RoundToInt(m_faceChangerTransform.localPosition.y * 100);
+			float offsetU = 0.125f * offsetUIndex;
+			float offsetV = 0.125f * offsetVIndex;
+			m_faceMaterial.SetVector("_UVOffset", new Vector4(offsetU, offsetV, 0.0f, 0.0f));
+
 			if (m_transform == null) return;
 
 			if (m_enable == false)

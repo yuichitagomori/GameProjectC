@@ -12,6 +12,56 @@ using UnityEngine.Rendering.Universal;
 /// </summary>
 public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 {
+	[System.Serializable]
+	public class MouseCursor
+	{
+		public enum Type
+		{
+			Normal,
+			Pinch,
+		}
+
+		[SerializeField]
+		private Transform m_transform;
+
+		[SerializeField]
+		private GameObject[] m_iconObjects;
+
+
+		private Type m_iconType = Type.Normal;
+
+		public void Initialize()
+		{
+			UpdateIcon();
+		}
+
+		public void SetPoistion(Vector3 v)
+		{
+			m_transform.position = v;
+		}
+
+		public void SettingIcon(Type type)
+		{
+			if (m_iconType == type)
+			{
+				return;
+			}
+
+			m_iconType = type;
+			UpdateIcon();
+		}
+
+		private void UpdateIcon()
+		{
+			for (int i = 0; i < m_iconObjects.Length; ++i)
+			{
+				m_iconObjects[i].SetActive(i == (int)m_iconType);
+			}
+		}
+	}
+
+
+
 	public static data.MasterData Master => Instance.m_masterData;
 
 	public static data.UserData User => Instance.m_userData;
@@ -39,6 +89,13 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 	/// </summary>
 	[SerializeField]
 	private scene.SceneController m_sceneController;
+
+	/// <summary>
+	/// 入力管理
+	/// </summary>
+	[SerializeField]
+	private system.InputSystem m_input;
+	public system.InputSystem Input => m_input;
 
 	/// <summary>
 	/// Ads操作
@@ -72,6 +129,13 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 	[SerializeField]
 	private data.UserData m_userData;
 
+	/// <summary>
+	/// マウスカーソル
+	/// </summary>
+	[SerializeField]
+	private MouseCursor m_mouseCursor;
+	public MouseCursor mouseCursor => m_mouseCursor;
+
 	///// <summary>
 	///// サウンドシステム
 	///// </summary>
@@ -86,8 +150,6 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 	//private StoreSystem m_storeSystem;
 	//public StoreSystem StoreSystem { get { return m_storeSystem; } }
 
-
-
 	/// <summary>
 	/// 最前面レイキャスト
 	/// </summary>
@@ -99,13 +161,15 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 	/// </summary>
 	[SerializeField]
 	private scene.DebugMenu m_debugMenu;
-	public scene.DebugMenu DebugMenu => m_debugMenu;
 
 	/// <summary>
 	/// ポスプロ
 	/// </summary>
 	[SerializeField]
 	private Volume m_volume;
+
+
+
 	public Vignette GetVignette()
 	{
 		Vignette vignette = null;
@@ -135,22 +199,35 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 		QualitySettings.vSyncCount = 0;
 		Application.targetFrameRate = 60;
 
-		// マルチタッチ無効
-		Input.multiTouchEnabled = false;
-
 		m_adsController.Initialize();
 		m_sceneController.Initialize();
+		m_input.Initialize();
 
 		m_debugMenu.Show();
+
+		StartCoroutine(UpdateMouseCursorCoroutine());
+	}
+
+	private IEnumerator UpdateMouseCursorCoroutine()
+	{
+		m_mouseCursor.Initialize();
+		while (true)
+		{
+			var pos = Input.GetMousePosition();
+			m_mouseCursor.SetPoistion(pos);
+			bool isDown = Input.IsMouseDown();
+			m_mouseCursor.SettingIcon(isDown ? MouseCursor.Type.Pinch: MouseCursor.Type.Normal);
+			yield return null;
+		}
 	}
 
 	/// <summary>
 	/// 最前面レイキャスト表示切替
 	/// </summary>
-	/// <param name="_active"></param>
-	public void SetForeMostRayCast(bool _active)
+	/// <param name="active"></param>
+	public void SetForeMostRayCast(bool active)
 	{
-		m_foremostRayCast.SetActive(_active);
+		m_foremostRayCast.SetActive(active);
 	}
 
 	///// <summary>
@@ -264,53 +341,68 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 	/// <summary>
 	/// アセットバンドル取得
 	/// </summary>
-	/// <param name="_path"></param>
-	/// <param name="_callback"></param>
+	/// <param name="path"></param>
+	/// <param name="callback"></param>
 	/// <returns></returns>
-	public IEnumerator GetAssetBundle(string _path, UnityAction<AssetBundle> _callback)
+	public IEnumerator GetAssetBundle(string path, UnityAction<AssetBundle> callback)
 	{
-		var request = AssetBundle.LoadFromFileAsync(_path);
+		var request = AssetBundle.LoadFromFileAsync(path);
 		//yield return request;
 		yield return new WaitWhile(() => request.isDone == false);
 		var assetbundle = request.assetBundle;
-		_callback(assetbundle);
+		callback(assetbundle);
 	}
 
 	/// <summary>
 	/// ファイルが存在しているかどうか
 	/// </summary>
-	/// <param name="_path"></param>
-	public bool IsExistFile(string _path)
+	/// <param name="path"></param>
+	public bool IsExistFile(string path)
 	{
-		return File.Exists(_path);
+		return File.Exists(path);
 	}
 
 	/// <summary>
 	/// ファイル書き込み
 	/// </summary>
-	/// <param name="_path"></param>
-	/// <param name="_bytes"></param>
-	public void WhiteFile(string _path, byte[] _bytes)
+	/// <param name="path"></param>
+	/// <param name="bytes"></param>
+	public void WhiteFile(string path, byte[] bytes)
 	{
-		File.WriteAllBytes(_path, _bytes);
+		File.WriteAllBytes(path, bytes);
 	}
 
 	/// <summary>
 	/// ファイル読み込み
 	/// </summary>
-	/// <param name="_path"></param>
+	/// <param name="path"></param>
 	/// <returns></returns>
-	public byte[] ReadFile(string _path)
+	public byte[] ReadFile(string path)
 	{
-		return File.ReadAllBytes(_path);
+		return File.ReadAllBytes(path);
 	}
 
 	/// <summary>
 	/// キャッシュの削除
 	/// </summary>
-	/// <param name="_path"></param>
-	public void DeleteCache(string _path)
+	/// <param name="path"></param>
+	public void DeleteCache(string path)
 	{
-		File.Delete(_path);
+		File.Delete(path);
+	}
+
+	/// <summary>
+	/// PCプラットフォームかどうか
+	/// </summary>
+	/// <returns></returns>
+	public bool IsPCPlatform()
+	{
+#if UNITY_EDITOR
+		return true;
+#elif PLATFORM_STANDALONE
+		return true;
+#else
+		return false;
+#endif
 	}
 }

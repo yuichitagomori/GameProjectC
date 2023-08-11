@@ -38,6 +38,24 @@ namespace Common
 			return m_elements;
 		}
 
+		public void AddElement()
+		{
+			var element = CreateElement();
+			m_elements.Add(element);
+		}
+
+		private GameObject CreateElement()
+		{
+			GameObject element = GameObject.Instantiate(m_elementObject);
+			Transform elementTransform = element.transform;
+			Transform objectTransform = m_elementObject.transform;
+			elementTransform.SetParent(objectTransform.parent == null ? this.transform : objectTransform.parent);
+			elementTransform.localPosition = objectTransform.localPosition;
+			elementTransform.localScale = objectTransform.localScale;
+			element.name = m_elements.Count.ToString();
+			return element;
+		}
+
 #if UNITY_EDITOR
 		/// <summary>
 		/// エディタスクリプト用
@@ -47,16 +65,12 @@ namespace Common
 		{
 			for (int i = 0; i < m_elementNum; ++i)
 			{
-				GameObject element = GameObject.Instantiate(m_elementObject);
-				Transform elementTransform = element.transform;
-				Transform objectTransform = m_elementObject.transform;
-				elementTransform.SetParent(objectTransform.parent);
-				elementTransform.localPosition = objectTransform.localPosition;
-				elementTransform.localScale = objectTransform.localScale;
-				element.name = i.ToString();
-				m_elements.Add(element);
+				AddElement();
 			}
-			m_elementObject.SetActive(false);
+			if (m_elementObject.transform.parent != null)
+			{
+				m_elementObject.SetActive(false);
+			}
 		}
 
 		/// <summary>
@@ -70,7 +84,10 @@ namespace Common
 				GameObject.DestroyImmediate(element);
 			}
 			m_elements.Clear();
-			m_elementObject.SetActive(true);
+			if (m_elementObject.transform.parent != null)
+			{
+				m_elementObject.SetActive(true);
+			}
 		}
 #endif
 	}

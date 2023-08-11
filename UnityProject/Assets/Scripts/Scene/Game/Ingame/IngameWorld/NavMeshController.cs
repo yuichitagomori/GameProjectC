@@ -30,10 +30,13 @@ namespace scene.game.ingame.world
 		public Vector3[] GetNavMeshBasePoints()
 		{
 			navMeshBasePointList.Clear();
-			for (int i = 0; i < 100; ++i)
+			if (m_points.Length > 0)
 			{
-				int index = UnityEngine.Random.Range(0, m_points.Length);
-				navMeshBasePointList.Add(m_points[index]);
+				for (int i = 0; i < 100; ++i)
+				{
+					int index = UnityEngine.Random.Range(0, m_points.Length);
+					navMeshBasePointList.Add(m_points[index]);
+				}
 			}
 			return navMeshBasePointList.ToArray();
 

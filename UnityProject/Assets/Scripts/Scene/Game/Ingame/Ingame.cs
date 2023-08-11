@@ -8,48 +8,49 @@ namespace scene.game
 	[System.Serializable]
 	public class Ingame : MonoBehaviour
 	{
-		public enum ZoomType
-		{
-			Normal,
-			Approach,
-			Pull,
-			QuestClear,
-			Customize,
-		}
+		/// <summary>
+		/// インゲーム用カメラ
+		/// </summary>
+		[SerializeField]
+		private Transform m_cameraTransform;
+
+		/// <summary>
+		/// インゲーム用カメラトランスフォーム
+		/// </summary>
+		[SerializeField]
+		private Transform m_cameraParentTransform;
 
 		[SerializeField]
 		private ingame.IngameWorld m_world;
 
 		[SerializeField]
-		private ingame.IngameApp m_app;
+		private Transform[] m_cameraAngleTransforms;
 
 
 
 		private UnityAction<string, UnityAction> m_parentIngameEvent;
 
-		private ZoomType m_cameraZoomType = ZoomType.Normal;
-
-		private Transform m_cameraParentTransform;
-
-		private Common.AnimatorExpansion m_cameraAnimator;
+		private Vector2 m_cameraBeginMovePosition = Vector2.zero;
 
 		private Vector3 m_cameraDragEuler = Vector3.zero;
 
 		private Vector3 m_cameraEuler = Vector3.zero;
 
+		private Vector2 m_charaBeginMovePosition = Vector2.zero;
+
+		private ingame.world.ActionTargetBase m_actionTarget;
+
+		private Vector3 cameraTargetPositionNow = Vector3.zero;
+
 
 
 		public void Initialize(
 			UnityAction<string, UnityAction> ingameEvent,
-			Transform ingameCameraParentTransform,
-			Common.AnimatorExpansion ingameCameraAnimator,
 			UnityAction<int, ingame.StageScene, UnityAction<ingame.StageScene>> loadMapEvent,
 			UnityAction<ingame.IngameWorld.SearchInData> updateCharaActionButtonEvent,
 			UnityAction callback)
 		{
 			m_parentIngameEvent = ingameEvent;
-			m_cameraParentTransform = ingameCameraParentTransform;
-			m_cameraAnimator = ingameCameraAnimator;
 
 			StartCoroutine(InitializeCoroutine(
 				loadMapEvent,
@@ -62,17 +63,14 @@ namespace scene.game
 			UnityAction<ingame.IngameWorld.SearchInData> updateCharaActionButtonEvent,
 			UnityAction callback)
 		{
-			m_cameraAnimator.Play("NormalAngle", null);
-
 			bool isDone = false;
 			m_world.Initialize(
 				loadMapEvent,
 				IngameEvent,
-				m_cameraAnimator.transform,
+				m_cameraTransform,	// Lookを行うためにPositionが欲しい用途で譲渡
 				updateCharaActionButtonEvent,
 				() => { isDone = true; });
 			while (!isDone) { yield return null; }
-			m_app.Initialize();
 
 			m_cameraEuler = Vector3.zero;
 
@@ -82,32 +80,42 @@ namespace scene.game
 			}
 		}
 
+		public void Go()
+		{
+		}
+
 		private void FixedUpdate()
 		{
+			// カメラ座標更新は、FixedUpdateで呼ばないとガタガタする
 			if (m_cameraParentTransform == null)
 			{
 				return;
 			}
+
+			cameraTargetPositionNow = Vector3.Lerp(cameraTargetPositionNow, GetCameraTargetPosition(), 0.2f);
 			m_cameraParentTransform.SetPositionAndRotation(
-				m_world.GetPlayerPosition(),
+				cameraTargetPositionNow,
 				Quaternion.Euler(GetCameraEuler()));
 		}
 
 		private void IngameEvent(string eventParam, UnityAction callback)
 		{
+			Debug.Log("eventParam = " + eventParam);
 			string[] eventType = eventParam.Split('_');
 			switch (eventType[0])
 			{
 				case "SearchIn":
 					{
-						int controllId = int.Parse(eventType[1]);
-						SearchIn(controllId, callback);
+						ingame.world.ActionTargetBase.Category category = (ingame.world.ActionTargetBase.Category)int.Parse(eventType[1]);
+						int controllId = int.Parse(eventType[2]);
+						SearchIn(category, controllId, callback);
 						break;
 					}
 				case "SearchOut":
 					{
-						int controllId = int.Parse(eventType[1]);
-						SearchOut(controllId, callback);
+						ingame.world.ActionTargetBase.Category category = (ingame.world.ActionTargetBase.Category)int.Parse(eventType[1]);
+						int controllId = int.Parse(eventType[2]);
+						SearchOut(category, controllId, callback);
 						break;
 					}
 				default:
@@ -128,7 +136,6 @@ namespace scene.game
 			if (isReady == false)
 			{
 				yield return m_world.ChangeMapOutCoroutine(0.5f);
-				yield return UpdateMovieCameraCoroutine(ZoomType.Pull, null);
 			}
 
 			yield return m_world.LoadMapCoroutine(stageId, dataIndex);
@@ -136,7 +143,6 @@ namespace scene.game
 			if (isReady == false)
 			{
 				yield return m_world.ChangeMapInCoroutine(0.5f);
-				yield return UpdateMovieCameraCoroutine(ZoomType.Normal, null);
 			}
 			else
 			{
@@ -149,43 +155,53 @@ namespace scene.game
 			}
 		}
 
-		public void OnCameraDragEvent(Vector2 dragVector)
+		public void CameraBeginMoveEvent(Vector2 position)
 		{
-			float dragX = dragVector.y * 0.04f;
-			float dragY = dragVector.x * 0.2f;
-			if (m_cameraEuler.x + dragX > 10.0f)
-			{
-				dragX = 10.0f - m_cameraEuler.x;
-			}
-			else if (m_cameraEuler.x + dragX < -10.0f)
-			{
-				dragX = -10.0f - m_cameraEuler.x;
-			}
-			m_cameraDragEuler = new Vector3(dragX, dragY, 0.0f);
+			m_cameraBeginMovePosition = position;
 		}
 
-		public void OnCameraEndDragEvent()
+		public void CameraMoveEvent(Vector2 position)
+		{
+			Vector2 direction = position - m_cameraBeginMovePosition;
+			float dragX = direction.x * 0.2f;
+			m_cameraDragEuler = new Vector3(0.0f, dragX, 0.0f);
+		}
+
+		public void CameraEndMoveEvent()
 		{
 			m_cameraEuler += m_cameraDragEuler;
 			m_cameraDragEuler = Vector3.zero;
 		}
 
-		public void OnCameraClickEvent(Vector2 clickVector)
+		public void CharaBeginMoveEvent(Vector2 position)
 		{
+			m_charaBeginMovePosition = position;
 		}
 
-		public void OnPlayerDragEvent(Vector2 dragVector)
+		public void CharaMoveEvent(Vector2 position)
 		{
-			m_world.OnPlayerDragEvent(dragVector);
+			Vector2 direction = position - m_charaBeginMovePosition;
+			m_world.OnPlayerDragEvent(direction);
 		}
 
-		public void OnPlayerEndDragEvent()
+		public void CharaEndMoveEvent()
 		{
 			m_world.OnPlayerEndDragEvent();
 		}
 
-		public void OnPlayerClickEvent(Vector2 clickVector)
+		public void CameraZoomEvent(float value)
 		{
+			Vector3 minPosition = m_cameraAngleTransforms[0].localPosition;
+			Quaternion minRotation = m_cameraAngleTransforms[0].localRotation;
+			Vector3 maxPosition = m_cameraAngleTransforms[1].localPosition;
+			Quaternion maxRotation = m_cameraAngleTransforms[1].localRotation;
+			CommonMath.TransformLerp(
+				m_cameraTransform,
+				minPosition,
+				minRotation,
+				maxPosition,
+				maxRotation,
+				value);
 		}
 
 		public IEnumerator DropItemCoroutine(int id)
@@ -198,37 +214,66 @@ namespace scene.game
 			yield return m_world.GetItemCoroutine(id);
 		}
 
-		private void SearchIn(int controllId, UnityAction callback)
+		private void SearchIn(ingame.world.ActionTargetBase.Category category, int controllId, UnityAction callback)
 		{
-			m_world.SearchIn(controllId);
+			m_world.SearchIn(category, controllId);
+
+			m_actionTarget = m_world.GetActionTarget(category, controllId);
+
 			if (callback != null)
 			{
 				callback();
 			}
 		}
 
-		private void SearchOut(int controllId, UnityAction callback)
+		private void SearchOut(ingame.world.ActionTargetBase.Category category, int controllId, UnityAction callback)
 		{
-			m_world.SearchOut(controllId);
+			m_world.SearchOut(category, controllId);
+
+			m_actionTarget = null;
+
 			if (callback != null)
 			{
 				callback();
 			}
 		}
 
-		public void RemoveTarget(int controllId)
+		public void OnCharaActionButtonPressed(ingame.world.ActionTargetBase.Category category, int controllId, UnityAction callback)
 		{
-			m_world.RemoveTarget(controllId);
+			m_world.OnCharaActionButtonPressed(category, controllId, callback);
 		}
 
-		public void OnCharaActionButtonPressed(int controllId, UnityAction callback)
+		public ingame.world.NPC GetNPC(int controllId)
 		{
-			m_world.OnCharaActionButtonPressed(controllId, callback);
+			return (ingame.world.NPC)m_world.GetActionTarget(ingame.world.ActionTargetBase.Category.NPC, controllId);
 		}
 
-		public void CheckEnemyActionEvent(int controllId)
+		//public void DeleteNPC(int controllId, UnityAction callback)
+		//{
+			
+		//}
+
+		public IEnumerator DeleteNPCCoroutine(int controllId)
 		{
-			m_world.CheckEnemyActionEvent(controllId);
+			yield return m_world.DeleteNPCCoroutine(controllId);
+
+			bool isDone = false;
+			SearchOut(ingame.world.ActionTargetBase.Category.NPC, controllId, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+		}
+
+		private Vector3 GetCameraTargetPosition()
+		{
+			Vector3 position = Vector3.zero;
+			if (m_actionTarget != null)
+			{
+				position = m_actionTarget.TransformPosition;
+			}
+			else
+			{
+				position = m_world.GetPlayerPosition();
+			}
+			return position;
 		}
 
 		private Vector3 GetCameraEuler()
@@ -250,134 +295,22 @@ namespace scene.game
 
 		public void PlayMovieCharaReaction(
 			ingame.IngameWorld.ReactionType type,
-			int enemyControllId,
+			ingame.world.ActionTargetBase.Category category,
+			int controllId,
 			UnityAction callback)
 		{
-			m_world.PlayMovieCharaReaction(type, enemyControllId, callback);
+			m_world.PlayMovieCharaReaction(type, category, controllId, callback);
 		}
 
-		public void PlayMovieCamera(
-			ZoomType type,
-			UnityAction callback)
+		public void OnMovieStart(string[] paramStrings, UnityAction callback)
 		{
-			StartCoroutine(UpdateMovieCameraCoroutine(type, callback));
-		}
-
-		private IEnumerator UpdateMovieCameraCoroutine(
-			ZoomType type,
-			UnityAction callback)
-		{
-			bool isDone = false;
-			switch (type)
+			switch (paramStrings[0])
 			{
-				case ZoomType.Normal:
+				default:
 					{
-						switch (m_cameraZoomType)
-						{
-							case ZoomType.Approach:
-								{
-									m_cameraAnimator.Play("ApproachToNormalAngle", () => { isDone = true; });
-									break;
-								}
-							case ZoomType.Pull:
-								{
-									m_cameraAnimator.Play("PullToNormalAngle", () => { isDone = true; });
-									break;
-								}
-							case ZoomType.QuestClear:
-								{
-									m_cameraAnimator.Play("QuestClearToNormalAngle", () => { isDone = true; });
-									break;
-								}
-							case ZoomType.Customize:
-								{
-									m_cameraAnimator.Play("CustomizeToNormalAngle", () => { isDone = true; });
-									break;
-								}
-							default:
-								{
-									isDone = true;
-									break;
-								}
-						}
+						m_world.OnMovieStart(paramStrings, callback);
 						break;
 					}
-				case ZoomType.Approach:
-					{
-						switch (m_cameraZoomType)
-						{
-							case ZoomType.Normal:
-								{
-									m_cameraAnimator.Play("NormalToApproachAngle", () => { isDone = true; });
-									break;
-								}
-							default:
-								{
-									isDone = true;
-									break;
-								}
-						}
-						break;
-					}
-				case ZoomType.Pull:
-					{
-						switch (m_cameraZoomType)
-						{
-							case ZoomType.Normal:
-								{
-									m_cameraAnimator.Play("NormalToPullAngle", () => { isDone = true; });
-									break;
-								}
-							default:
-								{
-									isDone = true;
-									break;
-								}
-						}
-						break;
-					}
-				case ZoomType.QuestClear:
-					{
-						switch (m_cameraZoomType)
-						{
-							case ZoomType.Approach:
-								{
-									m_cameraAnimator.Play("ApproachToQuestClearAngle", () => { isDone = true; });
-									break;
-								}
-							default:
-								{
-									isDone = true;
-									break;
-								}
-						}
-						break;
-					}
-				case ZoomType.Customize:
-					{
-						switch (m_cameraZoomType)
-						{
-							case ZoomType.Normal:
-								{
-									m_cameraAnimator.Play("NormalToCustomizeAngle", () => { isDone = true; });
-									break;
-								}
-							default:
-								{
-									isDone = true;
-									break;
-								}
-						}
-						break;
-					}
-			}
-			while (!isDone) { yield return null; }
-
-			m_cameraZoomType = type;
-
-			if (callback != null)
-			{
-				callback();
 			}
 		}
 	}

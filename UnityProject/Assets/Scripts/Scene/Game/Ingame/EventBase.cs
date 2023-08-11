@@ -9,124 +9,152 @@ namespace scene.game.ingame
 	[System.Serializable]
 	public class EventBase : MonoBehaviour
 	{
-		public enum ColliderFilter
+		[System.Serializable]
+		public class Data
 		{
-			Player,
-			SearchIn,
-			SearchOut,
+			public enum Type
+			{
+				Enter,
+				Exit,
+			}
+
+			public enum ColliderFilter
+			{
+				Player,
+				SearchIn,
+				SearchOut,
+			}
+
+			[SerializeField]
+			private Type m_eventType = Type.Enter;
+			public Type EventType => m_eventType;
+
+			[SerializeField]
+			private string m_eventParam = "";
+			public string EventParam => m_eventParam;
+
+			[SerializeField]
+			private ColliderFilter[] m_filterTypes;
+			public ColliderFilter[] FilterTypes => m_filterTypes;
+
+			[SerializeField]
+			private bool m_invalidation = true;
+			public bool Invalidation => m_invalidation;
+
+			private Data() { }
+			public Data(
+				Type eventType,
+				string eventParam,
+				ColliderFilter[] filterTypes,
+				bool invalidation)
+			{
+				m_eventType = eventType;
+				m_eventParam = eventParam;
+				m_filterTypes = filterTypes;
+				m_invalidation = invalidation;
+			}
+
+			public string GetFilterName(Data.ColliderFilter type)
+			{
+				switch (type)
+				{
+					case ColliderFilter.Player:
+						{
+							return "PlayerChara";
+						}
+					case ColliderFilter.SearchIn:
+						{
+							return "SearchIn";
+						}
+					case ColliderFilter.SearchOut:
+						{
+							return "SearchOut";
+						}
+					default:
+						{
+							return "";
+						}
+				}
+			}
 		}
 
-		[SerializeField]
-		private string m_enterEventParam = "";
-
-		[SerializeField]
-		private string m_exitEventParam = "";
-
-		[SerializeField]
-		private ColliderFilter[] m_filterTypes;
-
-		[SerializeField]
-		private bool m_invalidation = true;
 
 
+		private Data[] m_datas = null;
+
+		public UnityAction<string> m_callback;
 
 		private Collider m_collider = null;
 
-		private UnityAction<string> m_enterCallback = null;
-
-		private UnityAction<string> m_exitCallback = null;
 
 
-
-		public void Initialize(
-			string enterEventParam,
-			string exitEventParam,
-			UnityAction<string> enterCallback,
-			UnityAction<string> exitCallback)
+		public void Initialize(UnityAction<string> callback)
 		{
-			m_enterEventParam = enterEventParam;
-			m_exitEventParam = exitEventParam;
-			Initialize(enterCallback, exitCallback);
+			Initialize(null, callback);
 		}
 
-		public void Initialize(
-			UnityAction<string> enterCallback,
-			UnityAction<string> exitCallback)
+		public void Initialize(Data[] datas, UnityAction<string> callback)
 		{
-			m_collider = GetComponents<Collider>().First(c => c.isTrigger == true);
-			m_enterCallback = enterCallback;
-			m_exitCallback = exitCallback;
+			m_datas = datas;
+			m_callback = callback;
+			m_collider = GetComponents<Collider>().FirstOrDefault(c => c.isTrigger == true);
 		}
 
 		private void OnTriggerEnter(Collider other)
 		{
-			ColliderEventCheck(other.name, m_enterEventParam, m_enterCallback);
+			ColliderEventCheck(Data.Type.Enter, other.name);
 		}
 
 		private void OnTriggerExit(Collider other)
 		{
-			ColliderEventCheck(other.name, m_exitEventParam, m_exitCallback);
+			ColliderEventCheck(Data.Type.Exit, other.name);
 		}
 
-		private void ColliderEventCheck(
-			string otherName,
-			string eventParam,
-			UnityAction<string> callback)
+		private void ColliderEventCheck(Data.Type eventType, string otherName)
 		{
-			if (callback == null)
+			if (m_callback == null || m_datas == null)
 			{
 				return;
 			}
-			if (string.IsNullOrEmpty(eventParam) == true)
+
+			if (m_datas.Length <= 0)
 			{
 				return;
 			}
-			if (m_filterTypes.Length <= 0)
+
+			var checkDatas = m_datas.Where(d => d.EventType == eventType).ToArray();
+
+			for (int i = 0; i < checkDatas.Length; ++i)
 			{
-				return;
-			}
-			for (int i = 0; i < m_filterTypes.Length; ++i)
-			{
-				string filterName = GetFilterName(m_filterTypes[i]);
-				if (string.IsNullOrEmpty(filterName) == true)
+				var data = checkDatas[i];
+				if (string.IsNullOrEmpty(data.EventParam) == true)
 				{
 					continue;
 				}
-				if (string.Equals(otherName, filterName) == false)
+				if (data.FilterTypes.Length <= 0)
 				{
+					return;
+				}
+				for (int j = 0; j < data.FilterTypes.Length; ++j)
+				{
+					string filterName = data.GetFilterName(data.FilterTypes[j]);
+					if (string.IsNullOrEmpty(filterName) == true)
+					{
+						continue;
+					}
+					if (string.Equals(otherName, filterName) == false)
+					{
+						continue;
+					}
+
+					if (data.Invalidation == true)
+					{
+						m_collider.enabled = false;
+					}
+
+					m_callback(data.EventParam);
 					continue;
 				}
-
-				if (m_invalidation == true)
-				{
-					m_collider.enabled = false;
-				}
-
-				callback(eventParam);
-				return;
-			}
-		}
-
-		private string GetFilterName(ColliderFilter type)
-		{
-			switch (type)
-			{
-				case ColliderFilter.Player:
-					{
-						return "PlayerChara";
-					}
-				case ColliderFilter.SearchIn:
-					{
-						return "SearchIn";
-					}
-				case ColliderFilter.SearchOut:
-					{
-						return "SearchOut";
-					}
-				default:
-					{
-						return "";
-					}
 			}
 		}
 	}

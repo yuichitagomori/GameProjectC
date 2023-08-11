@@ -11,11 +11,11 @@ namespace data
 	public class ResourceData : MonoBehaviour
 	{
 		/// <summary>
-		/// サブキャラ色データ
+		/// キャラクター色データ
 		/// </summary>
 		[SerializeField]
-		private resource.EnemyColorResource m_enemyColorResource;
-		public resource.EnemyColorResource EnemyColorResource => m_enemyColorResource;
+		private resource.ColorResource m_colorResource;
+		public resource.ColorResource ColorResource => m_colorResource;
 
 		/// <summary>
 		/// ピース

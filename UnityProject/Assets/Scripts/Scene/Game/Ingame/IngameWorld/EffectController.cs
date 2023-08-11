@@ -10,6 +10,7 @@ namespace scene.game.ingame.world
 	{
 		public enum PlayEffectType
 		{
+			Delete,
 			Freeze,
 		}
 
