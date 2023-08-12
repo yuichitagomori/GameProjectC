@@ -16,17 +16,18 @@ namespace scene.game.outgame.window
 			private List<int> m_colorIdList = new List<int>();
 			public List<int> ColorIdList => m_colorIdList;
 
+			private int m_npcCount;
+			public int NPCCount => m_npcCount;
+
 			private ResourceElement.Data m_data;
 			public ResourceElement.Data Data => m_data;
 
-			public ElementData(int npcId, int colorId)
+			public ElementData(int npcId, int colorId, int npcCount)
 			{
 				m_npcId = npcId;
 				ColorIdList.Add(colorId);
-				string titleString = GetTitleString();
-				string infoString = GetInfoString();
-
-				m_data = new ResourceElement.Data(titleString, infoString, npcId, ColorIdList.ToArray());
+				m_npcCount += npcCount;
+				m_data = new ResourceElement.Data(GetTitleString(), GetInfoString(), npcId, ColorIdList.ToArray());
 			}
 
 			public void AddColorId(int colorId)
@@ -43,6 +44,12 @@ namespace scene.game.outgame.window
 			//{
 			//	ColorIdList.AddRange(colorIds);
 			//}
+
+			public void AddNPCCount(int npcCount)
+			{
+				m_npcCount += npcCount;
+				m_data.UpdateInfo(GetInfoString());
+			}
 
 			private string GetTitleString()
 			{
@@ -65,7 +72,7 @@ namespace scene.game.outgame.window
 				{
 					case 33:
 						{
-							infoString = "ヘビのキャラクター\n移動速度は遅い";
+							infoString = string.Format("ヘビのキャラクター\n移動速度は遅い\n配置数：{0}", m_npcCount);
 							break;
 						}
 				}
@@ -93,16 +100,17 @@ namespace scene.game.outgame.window
 			}
 		}
 
-		public void AddResource(int npcId, int colorId)
+		public void AddResource(int npcId, int colorId, int npcCount)
 		{
 			var findData = m_dataList.Find(d => d.NPCId == npcId);
 			if (findData != null)
 			{
 				findData.AddColorId(colorId);
+				findData.AddNPCCount(npcCount);
 			}
 			else
 			{
-				m_dataList.Add(new ElementData(npcId, colorId));
+				m_dataList.Add(new ElementData(npcId, colorId, npcCount));
 			}
 			Setting();
 		}

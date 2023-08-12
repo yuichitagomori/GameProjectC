@@ -51,6 +51,8 @@ namespace scene.game.ingame.world
 
 		private UnityAction m_loopEffectOutEvent;
 
+		private Coroutine m_lockTargetCoroutine;
+
 
 
 		public void Initialize(
@@ -193,7 +195,7 @@ namespace scene.game.ingame.world
 			}
 		}
 
-		public override void SearchIn()
+		public override void SearchIn(Vector3 playerPosition)
 		{
 			if (m_fbx.Models.Length > 0)
 			{
@@ -207,6 +209,8 @@ namespace scene.game.ingame.world
 					material.SetFloat("_Fresnel", 1.0f);
 				}
 			}
+			m_enable = false;
+			LookTarget(playerPosition, null);
 		}
 
 		public override void SearchOut()
@@ -223,6 +227,7 @@ namespace scene.game.ingame.world
 					material.SetFloat("_Fresnel", 0.0f);
 				}
 			}
+			m_enable = true;
 		}
 
 		public override void OnCharaActionButtonPressed(UnityAction callback)
@@ -254,9 +259,13 @@ namespace scene.game.ingame.world
 			}
 		}
 
-		public void LookTarget(Vector3 targetPosition, UnityAction callback)
+		private void LookTarget(Vector3 targetPosition, UnityAction callback)
 		{
-			StartCoroutine(LookTargetCoroutine(targetPosition, callback));
+			if (m_lockTargetCoroutine != null)
+			{
+				StopCoroutine(m_lockTargetCoroutine);
+			}
+			m_lockTargetCoroutine = StartCoroutine(LookTargetCoroutine(targetPosition, callback));
 		}
 
 		private IEnumerator LookTargetCoroutine(Vector3 targetPosition, UnityAction callback)

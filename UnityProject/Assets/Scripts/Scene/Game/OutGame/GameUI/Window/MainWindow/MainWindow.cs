@@ -39,6 +39,12 @@ namespace scene.game.outgame.window
 		[SerializeField]
 		private UnityEngine.UI.Slider m_cameraZoomSlider;
 
+		[SerializeField]
+		private UnityEngine.UI.Image m_weightGaugeImage;
+
+		[SerializeField]
+		private CommonUI.TextExpansion m_weightParamText;
+
 
 
 		private List<KeyCode> m_downKeyList = new List<KeyCode>();
@@ -58,6 +64,8 @@ namespace scene.game.outgame.window
 		private UnityAction m_charaEndMoveEvent = null;
 
 		private Vector2 m_beginPosition = Vector2.zero;
+
+		private float m_weightParam;
 
 
 		public void Initialize(
@@ -329,6 +337,11 @@ namespace scene.game.outgame.window
 			m_charaActionButtonEvent(
 				m_charaActionButtonData.Category,
 				m_charaActionButtonData.ControllId);
+		}
+
+		private void UpdateWeightView(float value)
+		{
+			m_weightParam = value;
 		}
 	}
 }

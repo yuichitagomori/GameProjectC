@@ -41,7 +41,7 @@ namespace scene.game.ingame.world
 
 		public abstract string GetActionEventParam();
 
-		public abstract void SearchIn();
+		public abstract void SearchIn(Vector3 playerPosition);
 
 		public abstract void SearchOut();
 

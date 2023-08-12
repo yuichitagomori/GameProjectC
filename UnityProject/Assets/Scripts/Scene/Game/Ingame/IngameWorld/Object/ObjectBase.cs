@@ -88,7 +88,7 @@ namespace scene.game.ingame.world
 				controllId);
 		}
 
-		public override void SearchIn()
+		public override void SearchIn(Vector3 playerPosition)
 		{
 			Debug.Log("Object SearchIn");
 		}

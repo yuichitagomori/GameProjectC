@@ -187,7 +187,7 @@ namespace scene.game.ingame
 				return;
 			}
 
-			actionTarget.SearchIn();
+			actionTarget.SearchIn(m_player.transform.position);
 
 			var data = m_searchInDataList.Find(d => (d.ControllId == controllId));
 			if (data != null)
@@ -256,13 +256,6 @@ namespace scene.game.ingame
 			int doneCountMax = 1;
 			m_player.SetEnable(false);
 			m_player.LookTarget(actionTarget.TransformPosition, () => { doneCount++; });
-			if (category == world.ActionTargetBase.Category.NPC)
-			{
-				doneCountMax++;
-				actionTarget.SetEnable(false);
-				var npc = (world.NPC)actionTarget;
-				npc.LookTarget(m_player.transform.position, () => { doneCount++; });
-			}
 			while (doneCount < doneCountMax) { yield return null; }
 
 			doneCount = 0;

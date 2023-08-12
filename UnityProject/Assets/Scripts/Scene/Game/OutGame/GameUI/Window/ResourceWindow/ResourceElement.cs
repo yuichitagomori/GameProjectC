@@ -23,21 +23,17 @@ namespace scene.game.outgame.window
 			public Data(
 				string titleString,
 				string infoString,
-				int npcIds,
-				int[] colorIds)
-			{
-				Update(titleString, infoString, npcIds, colorIds);
-			}
-
-			public void Update(
-				string titleString,
-				string infoString,
 				int npcId,
 				int[] colorIds)
 			{
 				m_titleString = titleString;
 				m_infoString = infoString;
 				UpdateColorDatas(npcId, colorIds);
+			}
+
+			public void UpdateInfo(string infoString)
+			{
+				m_infoString = infoString;
 			}
 
 			public void UpdateColorDatas(int npcId, int[] colorIds)

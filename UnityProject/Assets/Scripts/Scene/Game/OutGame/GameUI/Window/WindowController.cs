@@ -320,9 +320,11 @@ namespace scene.game.outgame.window
 
 						int npcId = int.Parse(paramStrings[1]);
 						int colorId = int.Parse(paramStrings[2]);
+						int npcCount = int.Parse(paramStrings[3]);
 						((ResourceWindow)m_windows[(int)Type.Resource]).AddResource(
 							npcId,
-							colorId);
+							colorId,
+							npcCount);
 
 						break;
 					}
