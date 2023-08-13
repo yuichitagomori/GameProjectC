@@ -19,12 +19,25 @@ namespace scene
 				private List<int> m_colorIdList = new List<int>();
 				public List<int> ColorIdList => m_colorIdList;
 
-				public Data(int npcId, int colorId)
+                private int m_count;
+                public int Count => m_count;
+
+                private bool m_isEnemy;
+                public bool IsEnemy => m_isEnemy;
+
+				public Data(int npcId, int colorId, int count, bool isEnemy)
 				{
 					m_npcId = npcId;
 					m_colorIdList.Add(colorId);
+                    m_count = count;
+                    m_isEnemy = isEnemy;
 				}
-			}
+
+                public void AddCount(int value)
+                {
+                    m_count += value;
+                }
+            }
 
 			private List<Data> m_dataList = new List<Data>();
 
@@ -47,11 +60,25 @@ namespace scene
 				return m_dataList.Find(d => d.NPCId == npcId);
 			}
 
-			public void Add(int npcId, int colorId)
+			public void Add(int npcId, int colorId, int count, bool isEnemy)
 			{
-				m_dataList.Add(new Data(npcId, colorId));
+				m_dataList.Add(new Data(npcId, colorId, count, isEnemy));
 			}
-		}
+
+            public int GetEnemyTotalCount()
+            {
+                int totalCount = 0;
+                for (int i = 0; i < m_dataList.Count; ++i)
+                {
+                    if (m_dataList[i].IsEnemy == false)
+                    {
+                        continue;
+                    }
+                    totalCount += m_dataList[i].Count;
+                }
+                return totalCount;
+            }
+        }
 
 		[Header("Game")]
 
@@ -98,7 +125,7 @@ namespace scene
 			m_ingame.Initialize(
 				ingameEvent: IngameEvent,
 				loadMapEvent: LoadMapEvent,
-				updateCharaActionButtonEvent: UpdateCharaActionButton,
+                updateMainWindow: UpdateMainWindow,
 				() => { isDone = true; });
 			m_outgame.Initialize(
 				charaActionButtonEvent: OnCharaActionButtonPressed,
@@ -252,19 +279,21 @@ namespace scene
 			callback();
 		}
 
-		private void UpdateCharaActionButton(game.ingame.IngameWorld.SearchInData data)
+		private void UpdateMainWindow(game.ingame.IngameWorld.SearchInData data)
 		{
-			if (data != null)
+            float weightParam = m_npcReleaseData.GetEnemyTotalCount() * 0.01f;
+
+            if (data != null)
 			{
 				var buttonData = new game.outgame.window.MainWindow.CharaActionButtonData(
 					data.Category,
 					data.ControllId,
 					game.outgame.window.CharaActionButtonElement.ActionType.Active);
-				m_outgame.UpdateCharaActionButton(buttonData);
+				m_outgame.UpdateMainWindow(buttonData, weightParam);
 			}
 			else
 			{
-				m_outgame.UpdateCharaActionButton(null);
+				m_outgame.UpdateMainWindow(null, weightParam);
 			}
 		}
 
@@ -350,14 +379,17 @@ namespace scene
 					{
 						int npcId = int.Parse(paramStrings[1]);
 						int colorId = int.Parse(paramStrings[2]);
-						var data = m_npcReleaseData.Find(npcId);
+                        int count = int.Parse(paramStrings[3]);
+                        bool isEnemy = bool.Parse(paramStrings[4]);
+                        var data = m_npcReleaseData.Find(npcId);
 						if (data != null)
 						{
 							data.ColorIdList.Add(colorId);
+                            data.AddCount(count);
 						}
 						else
 						{
-							m_npcReleaseData.Add(npcId, colorId);
+							m_npcReleaseData.Add(npcId, colorId, count, isEnemy);
 						}
 						break;
 					}

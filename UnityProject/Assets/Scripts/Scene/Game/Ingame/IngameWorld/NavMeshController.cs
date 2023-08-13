@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -53,7 +53,7 @@ namespace scene.game.ingame.world
 			//	Vector3 beforePoint = navMeshBasePointList[navMeshBasePointList.Count - 1];
 			//	if (beforePoint.y != m_points[index].y)
 			//	{
-			//		// ŠK‚ğˆÚ“®‚·‚é‚Ì‚ÅAstairPoint‚ğ·‚µ‚Ş
+			//		// éšã‚’ç§»å‹•ã™ã‚‹ã®ã§ã€stairPointã‚’å·®ã—è¾¼ã‚€
 			//		stairList.Clear();
 			//		for (int j = 0; j < m_stairs.Length; ++j)
 			//		{
@@ -118,7 +118,7 @@ namespace scene.game.ingame.world
 
 			//		if (nearStair == null)
 			//		{
-			//			// ŠKˆÚ“®¸”s
+			//			// éšç§»å‹•å¤±æ•—
 			//			continue;
 			//		}
 
@@ -141,7 +141,7 @@ namespace scene.game.ingame.world
 		}
 
 		/// <summary>
-		/// (Editorê—p)Navmeshƒ|ƒCƒ“ƒgİ’è
+		/// (Editorå°‚ç”¨)Navmeshãƒã‚¤ãƒ³ãƒˆè¨­å®š
 		/// </summary>
 		public void SetNavmeshBasePoint()
 		{

@@ -47,28 +47,28 @@ namespace scene.game
 		public void Initialize(
 			UnityAction<string, UnityAction> ingameEvent,
 			UnityAction<int, ingame.StageScene, UnityAction<ingame.StageScene>> loadMapEvent,
-			UnityAction<ingame.IngameWorld.SearchInData> updateCharaActionButtonEvent,
+			UnityAction<ingame.IngameWorld.SearchInData> updateMainWindow,
 			UnityAction callback)
 		{
 			m_parentIngameEvent = ingameEvent;
 
 			StartCoroutine(InitializeCoroutine(
 				loadMapEvent,
-				updateCharaActionButtonEvent,
+                updateMainWindow,
 				callback));
 		}
 
 		private IEnumerator InitializeCoroutine(
 			UnityAction<int, ingame.StageScene, UnityAction<ingame.StageScene>> loadMapEvent,
-			UnityAction<ingame.IngameWorld.SearchInData> updateCharaActionButtonEvent,
+			UnityAction<ingame.IngameWorld.SearchInData> UpdateMainWindow,
 			UnityAction callback)
 		{
 			bool isDone = false;
 			m_world.Initialize(
 				loadMapEvent,
 				IngameEvent,
-				m_cameraTransform,	// Lookを行うためにPositionが欲しい用途で譲渡
-				updateCharaActionButtonEvent,
+				m_cameraTransform,  // Lookを行うためにPositionが欲しい用途で譲渡
+                UpdateMainWindow,
 				() => { isDone = true; });
 			while (!isDone) { yield return null; }
 

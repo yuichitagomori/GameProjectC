@@ -55,11 +55,6 @@ namespace scene.game
 			m_gameUI.Go();
 		}
 
-		public void UpdateCharaActionButton(outgame.window.MainWindow.CharaActionButtonData data)
-		{
-			m_gameUI.UpdateCharaActionButton(data);
-		}
-
 		public void Fade(bool isFadeIn, float fadeTime, UnityAction callback)
 		{
 			StartCoroutine(FadeCoroutine(isFadeIn, fadeTime, callback));
@@ -101,5 +96,12 @@ namespace scene.game
 					}
 			}
 		}
-	}
+
+        public void UpdateMainWindow(
+            outgame.window.MainWindow.CharaActionButtonData actionButtonData,
+            float weightParam)
+        {
+            m_gameUI.UpdateMainWindow(actionButtonData, weightParam);
+        }
+    }
 }

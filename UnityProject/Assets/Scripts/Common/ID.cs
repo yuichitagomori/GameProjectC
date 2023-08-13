@@ -1,4 +1,4 @@
-
+﻿
 namespace Common
 {
 	public class ID

@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -58,7 +58,7 @@ namespace scene.game.outgame.window
 				{
 					case 33:
 						{
-							titleString = "ƒwƒrŒ^";
+							titleString = "ãƒ˜ãƒ“å‹";
 							break;
 						}
 				}
@@ -72,7 +72,7 @@ namespace scene.game.outgame.window
 				{
 					case 33:
 						{
-							infoString = string.Format("ƒwƒr‚ÌƒLƒƒƒ‰ƒNƒ^[\nˆÚ“®‘¬“x‚Í’x‚¢\n”z’u”F{0}", m_npcCount);
+							infoString = string.Format("ãƒ˜ãƒ“ã®ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼\nç§»å‹•é€Ÿåº¦ã¯é…ã„\né…ç½®æ•°ï¼š{0}", m_npcCount);
 							break;
 						}
 				}

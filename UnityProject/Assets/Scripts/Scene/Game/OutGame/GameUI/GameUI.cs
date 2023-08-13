@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -71,11 +71,6 @@ namespace scene.game.outgame
 			//m_mapNameText.text = string.Format("MapId:{0}", m_mapId);
 		}
 
-		public void UpdateCharaActionButton(window.MainWindow.CharaActionButtonData data)
-		{
-			m_windowController.UpdateCharaActionButton(data);
-		}
-
 		public void OnMovieStart(string[] paramStrings, UnityAction callback)
 		{
 			switch (paramStrings[0])
@@ -87,5 +82,12 @@ namespace scene.game.outgame
 					}
 			}
 		}
-	}
+
+        public void UpdateMainWindow(
+            window.MainWindow.CharaActionButtonData actionButtonData,
+            float weightParam)
+        {
+            m_windowController.UpdateMainWindow(actionButtonData, weightParam);
+        }
+    }
 }

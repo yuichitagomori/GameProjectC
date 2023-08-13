@@ -49,7 +49,7 @@ namespace scene.game.ingame
 
 		private Transform m_ingameCameraTransform;
 
-		private UnityAction<SearchInData> m_updateCharaActionButtonEvent;
+		private UnityAction<SearchInData> m_updateMainWindowEvent;
 
 		private StageScene m_stage;
 
@@ -69,13 +69,13 @@ namespace scene.game.ingame
 			UnityAction<int, StageScene, UnityAction<StageScene>> loadMapEvent,
 			UnityAction<string, UnityAction> ingameEvent,
 			Transform ingameCameraTransform,
-			UnityAction<SearchInData> updateCharaActionButtonEvent,
+			UnityAction<SearchInData> UpdateMainWindow,
 			UnityAction callback)
 		{
 			m_loadMapEvent = loadMapEvent;
 			m_ingameEvent = ingameEvent;
 			m_ingameCameraTransform = ingameCameraTransform;
-			m_updateCharaActionButtonEvent = updateCharaActionButtonEvent;
+            m_updateMainWindowEvent = UpdateMainWindow;
 			
 			m_player.Initialize(m_ingameCameraTransform);
 			m_player.SetEnable(false);
@@ -305,11 +305,11 @@ namespace scene.game.ingame
 		{
 			if (m_searchInDataList.Count > 0)
 			{
-				m_updateCharaActionButtonEvent(m_searchInDataList[0]);
+                m_updateMainWindowEvent(m_searchInDataList[0]);
 			}
 			else
 			{
-				m_updateCharaActionButtonEvent(null);
+                m_updateMainWindowEvent(null);
 			}
 		}
 

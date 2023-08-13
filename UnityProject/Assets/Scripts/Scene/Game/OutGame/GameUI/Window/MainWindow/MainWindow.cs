@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -103,7 +103,7 @@ namespace scene.game.outgame.window
 
 			if (GeneralRoot.Instance.IsPCPlatform() == true)
 			{
-				// PCÝ’è
+				// PCè¨­å®š
 				var input = GeneralRoot.Instance.Input;
 				input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.W, () =>
 				{
@@ -176,7 +176,7 @@ namespace scene.game.outgame.window
 			bool isBegin = false;
 			while (true)
 			{
-				// PCÝ’è
+				// PCè¨­å®š
 				if (GeneralRoot.Instance.IsPCPlatform() == true)
 				{
 					if (m_isActiveWindow == false)
@@ -225,6 +225,8 @@ namespace scene.game.outgame.window
 						}
 					}
 				}
+
+
 				
 				yield return null;
 			}
@@ -257,77 +259,6 @@ namespace scene.game.outgame.window
 			m_cameraEndMoveEvent();
 		}
 
-
-
-		public void UpdateCharaActionButton(CharaActionButtonData data)
-		{
-			if (m_updateCharaActionButtonCoroutine != null)
-			{
-				StopCoroutine(m_updateCharaActionButtonCoroutine);
-			}
-			m_updateCharaActionButtonCoroutine = StartCoroutine(UpdateCharaActionButtonCoroutine(data));
-		}
-
-		private IEnumerator UpdateCharaActionButtonCoroutine(CharaActionButtonData data)
-		{
-			if (m_charaActionButtonData == null && data == null)
-			{
-				yield break;
-			}
-
-			bool isOut = false;
-			bool isIn = false;
-			if (data != null)
-			{
-				if (m_charaActionButtonData == null)
-				{
-					isIn = true;
-				}
-				else if (
-					m_charaActionButtonData.Category != data.Category ||
-					m_charaActionButtonData.ControllId != data.ControllId)
-				{
-					isOut = true;
-					isIn = true;
-				}
-			}
-			else if (m_charaActionButtonData != null)
-			{
-				if (data == null)
-				{
-					isOut = true;
-				}
-				else if (
-				   m_charaActionButtonData.Category != data.Category ||
-				   m_charaActionButtonData.ControllId != data.ControllId)
-				{
-					isOut = true;
-					isIn = true;
-				}
-			}
-
-			m_charaActionButtonData = null;
-			yield return null;
-
-			if (isOut)
-			{
-				bool isDone = false;
-				m_charaActionButton.Anime.Play("Out", () => { isDone = true; });
-				while (!isDone) { yield return null; }
-			}
-
-			m_charaActionButtonData = data;
-			yield return null;
-
-			if (isIn)
-			{
-				m_charaActionButton.Setup(m_charaActionButtonData.Type);
-				bool isDone = false;
-				m_charaActionButton.Anime.Play("In", () => { isDone = true; });
-				while (!isDone) { yield return null; }
-			}
-		}
-
 		private void OnCharaActionButtonPressed()
 		{
 			if (m_charaActionButtonData == null)
@@ -339,9 +270,89 @@ namespace scene.game.outgame.window
 				m_charaActionButtonData.ControllId);
 		}
 
-		private void UpdateWeightView(float value)
+        public void UpdateCharaActionButton(CharaActionButtonData data)
+        {
+            if (m_updateCharaActionButtonCoroutine != null)
+            {
+                StopCoroutine(m_updateCharaActionButtonCoroutine);
+            }
+            m_updateCharaActionButtonCoroutine = StartCoroutine(UpdateCharaActionButtonCoroutine(data));
+        }
+
+        private IEnumerator UpdateCharaActionButtonCoroutine(CharaActionButtonData data)
+        {
+            if (m_charaActionButtonData == null && data == null)
+            {
+                yield break;
+            }
+
+            bool isOut = false;
+            bool isIn = false;
+            if (data != null)
+            {
+                if (m_charaActionButtonData == null)
+                {
+                    isIn = true;
+                }
+                else if (
+                    m_charaActionButtonData.Category != data.Category ||
+                    m_charaActionButtonData.ControllId != data.ControllId)
+                {
+                    isOut = true;
+                    isIn = true;
+                }
+            }
+            else if (m_charaActionButtonData != null)
+            {
+                if (data == null)
+                {
+                    isOut = true;
+                }
+                else if (
+                   m_charaActionButtonData.Category != data.Category ||
+                   m_charaActionButtonData.ControllId != data.ControllId)
+                {
+                    isOut = true;
+                    isIn = true;
+                }
+            }
+
+            m_charaActionButtonData = null;
+            yield return null;
+
+            if (isOut)
+            {
+                bool isDone = false;
+                m_charaActionButton.Anime.Play("Out", () => { isDone = true; });
+                while (!isDone) { yield return null; }
+            }
+
+            m_charaActionButtonData = data;
+            yield return null;
+
+            if (isIn)
+            {
+                m_charaActionButton.Setup(m_charaActionButtonData.Type);
+                bool isDone = false;
+                m_charaActionButton.Anime.Play("In", () => { isDone = true; });
+                while (!isDone) { yield return null; }
+            }
+        }
+
+        public void UpdateWeightParam(float value)
 		{
 			m_weightParam = value;
 		}
-	}
+
+        private void UpdateWeightView()
+        {
+            float param = m_weightParam + UnityEngine.Random.Range(-0.01f, 0.01f);
+            if (param > 1.0f)
+            {
+                param = 1.0f;
+            }
+            m_weightGaugeImage.fillAmount = param;
+            m_weightParamText.text = (param * 100).ToString();
+        }
+    }
 }

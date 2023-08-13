@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -46,43 +46,43 @@ namespace scene.dialog
 		}
 
 		/// <summary>
-		/// ƒ{ƒ^ƒ“
+		/// ãƒœã‚¿ãƒ³
 		/// </summary>
         [SerializeField]
         private CommonUI.ButtonExpansion m_button;
 
 		/// <summary>
-		/// ƒNƒGƒXƒg–¼
+		/// ã‚¯ã‚¨ã‚¹ãƒˆå
 		/// </summary>
 		[SerializeField]
 		private CommonUI.TextExpansion m_titleText;
 
 		/// <summary>
-		/// “ïˆÕ“x•\‹L—v‘fƒŠƒXƒg
+		/// é›£æ˜“åº¦è¡¨è¨˜è¦ç´ ãƒªã‚¹ãƒˆ
 		/// </summary>
 		[SerializeField]
 		private Common.ElementList m_difficultyRankElementList;
 
 		/// <summary>
-		/// ƒ{ƒ^ƒ“‰æ‘œØ‚è‘Ö‚¦
+		/// ãƒœã‚¿ãƒ³ç”»åƒåˆ‡ã‚Šæ›¿ãˆ
 		/// </summary>
 		[SerializeField]
 		private CommonUI.SwitchSprite m_switch;
 
 		/// <summary>
-		/// ‘I‘ğ•\¦ƒIƒuƒWƒFƒNƒg(–îˆó)
+		/// é¸æŠæ™‚è¡¨ç¤ºã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ(çŸ¢å°)
 		/// </summary>
 		[SerializeField]
 		private GameObject m_selectObject;
 
 		/// <summary>
-		/// Š®—¹•\‹LƒIƒuƒWƒFƒNƒg
+		/// å®Œäº†è¡¨è¨˜ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 		/// </summary>
 		[SerializeField]
 		private GameObject m_doneObject;
 
 		/// <summary>
-		/// ‹s’†•\‹LƒIƒuƒWƒFƒNƒg
+		/// é‚è¡Œä¸­è¡¨è¨˜ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 		/// </summary>
 		[SerializeField]
 		private GameObject m_pregressObject;

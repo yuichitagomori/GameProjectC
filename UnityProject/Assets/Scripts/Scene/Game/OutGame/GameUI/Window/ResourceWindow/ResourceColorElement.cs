@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -41,13 +41,13 @@ namespace scene.game.outgame.window
 				float ColorTotal1 = color.r + color.g + color.b;
 				if (ColorTotal1 > 1.5f)
 				{
-					// ���邢�F�Ȃ̂ŁA���e�L�X�g�Ɂi�e�͔��j
+					// 明るい色なので、黒テキストに（影は白）
 					m_text.color = Color.black;
 					m_textShadow.effectColor = Color.white;
 				}
 				else
 				{
-					// �Â��F�Ȃ̂ŁA���e�L�X�g�Ɂi�e�͍��j
+					// 暗い色なので、白テキストに（影は黒）
 					m_text.color = Color.white;
 					m_textShadow.effectColor = Color.black;
 				}

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -40,7 +40,7 @@ namespace scene.game.outgame.window
 
 			if (GeneralRoot.Instance.IsPCPlatform() == true)
 			{
-				// PC�ݒ�
+				// PC設定
 				var input = GeneralRoot.Instance.Input;
 				input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.E, () =>
 				{
@@ -186,11 +186,6 @@ namespace scene.game.outgame.window
 				}
 				yield return null;
 			}
-		}
-
-		public void UpdateCharaActionButton(window.MainWindow.CharaActionButtonData data)
-		{
-			((window.MainWindow)m_windows[0]).UpdateCharaActionButton(data);
 		}
 
 		private void OnWindowChangeRightButtonPressed()
@@ -339,5 +334,13 @@ namespace scene.game.outgame.window
 				callback();
 			}
 		}
-	}
+
+        public void UpdateMainWindow(
+            window.MainWindow.CharaActionButtonData actionButtonData,
+            float weightParam)
+        {
+            ((window.MainWindow)m_windows[0]).UpdateCharaActionButton(actionButtonData);
+            ((window.MainWindow)m_windows[0]).UpdateWeightParam(weightParam);
+        }
+    }
 }

@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -40,13 +40,13 @@ namespace system
 
 
 		/// <summary>
-		/// ƒL[“ü—ÍƒCƒxƒ“ƒgƒŠƒXƒg
+		/// ã‚­ãƒ¼å…¥åŠ›ã‚¤ãƒ™ãƒ³ãƒˆãƒªã‚¹ãƒˆ
 		/// </summary>
 		private List<Data> m_inputEventList = new List<Data>();
 
 		public void Initialize()
 		{
-			// ƒ}ƒ‹ƒ`ƒ^ƒbƒ`–³Œø
+			// ãƒãƒ«ãƒã‚¿ãƒƒãƒç„¡åŠ¹
 			Input.multiTouchEnabled = false;
 		}
 

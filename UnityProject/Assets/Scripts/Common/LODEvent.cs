@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -16,7 +16,7 @@ namespace Common
 			public int ControllID => m_controllID;
 
 			[SerializeField]
-			private float m_cameraDistance = 0.0f;	// ¸‡‚ÅÝ’è‚·‚é•K—v‚ª‚ ‚é
+			private float m_cameraDistance = 0.0f;	// æ˜‡é †ã§è¨­å®šã™ã‚‹å¿…è¦ãŒã‚ã‚‹
 			public float CameraDistance => m_cameraDistance;
 
 			[SerializeField]

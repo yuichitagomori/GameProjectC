@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -51,31 +51,31 @@ namespace scene.game.outgame.window
 			string message = "";
 			if (messageId == 1)
 			{
-				message = "ŒN‚É‚Í¡‚©‚ç\n<color=#DD4444>ƒfƒoƒbƒOì‹Æ</color>‚ğs‚Á‚Ä‚à‚ç‚¤B";
+				message = "å›ã«ã¯ä»Šã‹ã‚‰\n<color=#DD4444>ãƒ‡ãƒãƒƒã‚°ä½œæ¥­</color>ã‚’è¡Œã£ã¦ã‚‚ã‚‰ã†ã€‚";
 			}
 			else if (messageId == 2)
 			{
-				message = "—¹‰ğ‚Å‚·I";
+				message = "äº†è§£ã§ã™ï¼";
 			}
 			else if (messageId == 3)
 			{
-				message = "­‚µ‘Ò‚Á‚Ä‚È‚³‚¢c\nƒ‚ƒjƒ^[ƒEƒBƒ“ƒhƒE‚Íc‚Æc";
+				message = "å°‘ã—å¾…ã£ã¦ãªã•ã„â€¦\nãƒ¢ãƒ‹ã‚¿ãƒ¼ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã¯â€¦ã¨â€¦";
 			}
 			else if (messageId == 4)
 			{
-				message = "‚ ‚Á‚½A‚±‚ê‚¾B";
+				message = "ã‚ã£ãŸã€ã“ã‚Œã ã€‚";
 			}
 			else if (messageId == 5)
 			{
-				message = "¡‘å‚«‚Èƒ‚ƒjƒ^[ƒEƒBƒ“ƒhƒE‚ª“WŠJ‚³‚ê‚½‚Æv‚¤‚ª\n‚¿‚á‚ñ‚ÆŒ©‚¦‚Ä‚¢‚é‚©‚ËH";
+				message = "ä»Šå¤§ããªãƒ¢ãƒ‹ã‚¿ãƒ¼ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒå±•é–‹ã•ã‚ŒãŸã¨æ€ã†ãŒ\nã¡ã‚ƒã‚“ã¨è¦‹ãˆã¦ã„ã‚‹ã‹ã­ï¼Ÿ";
 			}
 			else if (messageId == 6)
 			{
-				message = "Œ©‚¦‚Ä‚Ü‚·I";
+				message = "è¦‹ãˆã¦ã¾ã™ï¼";
 			}
 			else if (messageId == 7)
 			{
-				message = "‚æ‚ë‚µ‚¢B\n‚»‚±‚Ìƒ‚ƒjƒ^[’†‰›‚É‰f‚Á‚Ä‚¢‚éƒLƒƒƒ‰ƒNƒ^[‚ªŒN‚Ì‘€ìƒLƒƒƒ‰ƒNƒ^[‚¾B\n‚Ü‚¸‚Í‚»‚ÌƒLƒƒƒ‰ƒNƒ^[‚ğ‘€ì‚µ‚Ä\nƒ}ƒbƒv‚ğ©—R‚É•à‚«‰ñ‚Á‚Ä‚İ‚é‚Æ‚¢‚¢B";
+				message = "ã‚ˆã‚ã—ã„ã€‚\nãã“ã®ãƒ¢ãƒ‹ã‚¿ãƒ¼ä¸­å¤®ã«æ˜ ã£ã¦ã„ã‚‹ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ãŒå›ã®æ“ä½œã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã ã€‚\nã¾ãšã¯ãã®ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‚’æ“ä½œã—ã¦\nãƒãƒƒãƒ—ã‚’è‡ªç”±ã«æ­©ãå›ã£ã¦ã¿ã‚‹ã¨ã„ã„ã€‚";
 			}
 			m_dataList.Add(new MessageElement.Node.Data(isMine, message));
 			Setting();
