@@ -35,26 +35,25 @@ namespace scene.game.ingame.world
 		{
 			m_controllId = controllId;
 
-			EventBase.Data[] eventDatas = new EventBase.Data[]
-			{
-				new EventBase.Data(
-					EventBase.Data.Type.Enter,
-					string.Format("SearchIn_{0}_{1}", (int)Category.Object, m_controllId),
-					new EventBase.Data.ColliderFilter[]{ EventBase.Data.ColliderFilter.SearchIn },
-					false),
-				new EventBase.Data(
-					EventBase.Data.Type.Exit,
-					string.Format("SearchOut_{0}_{1}", (int)Category.Object, m_controllId),
-					new EventBase.Data.ColliderFilter[]{ EventBase.Data.ColliderFilter.SearchOut },
-					false),
-			};
-			m_event.Initialize(eventDatas, eventCallback);
+			//EventBase.Data[] eventDatas = new EventBase.Data[]
+			//{
+			//	new EventBase.Data(
+			//		EventBase.Data.Type.Enter,
+			//		string.Format("SearchIn_{0}_{1}", (int)Category.Object, m_controllId),
+			//		new EventBase.Data.ColliderFilter[]{ EventBase.Data.ColliderFilter.SearchIn },
+			//		false),
+			//	new EventBase.Data(
+			//		EventBase.Data.Type.Exit,
+			//		string.Format("SearchOut_{0}_{1}", (int)Category.Object, m_controllId),
+			//		new EventBase.Data.ColliderFilter[]{ EventBase.Data.ColliderFilter.SearchOut },
+			//		false),
+			//};
+			//m_event.Initialize(eventDatas, eventCallback);
 			m_transform = base.transform;
 			if (param != null)
 			{
 				param.TransformData.SetupTransform(m_transform);
 			}
-			m_transformPosition = m_transform.position;
 
 			m_defaultActionEventParam = param.ActionEventParam;
 

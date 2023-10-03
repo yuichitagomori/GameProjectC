@@ -98,6 +98,8 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - Vector1_23c3d928f23b407b9108ca451aabcfc9: 2.5
+    - Vector1_6a1bb744cb7143e1b631fade8bc53b5d: 0.67
     - _AlphaClip: 0
     - _Blend: 0
     - _BumpScale: 1
@@ -112,12 +114,14 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0
     - _GlossyReflections: 1
+    - _Height: 2.5
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _QueueOffset: 0
     - _ReceiveShadows: 1
+    - _SequenceTime: 0
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1

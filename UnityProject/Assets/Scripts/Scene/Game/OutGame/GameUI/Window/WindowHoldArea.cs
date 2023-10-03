@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Events;
 
 namespace scene.game.outgame.window
@@ -11,18 +12,37 @@ namespace scene.game.outgame.window
         [SerializeField]
         private Handler m_hander;
 
+        [SerializeField]
+        private Sprite m_enableSprite;
+
+        [SerializeField]
+        private Sprite m_disableSprite;
+
+        [SerializeField]
+        private Image m_image;
 
 
 
         private Transform m_windowTransform;
 
+        private Vector2 m_windowSize;
+
+        private Vector3[] m_areaWorldCorner;
+
         private Vector3 m_beginDragOffset = Vector2.zero;
 
         private UnityAction m_holdCallback;
 
-        public void Initialize(Transform windowTransform, UnityAction holdCallback)
+        public void Initialize(
+            Transform windowTransform,
+            Vector2 windowSize,
+            RectTransform windowArea,
+            UnityAction holdCallback)
 		{
             m_windowTransform = windowTransform;
+            m_windowSize = new Vector2(windowSize.x * 1.5f, windowSize.y * 1.5f + 80);
+            m_areaWorldCorner = new Vector3[4];
+            windowArea.GetWorldCorners(m_areaWorldCorner);
             m_holdCallback = holdCallback;
 
             m_hander.Initialize(new Handler.EventData(
@@ -43,11 +63,58 @@ namespace scene.game.outgame.window
 
         private void OnDrag(Vector2 v)
 		{
-            m_windowTransform.position = new Vector3(v.x, v.y, 0.0f) + m_beginDragOffset;
+            Vector3 setPosition = new Vector3(v.x, v.y, 0.0f) + m_beginDragOffset;
+            SetupWindowPosition(setPosition);
         }
 
         private void OnEndDrag()
         {
         }
+
+		public void OnMove(Vector2 moveV)
+		{
+            Debug.Log("moveV = " + moveV.ToString());
+            Debug.Log("m_windowTransform.position = " + m_windowTransform.position.ToString());
+            SetupWindowPosition(m_windowTransform.position + new Vector3(moveV.x, moveV.y, 0.0f));
+        }
+
+        private void SetupWindowPosition(Vector2 position)
+		{
+            float halfx = m_windowSize.x * 0.5f;
+            float halfy = m_windowSize.y * 0.5f;
+            if (m_areaWorldCorner[0].x > (position.x - halfx) ||   // 左下
+                m_areaWorldCorner[0].y > (position.y - halfy) ||
+                m_areaWorldCorner[1].x > (position.x - halfx) ||   // 左上
+                m_areaWorldCorner[1].y < (position.y + halfy) ||
+                m_areaWorldCorner[2].x < (position.x + halfx) ||   // 右上
+                m_areaWorldCorner[2].y < (position.y + halfy) ||
+                m_areaWorldCorner[3].x < (position.x + halfx) ||   // 右下
+                m_areaWorldCorner[3].y > (position.y - halfy))
+            {
+                if ((position.x - halfx) < m_areaWorldCorner[0].x)
+                {
+                    position.x = (m_areaWorldCorner[0].x + halfx);
+                }
+                else if ((position.x + halfx) > m_areaWorldCorner[2].x)
+                {
+                    position.x = (m_areaWorldCorner[2].x - halfx);
+                }
+                if ((position.y - halfy) < m_areaWorldCorner[3].y)
+                {
+                    position.y = (m_areaWorldCorner[3].y + halfy);
+                }
+                else if ((position.y + halfy) > m_areaWorldCorner[1].y)
+                {
+                    position.y = (m_areaWorldCorner[1].y - halfy);
+                }
+            }
+
+            m_windowTransform.position = position;
+        }
+
+		public void SetupImage(bool isEnable)
+		{
+            m_image.sprite = (isEnable) ? m_enableSprite : m_disableSprite;
+		}
     }
 }

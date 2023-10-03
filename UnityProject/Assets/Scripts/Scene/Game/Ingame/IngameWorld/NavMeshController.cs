@@ -16,128 +16,34 @@ namespace scene.game.ingame.world
 		}
 
 		[SerializeField]
-		private int[] m_floors = null;
+		private Vector3 m_pointRangeMin;
+
+		[SerializeField]
+		private Vector3 m_pointRangeMax;
+
+		[SerializeField]
+		private int m_setPointCount;
 
 		[SerializeField]
 		private Vector3[] m_points = null;
 
-		[SerializeField]
-		private Stair[] m_stairs = null;
+
+		private List<Vector3> navMeshBasePointList = new List<Vector3>();
 
 
-		List<Vector3> navMeshBasePointList = new List<Vector3>();
 
-		public Vector3[] GetNavMeshBasePoints()
+		public Vector3[] GetNavMeshBasePoints(int count)
 		{
 			navMeshBasePointList.Clear();
 			if (m_points.Length > 0)
 			{
-				for (int i = 0; i < 100; ++i)
+				for (int i = 0; i < count; ++i)
 				{
 					int index = UnityEngine.Random.Range(0, m_points.Length);
 					navMeshBasePointList.Add(m_points[index]);
 				}
 			}
 			return navMeshBasePointList.ToArray();
-
-			//List<Stair> stairList = new List<Stair>();
-			//for (int i = 0; i < 100; ++i)
-			//{
-			//	int index = UnityEngine.Random.Range(0, m_points.Length);
-			//	if (navMeshBasePointList.Count <= 0)
-			//	{
-			//		navMeshBasePointList.Add(m_points[index]);
-			//		continue;
-			//	}
-
-			//	Vector3 beforePoint = navMeshBasePointList[navMeshBasePointList.Count - 1];
-			//	if (beforePoint.y != m_points[index].y)
-			//	{
-			//		// 階を移動するので、stairPointを差し込む
-			//		stairList.Clear();
-			//		for (int j = 0; j < m_stairs.Length; ++j)
-			//		{
-			//			if (m_stairs[j].Points[0].y == beforePoint.y &&
-			//				m_stairs[j].Points[1].y == m_points[index].y)
-			//			{
-			//				stairList.Add(m_stairs[j]);
-			//			}
-			//			else if (
-			//				m_stairs[j].Points[1].y == beforePoint.y &&
-			//				m_stairs[j].Points[0].y == m_points[index].y)
-			//			{
-			//				stairList.Add(m_stairs[j]);
-			//			}
-			//		}
-			//		Stair nearStair = null;
-			//		for (int j = 0; j < stairList.Count; ++j)
-			//		{
-			//			if (nearStair == null)
-			//			{
-			//				nearStair = stairList[j];
-			//				continue;
-			//			}
-
-			//			Vector3 checkBeforeStairPoint = Vector3.zero;
-			//			Vector3 checkAfterStairPoint = Vector3.zero;
-			//			if (nearStair.Points[0].y == beforePoint.y &&
-			//				stairList[j].Points[0].y == beforePoint.y)
-			//			{
-			//				checkBeforeStairPoint = nearStair.Points[0];
-			//				checkAfterStairPoint = stairList[j].Points[0];
-			//			}
-			//			else if (
-			//				nearStair.Points[0].y == beforePoint.y &&
-			//				stairList[j].Points[1].y == beforePoint.y)
-			//			{
-			//				checkBeforeStairPoint = nearStair.Points[0];
-			//				checkAfterStairPoint = stairList[j].Points[1];
-			//			}
-			//			else if (
-			//				nearStair.Points[1].y == beforePoint.y &&
-			//				stairList[j].Points[0].y == beforePoint.y)
-			//			{
-			//				checkBeforeStairPoint = nearStair.Points[1];
-			//				checkAfterStairPoint = stairList[j].Points[0];
-			//			}
-			//			else if (
-			//				nearStair.Points[1].y == beforePoint.y &&
-			//				stairList[j].Points[1].y == beforePoint.y)
-			//			{
-			//				checkBeforeStairPoint = nearStair.Points[1];
-			//				checkAfterStairPoint = stairList[j].Points[1];
-			//			}
-
-			//			float magnitudeBefore = (beforePoint - checkBeforeStairPoint).magnitude;
-			//			float magnitudeAfter = (beforePoint - checkAfterStairPoint).magnitude;
-			//			if (magnitudeAfter < magnitudeBefore)
-			//			{
-			//				nearStair = stairList[j];
-			//			}
-			//		}
-
-			//		if (nearStair == null)
-			//		{
-			//			// 階移動失敗
-			//			continue;
-			//		}
-
-			//		if (nearStair.Points[0].y == beforePoint.y)
-			//		{
-			//			navMeshBasePointList.Add(nearStair.Points[0]);
-			//			navMeshBasePointList.Add(nearStair.Points[1]);
-			//		}
-			//		else if (nearStair.Points[1].y == beforePoint.y)
-			//		{
-			//			navMeshBasePointList.Add(nearStair.Points[1]);
-			//			navMeshBasePointList.Add(nearStair.Points[0]);
-			//		}
-			//	}
-
-			//	navMeshBasePointList.Add(m_points[index]);
-
-			//}
-			//return navMeshBasePointList.ToArray();
 		}
 
 		/// <summary>
@@ -153,29 +59,27 @@ namespace scene.game.ingame.world
 				new Vector3(2, 0, -2),
 				new Vector3(2, 0, 2)
 			};
-			for (int i = 0; i < 1000; ++i)
+			for (int i = 0; i < m_setPointCount * 100; ++i)
 			{
-				float posY = m_floors[UnityEngine.Random.Range(0, m_floors.Length)];
-				Vector3 createPos = new Vector3(
-					UnityEngine.Random.Range(-100, 100),
-					posY,
-					UnityEngine.Random.Range(-100, 100));
-
-				if (navmeshPointList.Contains(createPos) == true)
+				float x = Mathf.FloorToInt(UnityEngine.Random.Range(m_pointRangeMin.x, m_pointRangeMax.x));
+				float y = Mathf.FloorToInt(UnityEngine.Random.Range(m_pointRangeMin.y, m_pointRangeMax.y));
+				float z = Mathf.FloorToInt(UnityEngine.Random.Range(m_pointRangeMin.z, m_pointRangeMax.z));
+				Vector3 createPos = new Vector3(x, y, z);
+				Vector3 rayHitPos = GetRayHitPosition(createPos);
+				if (rayHitPos == Vector3.zero)
 				{
-					i--;
 					continue;
 				}
-				if (IsRayHit(createPos) == false)
+
+				if (navmeshPointList.Contains(rayHitPos) == true)
 				{
-					i--;
 					continue;
 				}
 
 				bool isRayHit = true;
 				for (int j = 0; j < checkPos.Length; ++j)
 				{
-					if (IsRayHit(createPos + checkPos[j]) == false)
+					if (GetRayHitPosition(createPos + checkPos[j]) == Vector3.zero)
 					{
 						isRayHit = false;
 						break;
@@ -183,26 +87,30 @@ namespace scene.game.ingame.world
 				}
 				if (isRayHit == false)
 				{
-					i--;
 					continue;
 				}
 
-				navmeshPointList.Add(createPos);
+				navmeshPointList.Add(rayHitPos);
+
+				if (navmeshPointList.Count >= m_setPointCount)
+				{
+					break;
+				}
 			}
 
 			m_points = navmeshPointList.ToArray();
 		}
 
-		private bool IsRayHit(Vector3 position)
+		private Vector3 GetRayHitPosition(Vector3 position)
 		{
-			Ray ray = new Ray(position + Vector3.up * 0.5f, Vector3.down);
+			Ray ray = new Ray(position + Vector3.up, Vector3.down);
 
 			RaycastHit hit;
-			if (Physics.Raycast(ray, out hit, 1.0f))
+			if (Physics.Raycast(ray, out hit, 2.0f))
 			{
-				return true;
+				return hit.point;
 			}
-			return false;
+			return Vector3.zero;
 		}
 	}
 }

@@ -18,86 +18,39 @@ namespace scene.game.ingame
 				Exit,
 			}
 
-			public enum ColliderFilter
-			{
-				Player,
-				SearchIn,
-				SearchOut,
-			}
-
 			[SerializeField]
 			private Type m_eventType = Type.Enter;
 			public Type EventType => m_eventType;
 
 			[SerializeField]
-			private string m_eventParam = "";
-			public string EventParam => m_eventParam;
+			private string m_targetName;
+			public string TargetName => m_targetName;
 
 			[SerializeField]
-			private ColliderFilter[] m_filterTypes;
-			public ColliderFilter[] FilterTypes => m_filterTypes;
+			private string m_eventParam;
+			public string EventParam => m_eventParam;
 
 			[SerializeField]
 			private bool m_invalidation = true;
 			public bool Invalidation => m_invalidation;
 
 			private Data() { }
-			public Data(
-				Type eventType,
-				string eventParam,
-				ColliderFilter[] filterTypes,
-				bool invalidation)
-			{
-				m_eventType = eventType;
-				m_eventParam = eventParam;
-				m_filterTypes = filterTypes;
-				m_invalidation = invalidation;
-			}
-
-			public string GetFilterName(Data.ColliderFilter type)
-			{
-				switch (type)
-				{
-					case ColliderFilter.Player:
-						{
-							return "PlayerChara";
-						}
-					case ColliderFilter.SearchIn:
-						{
-							return "SearchIn";
-						}
-					case ColliderFilter.SearchOut:
-						{
-							return "SearchOut";
-						}
-					default:
-						{
-							return "";
-						}
-				}
-			}
 		}
 
-
-
+		[SerializeField]
 		private Data[] m_datas = null;
 
-		public UnityAction<string> m_callback;
-
+		[SerializeField]
 		private Collider m_collider = null;
 
 
 
+		public UnityAction<string> m_callback;
+
+
 		public void Initialize(UnityAction<string> callback)
 		{
-			Initialize(null, callback);
-		}
-
-		public void Initialize(Data[] datas, UnityAction<string> callback)
-		{
-			m_datas = datas;
 			m_callback = callback;
-			m_collider = GetComponents<Collider>().FirstOrDefault(c => c.isTrigger == true);
 		}
 
 		private void OnTriggerEnter(Collider other)
@@ -112,7 +65,7 @@ namespace scene.game.ingame
 
 		private void ColliderEventCheck(Data.Type eventType, string otherName)
 		{
-			if (m_callback == null || m_datas == null)
+			if (m_callback == null)
 			{
 				return;
 			}
@@ -122,8 +75,10 @@ namespace scene.game.ingame
 				return;
 			}
 
-			var checkDatas = m_datas.Where(d => d.EventType == eventType).ToArray();
-
+			var checkDatas = m_datas
+				.Where(d => d.EventType == eventType)
+				.Where(d => !string.IsNullOrEmpty(d.TargetName) ? d.TargetName == otherName : true)
+				.ToArray();
 			for (int i = 0; i < checkDatas.Length; ++i)
 			{
 				var data = checkDatas[i];
@@ -131,30 +86,12 @@ namespace scene.game.ingame
 				{
 					continue;
 				}
-				if (data.FilterTypes.Length <= 0)
+				if (data.Invalidation == true)
 				{
-					return;
+					m_collider.enabled = false;
 				}
-				for (int j = 0; j < data.FilterTypes.Length; ++j)
-				{
-					string filterName = data.GetFilterName(data.FilterTypes[j]);
-					if (string.IsNullOrEmpty(filterName) == true)
-					{
-						continue;
-					}
-					if (string.Equals(otherName, filterName) == false)
-					{
-						continue;
-					}
 
-					if (data.Invalidation == true)
-					{
-						m_collider.enabled = false;
-					}
-
-					m_callback(data.EventParam);
-					continue;
-				}
+				m_callback(data.EventParam);
 			}
 		}
 	}

@@ -355,6 +355,7 @@ GameObject:
   - component: {fileID: 1042546918061198444}
   - component: {fileID: 1042546918061198440}
   - component: {fileID: 1042546918061198441}
+  - component: {fileID: 4142063485632084313}
   - component: {fileID: 1042546918061198438}
   m_Layer: 11
   m_Name: NPC33
@@ -395,10 +396,8 @@ MonoBehaviour:
   m_event: {fileID: 1042546918061198444}
   m_faceChangerTransform: {fileID: 0}
   m_faceMaterial: {fileID: 0}
-  m_navSpeed: 0.05
-  m_navAgent: {fileID: 1042546918061198441}
+  m_mover: {fileID: 4142063485632084313}
   m_lodEvent: {fileID: 1042546918061198440}
-  m_testLine: {fileID: 0}
 --- !u!114 &1042546918061198442
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -454,7 +453,7 @@ NavMeshAgent:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1042546918061198436}
-  m_Enabled: 1
+  m_Enabled: 0
   m_AgentTypeID: 0
   m_Radius: 0.5
   m_Speed: 0
@@ -469,6 +468,22 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 0
+--- !u!114 &4142063485632084313
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1042546918061198436}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ceec1e2986c094b8e1fc02ad364e8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_data:
+    m_speed: 10
+  m_navAgent: {fileID: 1042546918061198441}
+  m_testLine: {fileID: 0}
 --- !u!135 &1042546918061198438
 SphereCollider:
   m_ObjectHideFlags: 0

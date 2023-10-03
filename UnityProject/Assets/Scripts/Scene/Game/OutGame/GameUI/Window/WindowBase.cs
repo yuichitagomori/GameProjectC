@@ -1,18 +1,44 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Events;
 
 namespace scene.game.outgame.window
 {
     [System.Serializable]
-    public class WindowBase : MonoBehaviour
+    public abstract class WindowBase : MonoBehaviour
     {
-        [SerializeField]
-		private Transform m_windowTransform = null;
+		public enum Type
+		{
+			None = -1,
+			Main,
+			Message,
+			DateTime,
+			CheckSheet,
+		}
+
+		[SerializeField]
+		protected Type m_type;
+		public Type WindowType => m_type;
+
+		[SerializeField]
+		private Sprite m_frameEnableSprite;
+
+		[SerializeField]
+		private Sprite m_frameDisableSprite;
+
+		[SerializeField]
+		private Image m_frameImage;
+
+		[SerializeField]
+		protected Transform m_windowTransform;
+
+		[SerializeField]
+		private Vector2 m_windowSize;
 
         [SerializeField]
-        protected Common.AnimatorExpansion m_windowAnime = null;
+        protected Common.AnimatorExpansion m_windowAnime;
 
 		[SerializeField]
 		private WindowHoldArea m_holdArea;
@@ -24,27 +50,44 @@ namespace scene.game.outgame.window
 
 		protected bool m_isSelectWindow = false;
 
-		protected void Initialize(UnityAction holdCallback)
+
+
+		protected void Initialize(
+			RectTransform windowArea,
+			UnityAction holdCallback)
 		{
 			m_windowAnime.Play("Default");
 
-			m_holdArea.Initialize(m_windowTransform, holdCallback);
+			if (m_holdArea != null)
+			{
+				m_holdArea.Initialize(m_windowTransform, m_windowSize, windowArea, holdCallback);
+			}
 		}
 
 		public virtual void Go()
 		{
 		}
 
+		public abstract void SetupEvent(string[] paramStrings, UnityAction callback);
+
+		protected abstract void SetupInputKeyEvent();
+
 		public IEnumerator AddWindow()
 		{
-			m_isActiveWindow = true;
+			m_frameImage.sprite = m_frameDisableSprite;
+			m_holdArea.SetupImage(false);
+
 			bool isDone = false;
 			m_windowAnime.Play("In", () => { isDone = true; });
 			while (!isDone) { yield return null; }
+			m_isActiveWindow = true;
 		}
 
 		public IEnumerator RemoveWindow()
 		{
+			m_frameImage.sprite = m_frameDisableSprite;
+			m_holdArea.SetupImage(false);
+
 			m_isActiveWindow = false;
 			bool isDone = false;
 			m_windowAnime.Play("Out", () => { isDone = true; });
@@ -55,22 +98,29 @@ namespace scene.game.outgame.window
 		{
 			if (m_isSelectWindow == false && value == true)
 			{
+				m_frameImage.sprite = m_frameEnableSprite;
+				m_holdArea.SetupImage(true);
+
 				m_windowAnime.Play("Enable", null);
 			}
 			else if (m_isSelectWindow == true && value == false)
 			{
+				m_frameImage.sprite = m_frameDisableSprite;
+				m_holdArea.SetupImage(false);
+
 				m_windowAnime.Play("Disable", null);
 			}
 			m_isSelectWindow = value;
 			if (m_isSelectWindow == true)
 			{
 				m_windowTransform.SetSiblingIndex(windowCount - 1);
+				SetupInputKeyEvent();
 			}
 		}
 
-		public void Move(Vector2 v)
+		public void OnMove(Vector2 moveV)
 		{
-			m_windowTransform.localPosition += new Vector3(v.x, v.y, 0.0f);
+			m_holdArea.OnMove(moveV);
 		}
 	}
 }

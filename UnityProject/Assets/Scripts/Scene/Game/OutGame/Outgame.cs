@@ -25,29 +25,35 @@ namespace scene.game
 		private outgame.GameUI m_gameUI = null;
 
 
+		//public void Initialize(
+		//	UnityAction<ingame.world.ActionTargetBase.Category, int> charaActionButtonEvent,
+		//	UnityAction<Vector2> cameraBeginMoveEvent,
+		//	UnityAction<Vector2> cameraMoveEvent,
+		//	UnityAction cameraEndMoveEvent,
+		//	UnityAction<KeyCode[]> inputEvent)
+		//{
+		//	var fadeColor = m_fade.color;
+		//	fadeColor.a = 1.0f;
+		//	m_fade.color = fadeColor;
+
+		//	m_gameUI.Initialize(
+		//		charaActionButtonEvent: charaActionButtonEvent,
+		//		cameraBeginMoveEvent: cameraBeginMoveEvent,
+		//		cameraMoveEvent: cameraMoveEvent,
+		//		cameraEndMoveEvent: cameraEndMoveEvent,
+		//		inputEvent: inputEvent,
+		//		clickEvent: clickEvent,
+		//		cameraZoomEvent: cameraZoomEvent);
+		//}
+
 		public void Initialize(
-			UnityAction<ingame.world.ActionTargetBase.Category, int> charaActionButtonEvent,
-			UnityAction<Vector2> cameraBeginMoveEvent,
-			UnityAction<Vector2> cameraMoveEvent,
-			UnityAction cameraEndMoveEvent,
-			UnityAction<Vector2> charaBeginMoveEvent,
-			UnityAction<Vector2> charaMoveEvent,
-			UnityAction charaEndMoveEvent,
-			UnityAction<float> cameraZoomEvent)
+			UnityAction<KeyCode[]> inputEvent)
 		{
 			var fadeColor = m_fade.color;
 			fadeColor.a = 1.0f;
 			m_fade.color = fadeColor;
 
-			m_gameUI.Initialize(
-				charaActionButtonEvent: charaActionButtonEvent,
-				cameraBeginMoveEvent: cameraBeginMoveEvent,
-				cameraMoveEvent: cameraMoveEvent,
-				cameraEndMoveEvent: cameraEndMoveEvent,
-				charaBeginMoveEvent: charaBeginMoveEvent,
-				charaMoveEvent: charaMoveEvent,
-				charaEndMoveEvent: charaEndMoveEvent,
-				cameraZoomEvent: cameraZoomEvent);
+			m_gameUI.Initialize(inputEvent: inputEvent);
 		}
 
 		public void Go()
@@ -97,11 +103,9 @@ namespace scene.game
 			}
 		}
 
-        public void UpdateMainWindow(
-            outgame.window.MainWindow.CharaActionButtonData actionButtonData,
-            float weightParam)
-        {
-            m_gameUI.UpdateMainWindow(actionButtonData, weightParam);
-        }
+		public void SetupEvent(string param, UnityAction callback)
+		{
+			m_gameUI.SetupEvent(param, callback);
+		}
     }
 }

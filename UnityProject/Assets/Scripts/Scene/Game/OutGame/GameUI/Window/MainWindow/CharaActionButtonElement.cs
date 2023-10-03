@@ -33,6 +33,7 @@ namespace scene.game.outgame.window
 		{
             m_callback = callback;
             m_button.SetupClickEvent(m_callback);
+            m_button.SetupActive(true);
 		}
 
         public void Setup(ActionType mode)

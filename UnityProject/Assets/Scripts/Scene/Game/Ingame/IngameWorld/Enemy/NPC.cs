@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -10,22 +11,16 @@ namespace scene.game.ingame.world
 	public class NPC : ActionTargetBase
 	{
 		[SerializeField]
-		private Transform m_faceChangerTransform = null;
+		private Transform m_faceChangerTransform;
 
 		[SerializeField]
-		private Material m_faceMaterial = null;
+		private Material m_faceMaterial;
 
 		[SerializeField]
-		private float m_navSpeed = 0.0f;
+		private NavMeshMover m_mover;
 
 		[SerializeField]
-		private NavMeshAgent m_navAgent = null;
-
-		[SerializeField]
-		private Common.LODEvent m_lodEvent = null;
-
-		[SerializeField]
-		private LineRenderer m_testLine;
+		private Common.LODEvent m_lodEvent;
 
 
 
@@ -37,12 +32,6 @@ namespace scene.game.ingame.world
 
 		private Transform m_transform;
 
-		private Coroutine m_updateNavmeshCoroutine;
-
-		private Vector3[] m_navmeshPointList;
-
-		private Quaternion m_transformRotation = Quaternion.identity;
-
 		private float m_updateWaitTime = 0.0f;
 
 		private float m_nowWaitTime = 0.0f;
@@ -52,6 +41,8 @@ namespace scene.game.ingame.world
 		private UnityAction m_loopEffectOutEvent;
 
 		private Coroutine m_lockTargetCoroutine;
+
+		private Vector3[] m_navmeshPointList;
 
 
 
@@ -72,7 +63,11 @@ namespace scene.game.ingame.world
 			m_transform = base.transform;
 
 			m_navmeshPointList = navmeshPointList;
-			m_navAgent.enabled = false;
+
+			m_mover.Initialize(
+				m_transform.SetPositionAndRotation,
+				() => { PlayLoopAnimation("Walk"); },
+				() => { PlayLoopAnimation("Wait"); });
 
 			if (m_fbx.Models.Length > 0)
 			{
@@ -97,42 +92,25 @@ namespace scene.game.ingame.world
 				}
 			}
 
-			EventBase.Data[] eventDatas = new EventBase.Data[]
-			{
-				new EventBase.Data(
-					EventBase.Data.Type.Enter,
-					string.Format("SearchIn_{0}_{1}", (int)Category.NPC, m_controllId),
-					new EventBase.Data.ColliderFilter[]{ EventBase.Data.ColliderFilter.SearchIn },
-					false),
-				new EventBase.Data(
-					EventBase.Data.Type.Exit,
-					string.Format("SearchOut_{0}_{1}", (int)Category.NPC, m_controllId),
-					new EventBase.Data.ColliderFilter[]{ EventBase.Data.ColliderFilter.SearchOut },
-					false),
-			};
-			m_event.Initialize(eventDatas, eventCallback);
+			//EventBase.Data[] eventDatas = new EventBase.Data[]
+			//{
+			//	new EventBase.Data(
+			//		EventBase.Data.Type.Enter,
+			//		string.Format("SearchIn_{0}_{1}", (int)Category.NPC, m_controllId),
+			//		new EventBase.Data.ColliderFilter[]{ EventBase.Data.ColliderFilter.SearchIn },
+			//		false),
+			//	new EventBase.Data(
+			//		EventBase.Data.Type.Exit,
+			//		string.Format("SearchOut_{0}_{1}", (int)Category.NPC, m_controllId),
+			//		new EventBase.Data.ColliderFilter[]{ EventBase.Data.ColliderFilter.SearchOut },
+			//		false),
+			//};
+			//m_event.Initialize(eventDatas, eventCallback);
 
 			if (param != null)
 			{
-				m_transform.SetPositionAndRotation(param.TransformData.position, param.TransformData.rotation);
 				m_defaultActionEventParam = param.ActionEventParam;
-				PlayLoopAnimation("Wait");
 			}
-			else
-			{
-				int initializeNavmeshPointIndex = UnityEngine.Random.Range(0, m_navmeshPointList.Length);
-				Vector3 initializePos = m_navmeshPointList[initializeNavmeshPointIndex];
-				Vector3 randomDir = new Vector3(
-					UnityEngine.Random.Range(-1.0f, 1.0f),
-					0.0f,
-					UnityEngine.Random.Range(-1.0f, 1.0f)).normalized;
-				m_transform.SetPositionAndRotation(
-					initializePos,
-					Quaternion.LookRotation(randomDir, Vector3.up));
-				m_updateNavmeshCoroutine = StartCoroutine(UpdateNavmeshCoroutine(initializeNavmeshPointIndex));
-			}
-			SetPosition(m_transform.position);
-			m_transformRotation = m_transform.rotation;
 
 			var LODEventDatas = new Common.LODEvent.Data[]
 			{
@@ -144,6 +122,8 @@ namespace scene.game.ingame.world
 				LODEventDatas,
 				ingameCameraTransform,
 				1.0f);
+
+			StartCoroutine(MoveCoroutine());
 		}
 
 		public void SetSequenceTime(float value)
@@ -156,6 +136,18 @@ namespace scene.game.ingame.world
 				}
 				var material = m_fbx.Models[i].Mesh.materials[0];
 				material.SetFloat("_SequenceTime", value);
+			}
+		}
+
+		public IEnumerator MoveCoroutine()
+		{
+			while (true)
+			{
+				int index = UnityEngine.Random.Range(0, m_navmeshPointList.Length);
+				Vector3 setPosition = m_navmeshPointList[index];
+				bool isDone = false;
+				m_mover.Move(setPosition, () => { isDone = true; });
+				while (!isDone) { yield return null; }
 			}
 		}
 
@@ -184,8 +176,6 @@ namespace scene.game.ingame.world
 			{
 				float animationUpdateTime = m_nowWaitTime;
 				m_nowWaitTime = 0;
-
-				m_transform.SetPositionAndRotation(m_transformPosition, m_transformRotation);
 
 				if (m_fbx.Anime.IsPlaying() == false)
 				{
@@ -270,15 +260,15 @@ namespace scene.game.ingame.world
 
 		private IEnumerator LookTargetCoroutine(Vector3 targetPosition, UnityAction callback)
 		{
-			Vector3 targetPos = new Vector3(targetPosition.x, m_transformPosition.y, targetPosition.z);
-			var dir = targetPos - m_transformPosition;
+			Vector3 targetPos = new Vector3(targetPosition.x, m_transform.position.y, targetPosition.z);
+			var dir = targetPos - m_transform.position;
 			var look = Quaternion.LookRotation(dir, Vector3.up);
 			float time = 0.0f;
 			while (time < 0.5f)
 			{
 				time += Time.deltaTime;
 				float t = time / 0.5f;
-				m_transformRotation = Quaternion.Lerp(m_transform.rotation, look, t);
+				m_transform.rotation = Quaternion.Lerp(m_transform.rotation, look, t);
 				yield return null;
 			}
 
@@ -358,112 +348,6 @@ namespace scene.game.ingame.world
 			m_fbx.Anime.Play(name, callback);
 		}
 
-		private IEnumerator UpdateNavmeshCoroutine(int initializeNavmeshPointIndex)
-		{
-			// 目標地点更新
-			int navPointIndex = initializeNavmeshPointIndex + 1;
-			if (navPointIndex >= m_navmeshPointList.Length)
-			{
-				navPointIndex = 0;
-			}
-
-			if (m_navmeshPointList.Length <= 1)
-			{
-				// 目標地点無し
-				PlayLoopAnimation("Wait");
-				m_updateNavmeshCoroutine = null;
-				yield break;
-			}
-
-			if (m_navSpeed <= 0.0f)
-			{
-				// 移動しない
-				PlayLoopAnimation("Wait");
-				m_updateNavmeshCoroutine = null;
-				yield break;
-			}
-
-			while (!m_enable) { yield return null; }
-
-			m_navAgent.enabled = true;
-			yield return null;
-			m_navAgent.SetDestination(m_navmeshPointList[navPointIndex]);
-			while (m_navAgent.pathPending == true)
-			{
-				// 経路探索中
-				yield return null;
-			}
-			Vector3[] navCornerPathes = m_navAgent.path.corners;
-			m_navAgent.enabled = false;
-
-			//// 範囲を外れたポイントの補正（負荷高め）
-			//for (int i = 0; i < navCornerPathes.Length; ++i)
-			//{
-			//	NavMeshHit hit;
-			//	if (NavMesh.FindClosestEdge(navCornerPathes[i], out hit, NavMesh.AllAreas))
-			//	{
-			//		navCornerPathes[i] = hit.position;
-			//	}
-			//}
-
-			if (m_testLine != null)
-			{
-				// テスト用NavMeshライン描画
-				m_testLine.positionCount = navCornerPathes.Length;
-				m_testLine.SetPositions(navCornerPathes);
-			}
-
-			if (m_fbx.Anime.GetAnimationName() != "Walk")
-			{
-				PlayLoopAnimation("Walk");
-			}
-
-			// 目標地点へ移動
-			int cornerIndex = 0;
-			while (cornerIndex < navCornerPathes.Length)
-			{
-				while (!m_enable) { yield return null; }
-
-				Vector3 nowPos = m_transformPosition;
-				Vector3 cornerPos = navCornerPathes[cornerIndex];
-				Vector3 dir = cornerPos - nowPos;
-				float distance = dir.magnitude;
-				if (distance < 0.1f)
-				{
-					SetPosition(cornerPos);
-					yield return null;
-					cornerIndex++;
-					continue;
-				}
-				float cornerLeapTime = 0.0f;
-				float cornerLeapAddTime = 1.0f / (distance / m_navSpeed);
-				while (1.0f > cornerLeapTime)
-				{
-					while (!m_enable) { yield return null; }
-
-					SetPosition(Vector3.Lerp(nowPos, cornerPos, cornerLeapTime));
-					var look = Quaternion.LookRotation(dir, Vector3.up);
-					m_transformRotation = Quaternion.Lerp(m_transformRotation, look, 0.1f);
-
-					cornerLeapTime += cornerLeapAddTime;
-
-					yield return null;
-				}
-
-				SetPosition(cornerPos);
-				m_nowWaitTime = m_updateWaitTime;	// コーナー到着時は強制更新
-				yield return null;
-
-				cornerIndex++;
-			}
-
-			// 目的地点への移動が完了すると、すこし待機
-			PlayLoopAnimation("Wait");
-			yield return new WaitForSeconds(UnityEngine.Random.Range(1.0f, 5.0f));
-
-			yield return UpdateNavmeshCoroutine(navPointIndex);
-		}
-
 		private void UpdateLOD(int controllId)
 		{
 			switch (controllId)
@@ -498,23 +382,6 @@ namespace scene.game.ingame.world
 			}
 		}
 
-		private void SetPosition(Vector3 pos)
-		{
-			m_transformPosition = pos;
-			Ray ray = new Ray(m_transformPosition + Vector3.up * 5.0f, Vector3.down);
-			var hits = Physics.RaycastAll(ray, 10.0f);
-			if (hits.Length > 0)
-			{
-				for (int i = 0; i < hits.Length; ++i)
-				{
-					if (hits[i].collider.tag == "IgnoreRaycast")
-					{
-						continue;
-					}
-					m_transformPosition = hits[i].point;
-					break;
-				}
-			}
-		}
+		
 	}
 }

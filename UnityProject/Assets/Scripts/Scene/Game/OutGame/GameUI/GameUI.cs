@@ -19,33 +19,18 @@ namespace scene.game.outgame
 		private window.WindowController m_windowController;
 
 		[SerializeField]
-		private Text m_mapNameText;
-
-		[SerializeField]
-		private Common.AnimatorExpansion m_mapNameAnime;
+		private WindowIconController m_windowIconController;
 
 
 
 
 		public void Initialize(
-			UnityAction<ingame.world.ActionTargetBase.Category, int> charaActionButtonEvent,
-			UnityAction<Vector2> cameraBeginMoveEvent,
-			UnityAction<Vector2> cameraMoveEvent,
-			UnityAction cameraEndMoveEvent,
-			UnityAction<Vector2> charaBeginMoveEvent,
-			UnityAction<Vector2> charaMoveEvent,
-			UnityAction charaEndMoveEvent,
-			UnityAction<float> cameraZoomEvent)
+			UnityAction<KeyCode[]> inputEvent)
 		{
 			m_windowController.Initialize(
-				charaActionButtonEvent,
-				cameraBeginMoveEvent,
-				cameraMoveEvent,
-				cameraEndMoveEvent,
-				charaBeginMoveEvent,
-				charaMoveEvent,
-				charaEndMoveEvent,
-				cameraZoomEvent);
+				inputEvent: inputEvent,
+				updateWindowIcon: m_windowIconController.Setting);
+			m_windowIconController.Initialize(m_windowController.SelectWindow);
 		}
 
 		public void Go()
@@ -66,11 +51,6 @@ namespace scene.game.outgame
 			}
 		}
 
-		public void UpdateMapName(string mapName)
-		{
-			//m_mapNameText.text = string.Format("MapId:{0}", m_mapId);
-		}
-
 		public void OnMovieStart(string[] paramStrings, UnityAction callback)
 		{
 			switch (paramStrings[0])
@@ -83,11 +63,9 @@ namespace scene.game.outgame
 			}
 		}
 
-        public void UpdateMainWindow(
-            window.MainWindow.CharaActionButtonData actionButtonData,
-            float weightParam)
-        {
-            m_windowController.UpdateMainWindow(actionButtonData, weightParam);
-        }
-    }
+		public void SetupEvent(string param, UnityAction callback)
+		{
+			m_windowController.SetupEvent(param, callback);
+		}
+	}
 }

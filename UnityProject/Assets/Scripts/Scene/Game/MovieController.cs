@@ -57,6 +57,7 @@ namespace scene.game
 			{
 				isDone = false;
 				string param = data.ParamStrings[i];
+				Debug.Log("MovieController param = " + param);
 				m_playMovieEvent(param, () => { isDone = true; });
 				while (!isDone) { yield return null; }
 			}

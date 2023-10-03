@@ -70,7 +70,7 @@ namespace data.resource
 				return null;
 			}
 			List<Data.ColorData> colorDataList = new List<Data.ColorData>();
-			for (int i = 0; i < 1000; ++i)
+			for (int i = 0; i < 100; ++i)
 			{
 				Color color1 = Color.white;
 				Color color2 = Color.white;
@@ -86,9 +86,17 @@ namespace data.resource
 						r: (float)(UnityEngine.Random.Range(0, 32) * 8) / 256,
 						g: (float)(UnityEngine.Random.Range(0, 32) * 8) / 256,
 						b: (float)(UnityEngine.Random.Range(0, 32) * 8) / 256);
+
+					// 0.0625 = 16 / 256
+					if (Mathf.Abs(color1.r - color2.r) <= 0.0625f &&
+						Mathf.Abs(color1.g - color2.g) <= 0.0625f &&
+						Mathf.Abs(color1.b - color2.b) <= 0.0625f)
+					{
+						tryCount++;
+						continue;
+					}
 					var findColorData = colorDataList.Find(d =>
 					{
-						// 0.0625 = 16 / 256
 						if (Mathf.Abs(color1.r - d.Colors1.r) <= 0.0625f &&
 							Mathf.Abs(color1.g - d.Colors1.g) <= 0.0625f &&
 							Mathf.Abs(color1.b - d.Colors1.b) <= 0.0625f &&
@@ -100,11 +108,13 @@ namespace data.resource
 						}
 						return false;
 					});
-					if (findColorData == null)
+					if (findColorData != null)
 					{
-						break;
+						tryCount++;
+						continue;
 					}
-					tryCount++;
+
+					break;
 				}
 				if (tryCount >= tryCountMax)
 				{

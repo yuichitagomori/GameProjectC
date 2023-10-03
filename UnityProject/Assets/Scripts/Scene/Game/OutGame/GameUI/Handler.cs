@@ -228,6 +228,12 @@ namespace scene.game.outgame
 				return;
 			}
 
+			if (m_dragPosition != Vector2.zero)
+			{
+				// ドラッグ操作でマウスボタンがアップしたので無効
+				return;
+			}
+
 			m_eventData.ClickEvent(e.position);
 		}
 

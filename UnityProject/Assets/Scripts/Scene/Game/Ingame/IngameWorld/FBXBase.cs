@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace scene.game.ingame.world
+namespace scene.game.ingame
 {
 	[System.Serializable]
 	public class FBXBase : MonoBehaviour

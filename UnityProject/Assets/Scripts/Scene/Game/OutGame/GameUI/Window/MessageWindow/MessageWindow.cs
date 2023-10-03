@@ -15,10 +15,8 @@ namespace scene.game.outgame.window
 
 		private List<MessageElement.Node.Data> m_dataList = new List<MessageElement.Node.Data>();
 
-		public new void Initialize(UnityAction holdCallback)
+		public new void Initialize(RectTransform area, UnityAction holdCallback)
 		{
-			base.Initialize(holdCallback);
-
 			var elements = m_elementList.GetElements();
 			for (int i = 0; i < elements.Count; ++i)
 			{
@@ -26,6 +24,17 @@ namespace scene.game.outgame.window
 				var element = elements[i].GetComponent<MessageElement>();
 				element.Initialize();
 			}
+
+			base.Initialize(area, holdCallback);
+		}
+
+		public override void SetupEvent(string[] paramStrings, UnityAction callback)
+		{
+		}
+
+		protected override void SetupInputKeyEvent()
+		{
+
 		}
 
 		private void Setting()

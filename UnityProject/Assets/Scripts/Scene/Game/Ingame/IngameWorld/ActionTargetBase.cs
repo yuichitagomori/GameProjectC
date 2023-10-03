@@ -29,9 +29,6 @@ namespace scene.game.ingame.world
 		protected int m_controllId = -1;
 		public int ControllId => m_controllId;
 
-		protected Vector3 m_transformPosition = Vector3.zero;
-		public Vector3 TransformPosition => m_transformPosition;
-
 		protected bool m_enable = true;
 
 		public void SetEnable(bool value)

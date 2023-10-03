@@ -43,7 +43,7 @@ namespace scene.game.ingame
 
 
 
-		private UnityAction<int, StageScene, UnityAction<StageScene>> m_loadMapEvent;
+		//private UnityAction<int, StageScene, UnityAction<StageScene>> m_loadMapEvent;
 
 		private UnityAction<string, UnityAction> m_ingameEvent;
 
@@ -51,7 +51,7 @@ namespace scene.game.ingame
 
 		private UnityAction<SearchInData> m_updateMainWindowEvent;
 
-		private StageScene m_stage;
+		//private StageScene m_stage;
 
 		private List<string> m_eventParamList = new List<string>();
 
@@ -66,13 +66,13 @@ namespace scene.game.ingame
 
 
 		public void Initialize(
-			UnityAction<int, StageScene, UnityAction<StageScene>> loadMapEvent,
+			//UnityAction<int, StageScene, UnityAction<StageScene>> loadMapEvent,
 			UnityAction<string, UnityAction> ingameEvent,
 			Transform ingameCameraTransform,
 			UnityAction<SearchInData> UpdateMainWindow,
 			UnityAction callback)
 		{
-			m_loadMapEvent = loadMapEvent;
+			//m_loadMapEvent = loadMapEvent;
 			m_ingameEvent = ingameEvent;
 			m_ingameCameraTransform = ingameCameraTransform;
             m_updateMainWindowEvent = UpdateMainWindow;
@@ -88,99 +88,51 @@ namespace scene.game.ingame
 			callback();
 		}
 
-		public IEnumerator LoadMapCoroutine(int stageId, int dataIndex)
-		{
-			bool isDone = false;
+		//public IEnumerator LoadMapCoroutine(int stageId, int dataIndex)
+		//{
+		//	bool isDone = false;
 
-			m_loadMapEvent(stageId, m_stage, (stage) =>
-			{
-				m_stage = stage;
-				m_stage.Initialize(
-					m_ingameCameraTransform,
-					SetupEventParam);
-				isDone = true;
-			});
-			while (!isDone) { yield return null; }
+		//	m_loadMapEvent(stageId, m_stage, (stage) =>
+		//	{
+		//		m_stage = stage;
+		//		m_stage.Initialize(
+		//			m_ingameCameraTransform,
+		//			SetupEventParam);
+		//		isDone = true;
+		//	});
+		//	while (!isDone) { yield return null; }
 
-			var playerPositionData = m_stage.GetPositionData(dataIndex);
-			m_player.transform.SetPositionAndRotation(
-				playerPositionData.m_position,
-				Quaternion.Euler(playerPositionData.m_euler));
-		}
+		//	var playerPositionData = m_stage.GetPositionData(dataIndex);
+		//	m_player.transform.SetPositionAndRotation(
+		//		playerPositionData.m_position,
+		//		Quaternion.Euler(playerPositionData.m_euler));
+		//}
 
-		public IEnumerator DropItemCoroutine(int id)
-		{
-			//var worldData = m_worldDataList[m_worldDataIndex];
+		//public IEnumerator ChangeMapInCoroutine(float time)
+		//{
+		//	if (m_stage != null)
+		//	{
+		//		yield return m_stage.ChangeMapInCoroutine(time);
+		//	}
+		//	m_player.SetEnable(true);
+		//}
 
-			//AnimationCurve curve = AnimationCurve.EaseInOut(0.0f, 0.0f, 1.0f, 1.0f);
+		//public IEnumerator ChangeMapOutCoroutine(float time)
+		//{
+		//	if (m_stage != null)
+		//	{
+		//		yield return m_stage.ChangeMapOutCoroutine(time);
+		//	}
+		//	m_player.SetEnable(false);
 
-			//Vector3 nowPos = m_cameraTransform.position;
-			//var item = m_stageWorld.GetItem(id);
-			//Vector3 nextPos = item.transform.position;// + m_cameraModeOffsetDatas[0].m_position;
-			//float time = 1.0f;
-			//float nowTime = 0.0f;
-			//while (nowTime < time)
-			//{
-			//	nowTime += Time.deltaTime;
-
-			//	float t = nowTime / time;
-			//	Vector3 setPos = nowPos + (nextPos - nowPos) * curve.Evaluate(t);
-			//	m_cameraTransform.position = setPos;
-
-			//	yield return null;
-			//}
-			//m_cameraTransform.position = nextPos;
-
-			//yield return item.SetActiveColoutine(true);
-
-			//nowPos = m_cameraTransform.position;
-			//nextPos = m_player.transform.position;// + m_cameraModeOffsetDatas[0].m_position;
-			//time = 1.0f;
-			//nowTime = 0.0f;
-			//while (nowTime < time)
-			//{
-			//	nowTime += Time.deltaTime;
-
-			//	float t = nowTime / time;
-			//	Vector3 setPos = nowPos + (nextPos - nowPos) * curve.Evaluate(t);
-			//	m_cameraTransform.position = setPos;
-
-			//	yield return null;
-			//}
-			//m_cameraTransform.position = nextPos;
-
-			yield return null;
-		}
-
-		public IEnumerator GetItemCoroutine(int id)
-		{
-			var item = m_stage.GetItem(id);
-			yield return item.SetActiveColoutine(false);
-		}
-
-		public IEnumerator ChangeMapInCoroutine(float time)
-		{
-			if (m_stage != null)
-			{
-				yield return m_stage.ChangeMapInCoroutine(time);
-			}
-			m_player.SetEnable(true);
-		}
-
-		public IEnumerator ChangeMapOutCoroutine(float time)
-		{
-			if (m_stage != null)
-			{
-				yield return m_stage.ChangeMapOutCoroutine(time);
-			}
-			m_player.SetEnable(false);
-
-			m_searchInDataList.Clear();
-			UpdateCharaActionButton();
-		}
+		//	m_searchInDataList.Clear();
+		//	UpdateCharaActionButton();
+		//}
 
 		public void SearchIn(world.ActionTargetBase.Category category, int controllId)
 		{
+			m_player.SearchIn();
+
 			var actionTarget = GetActionTarget(category, controllId);
 			if (actionTarget == null)
 			{
@@ -204,6 +156,8 @@ namespace scene.game.ingame
 
 		public void SearchOut(world.ActionTargetBase.Category category, int controllId)
 		{
+			m_player.SearchOut();
+
 			var actionTarget = GetActionTarget(category, controllId);
 			if (actionTarget == null)
 			{
@@ -255,7 +209,7 @@ namespace scene.game.ingame
 			int doneCount = 0;
 			int doneCountMax = 1;
 			m_player.SetEnable(false);
-			m_player.LookTarget(actionTarget.TransformPosition, () => { doneCount++; });
+			//m_player.LookTarget(actionTarget.TransformPosition, () => { doneCount++; });
 			while (doneCount < doneCountMax) { yield return null; }
 
 			doneCount = 0;
@@ -285,7 +239,7 @@ namespace scene.game.ingame
 			{
 				case world.ActionTargetBase.Category.NPC:
 					{
-						actionTarget = m_stage.GetNPC(controllId);
+						//actionTarget = m_stage.GetNPC(controllId);
 						break;
 					}
 			}
@@ -295,10 +249,11 @@ namespace scene.game.ingame
 		public IEnumerator DeleteNPCCoroutine(int controllId)
 		{
 			var npc = GetActionTarget(world.ActionTargetBase.Category.NPC, controllId);
-			bool isDone = false;
-			m_effectController.Play(world.EffectController.PlayEffectType.Delete, npc.TransformPosition, ()=> { isDone = true; });
-			m_stage.DeleteNPC(controllId);
-			while (!isDone) { yield return null; }
+			//bool isDone = false;
+			//m_effectController.Play(world.EffectController.PlayEffectType.Delete, npc.TransformPosition, ()=> { isDone = true; });
+			//m_stage.DeleteNPC(controllId);
+			//while (!isDone) { yield return null; }
+			yield return null;
 		}
 
 		private void UpdateCharaActionButton()
@@ -586,11 +541,11 @@ namespace scene.game.ingame
 					}
 				case ReactionType.Restraint:
 					{
-						doneCountMax++;
-						var effectOutEvent = m_effectController.PlayLoop(
-							world.EffectController.LoopEffectType.Restraint,
-							actionTarget.TransformPosition);
-						actionTarget.PlayReaction(type, effectOutEvent, () => { doneCount++; });
+						//doneCountMax++;
+						//var effectOutEvent = m_effectController.PlayLoop(
+						//	world.EffectController.LoopEffectType.Restraint,
+						//	actionTarget.TransformPosition);
+						//actionTarget.PlayReaction(type, effectOutEvent, () => { doneCount++; });
 
 						break;
 					}
@@ -633,9 +588,34 @@ namespace scene.game.ingame
 			{
 				default:
 					{
-						m_stage.OnMovieStart(paramStrings, callback);
+						//m_stage.OnMovieStart(paramStrings, callback);
 						break;
 					}
+			}
+		}
+
+		public void ClickEvent(Ray ray)
+		{
+			RaycastHit[] hits = Physics.RaycastAll(ray);
+			if (hits.Length <= 0)
+			{
+				return;
+			}
+
+			hits = hits.OrderBy(d => d.distance).ToArray();
+			for (int i = 0; i < hits.Length; ++i)
+			{
+				if (hits[i].collider.tag == "IgnoreRaycast")
+				{
+					continue;
+				}
+				if (hits[i].normal.y <= 0.1f)
+				{
+					// 真横を向いている壁用のあたり等のコライダーである場合は無視
+					continue;
+				}
+				m_player.Move(hits[i].point);
+				break;
 			}
 		}
 	}
