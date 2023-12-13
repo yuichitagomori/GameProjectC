@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 896f9688449016d4aafea9841ff2ecd2, type: 3}
+  m_Name: CharaWindowMovieData
+  m_EditorClassIdentifier: 
+  m_datas:
+  - m_name: 
+    m_id: 1
+    m_paramStrings:
+    - Prefab,1
+    - WindowAnimationName,Play,ExpansionIn
+    - WaitTime,2.0
+    - AnimationName,Play,In02
+    - AnimationName,PlayLoop,Loop02
+    - WaitTime,1.0
+    - WindowAnimationName,Play,ExpansionOut
+  - m_name: 
+    m_id: 2
+    m_paramStrings:
+    - WindowAnimationName,Play,ExpansionIn
+    - WaitTime,1.0
+    - AnimationName,Play,Out02
+    - WaitTime,1.0
+    - WindowAnimationName,Play,ExpansionOut
+  - m_name: 
+    m_id: 3
+    m_paramStrings:
+    - AnimationName,Play,Reaction01
+    - WaitTime,1.0
+    - AnimationName,PlayLoop,Loop02
