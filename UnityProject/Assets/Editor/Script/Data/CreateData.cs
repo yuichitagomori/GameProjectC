@@ -50,29 +50,30 @@ namespace data
 
 
 		#region Master
-		[MenuItem("Assets/Create/ScriptableObject/MasterData/CustomizeParts/CustomizePartsData")]
-		public static void CreateCustomizePartsData()
+		[MenuItem("Assets/Create/ScriptableObject/MasterData/CheckSheetData")]
+		public static void CreateCheckSheetData()
 		{
-			CreateMasterAsset<master.CustomizeParts, master.CustomizeParts.Data>
-				("CustomizeParts/CustomizeParts");
+			CreateMasterAsset<master.CheckSheetData, master.CheckSheetData.Data>("CheckSheetData");
 		}
 
-		[MenuItem("Assets/Create/ScriptableObject/MasterData/CustomizeParts/CustomizePartsEffectData")]
-		public static void CreateCustomizePartsEffectData()
+		[MenuItem("Assets/Create/ScriptableObject/MasterData/CheckSheetBugData")]
+		public static void CreateCheckSheetBugData()
 		{
-			CreateMasterAsset<master.CustomizePartsEffect, master.CustomizePartsEffect.Data>
-				("CustomizeParts/CustomizePartsEffect");
+			CreateMasterAsset<master.CheckSheetBugData, master.CheckSheetBugData.Data>("CheckSheetBugData");
 		}
 
-		[MenuItem("Assets/Create/ScriptableObject/MasterData/CustomizeParts/CustomizePartsAreaData")]
-		public static void CreateCustomizePartsAreaData()
+		[MenuItem("Assets/Create/ScriptableObject/MasterData/MovieData")]
+		public static void CreateMovieData()
 		{
-			CreateMasterAsset<master.CustomizePartsArea, master.CustomizePartsArea.Data>
-				("CustomizeParts/CustomizePartsArea");
+			CreateMasterAsset<master.MovieData, master.MovieData.Data>("MovieData");
+		}
+
+		[MenuItem("Assets/Create/ScriptableObject/MasterData/CharaWindowMovieData")]
+		public static void CreateCharaWindowMovieData()
+		{
+			CreateMasterAsset<master.CharaWindowMovieData, master.CharaWindowMovieData.Data>("CharaWindowMovieData");
 		}
 		#endregion
-
-
 
 		#region Resource
 		[MenuItem("Assets/Create/ScriptableObject/ResourceData/EnemyColor")]
@@ -80,13 +81,6 @@ namespace data
 		{
 			CreateResourceAsset<resource.ColorResource, resource.ColorResource.Data>
 				("EnemyColor/EnemyColor");
-		}
-
-		[MenuItem("Assets/Create/ScriptableObject/ResourceData/CustomizeParts")]
-		public static void CreateCustomizeParts()
-		{
-			CreateResourceAsset<resource.CustomizePartsTextureResource, resource.CustomizePartsTextureResource.Data>
-				("CustomizeParts/CustomizeParts");
 		}
 		#endregion
 
@@ -111,7 +105,7 @@ namespace data
 			var data = ScriptableObject.CreateInstance<TBase>();
 
 			// エディタからの変更を無効に
-			data.hideFlags = HideFlags.NotEditable;
+			//data.hideFlags = HideFlags.NotEditable;
 
 			string inputPath = string.Format("Assets/Contents/MasterData/Text/{0}.txt", path);
 			string outputPath = inputPath.Replace("Text", "AssetBundle").Replace(".txt", ".asset");

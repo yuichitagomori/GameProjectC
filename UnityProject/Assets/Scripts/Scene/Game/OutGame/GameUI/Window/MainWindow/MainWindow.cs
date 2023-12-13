@@ -8,88 +8,30 @@ namespace scene.game.outgame.window
     [System.Serializable]
     public class MainWindow : WindowBase
 	{
-		public class CharaActionButtonData
-		{
-			private ingame.world.ActionTargetBase.Category m_category;
-			public ingame.world.ActionTargetBase.Category Category => m_category;
-
-			private int m_controllId;
-			public int ControllId => m_controllId;
-
-			private CharaActionButtonElement.ActionType m_type;
-			public CharaActionButtonElement.ActionType Type => m_type;
-
-			public CharaActionButtonData(
-				ingame.world.ActionTargetBase.Category category,
-				int controllId,
-				CharaActionButtonElement.ActionType type)
-			{
-				m_category = category;
-				m_controllId = controllId;
-				m_type = type;
-			}
-		}
-
 		[SerializeField]
 		private Common.AnimatorExpansion m_sequenceAnimation;
+
+		[SerializeField]
+		private Common.AnimatorExpansion m_infoViewAnimation;
+
+		[SerializeField]
+		private CommonUI.ButtonExpansion m_changeInfoViewButton;
+
+		[SerializeField]
+		private CommonUI.ButtonExpansion m_powerButton;
+
+		[SerializeField]
+		private Common.ElementList m_lifeGaugeElementList;
 
 
 
 		private List<KeyCode> m_downKeyList = new List<KeyCode>();
 
-		private CharaActionButtonData m_charaActionButtonData;
-
-		private UnityAction<ingame.world.ActionTargetBase.Category, int> m_charaActionButtonEvent;
-
-		private Coroutine m_updateCharaActionButtonCoroutine;
-
-		private UnityAction<Vector2> m_cameraBeginMoveEvent;
-		private UnityAction<Vector2> m_cameraMoveEvent;
-		private UnityAction m_cameraEndMoveEvent;
-
 		private UnityAction<KeyCode[]> m_inputEvent;
 
-		private UnityAction<Vector2> m_clickEvent;
-
-		private Vector2 m_beginPosition = Vector2.zero;
+		private bool m_isEnableInfoView;
 
 
-		public void Initialize(
-			//UnityAction<ingame.world.ActionTargetBase.Category, int> charaActionButtonEvent,
-			//UnityAction<Vector2> cameraBeginMoveEvent,
-			//UnityAction<Vector2> cameraMoveEvent,
-			//UnityAction cameraEndMoveEvent,
-			UnityAction<KeyCode[]> inputEvent,
-			//UnityAction<Vector2> clickEvent,
-			//UnityAction<float> cameraZoomEvent,
-			RectTransform windowArea,
-			UnityAction holdCallback)
-		{
-			//m_cameraBeginMoveEvent = cameraBeginMoveEvent;
-			//m_cameraMoveEvent = cameraMoveEvent;
-			//m_cameraEndMoveEvent = cameraEndMoveEvent;
-
-			m_inputEvent = inputEvent;
-
-			//m_clickEvent = clickEvent;
-
-			//m_hander.Initialize(new Handler.EventData(
-			//	beginDragEvent: CameraBeginDragEvent,
-			//	dragEvent: CameraDragEvent,
-			//	endDragEvent: CameraEndDragEvent,
-			//	clickEvent: ClickEvent));
-
-			//m_charaActionButton.Initialize(OnCharaActionButtonPressed);
-			//m_charaActionButton.Anime.Play("Default");
-			//m_charaActionButtonEvent = charaActionButtonEvent;
-
-			//m_cameraZoomSlider.onValueChanged.AddListener(cameraZoomEvent);
-			//m_cameraZoomSlider.value = 0.5f;
-
-			//m_wightParamView.Initialize();
-
-			base.Initialize(windowArea, holdCallback);
-		}
 
 		public override void Go()
 		{
@@ -114,6 +56,27 @@ namespace scene.game.outgame.window
 				
 				yield return null;
 			}
+		}
+
+		public void Setting(
+			UnityAction powerButtonEvent,
+			UnityAction<KeyCode[]> inputEvent)
+		{
+			m_sequenceAnimation.Play("Default");
+			m_infoViewAnimation.Play("Default");
+			m_changeInfoViewButton.SetupClickEvent(() =>
+			{
+				m_isEnableInfoView = !m_isEnableInfoView;
+				string animationName = (m_isEnableInfoView == true) ? "In" : "Out";
+				m_infoViewAnimation.Play(animationName);
+			});
+			m_powerButton.SetupClickEvent(powerButtonEvent);
+
+			m_downKeyList.Clear();
+			m_inputEvent = inputEvent;
+			m_isEnableInfoView = false;
+
+			UpdateLifeGauge(0);
 		}
 
 		public override void SetupEvent(string[] paramStrings, UnityAction callback)
@@ -146,14 +109,66 @@ namespace scene.game.outgame.window
 					}
 				});
 			};
-			setupKey(KeyCode.W);
-			setupKey(KeyCode.S);
-			setupKey(KeyCode.A);
-			setupKey(KeyCode.D);
-			setupKey(KeyCode.Space);
-			setupKey(KeyCode.Return);
-
-			m_downKeyList.Clear();
+			for (int i = 0; i < k_useKeys.Length; ++i)
+			{
+				var key = k_useKeys[i];
+				if (key == KeyCode.W ||
+					key == KeyCode.S ||
+					key == KeyCode.A ||
+					key == KeyCode.D)
+				{
+					setupKey(key);
+				}
+				else if (key == KeyCode.Space)
+				{
+					input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
+					{
+						if (m_isEnableInfoView == true)
+						{
+							m_powerButton.OnDown();
+						}
+						else
+						{
+							if (m_downKeyList.Contains(key) == false)
+							{
+								m_downKeyList.Add(key);
+							}
+						}
+					});
+					input.UpdateEvent(system.InputSystem.Type.Up, key, () =>
+					{
+						if (m_isEnableInfoView == true)
+						{
+							m_powerButton.OnUp();
+							m_powerButton.OnClick();
+						}
+						else
+						{
+							if (m_downKeyList.Contains(key) == true)
+							{
+								m_downKeyList.Remove(key);
+							}
+						}
+					});
+				}
+				else if (key == KeyCode.X)
+				{
+					input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
+					{
+						m_changeInfoViewButton.OnDown();
+					});
+					input.UpdateEvent(system.InputSystem.Type.Up, key, () =>
+					{
+						m_changeInfoViewButton.OnUp();
+						m_changeInfoViewButton.OnClick();
+					});
+				}
+				else
+				{
+					input.UpdateEvent(system.InputSystem.Type.Down, key, null);
+					input.UpdateEvent(system.InputSystem.Type.Up, key, null);
+				}
+			}
 		}
 
 		private IEnumerator SetupEventCoroutine(string[] paramStrings, UnityAction callback)
@@ -166,6 +181,14 @@ namespace scene.game.outgame.window
 						bool isDone = false;
 						m_sequenceAnimation.Play(animationName, () => { isDone = true; });
 						while (!isDone) { yield return null; }
+
+						break;
+					}
+				case "UpdateLifeGauge":
+					{
+						int life = int.Parse(paramStrings[1]);
+						UpdateLifeGauge(life);
+						yield return null;
 
 						break;
 					}
@@ -228,9 +251,20 @@ namespace scene.game.outgame.window
 		//	m_clickEvent(new Vector2(position.x / 1920.0f, position.y / 1080.0f));
 		//}
 
-        public void UpdateWeightParam(float value)
+        private void UpdateLifeGauge(int value)
 		{
-			//m_wightParamView.UpdateWeightParam(value);
+			var elements = m_lifeGaugeElementList.GetElements();
+			for (int i = 0; i < elements.Count; ++i)
+			{
+				if (i >= value)
+				{
+					elements[i].SetActive(false);
+					continue;
+				}
+				elements[i].SetActive(true);
+				var lifeGaugeElement = elements[i].GetComponent<main.LifeGaugeElement>();
+				lifeGaugeElement.Setting(new main.LifeGaugeElement.Data(main.LifeGaugeElement.Data.State.NORMAL));
+			}
 		}
     }
 }

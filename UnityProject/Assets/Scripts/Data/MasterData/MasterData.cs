@@ -11,25 +11,32 @@ namespace data
 	public class MasterData : MonoBehaviour
 	{
 		/// <summary>
-		/// カスタマイズパーツ
+		/// チェックシートデータ
 		/// </summary>
 		[SerializeField]
-		private master.CustomizeParts m_customizeParts;
-		public master.CustomizeParts CustomizeParts => m_customizeParts;
+		private master.CheckSheetData m_checkSheetData;
+		public master.CheckSheetData CheckSheetData => m_checkSheetData;
 
 		/// <summary>
-		/// カスタマイズパーツ効果
+		/// チェックシートバグ内容データ
 		/// </summary>
 		[SerializeField]
-		private master.CustomizePartsEffect m_customizePartsEffect;
-		public master.CustomizePartsEffect CustomizePartsEffect => m_customizePartsEffect;
+		private master.CheckSheetBugData m_checkSheetBugData;
+		public master.CheckSheetBugData CheckSheetBugData => m_checkSheetBugData;
 
 		/// <summary>
-		/// カスタマイズパーツ範囲
+		/// ムービー内容データ
 		/// </summary>
 		[SerializeField]
-		private master.CustomizePartsArea m_customizePartsArea;
-		public master.CustomizePartsArea CustomizePartsArea => m_customizePartsArea;
+		private master.MovieData m_movieData;
+		public master.MovieData MovieData => m_movieData;
+
+		/// <summary>
+		/// キャラクターウィンドウ用ムービー内容データ
+		/// </summary>
+		[SerializeField]
+		private master.CharaWindowMovieData m_charaWindowMovieData;
+		public master.CharaWindowMovieData CharaWindowMovieData => m_charaWindowMovieData;
 
 		/// <summary>
 		/// ローカライズデータ

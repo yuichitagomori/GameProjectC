@@ -19,139 +19,26 @@ namespace data
 		[System.Serializable]
 		public class LocalSave
 		{
-			[System.Serializable]
-			public class Item
-			{
-				public enum CategoryType
-				{
-				}
-
-				[SerializeField]
-				private CategoryType m_category;
-				public CategoryType Category => m_category;
-
-				[SerializeField]
-				private int m_id;
-				public int Id => m_id;
-
-				[SerializeField]
-				private int m_num;
-				public int Num => m_num;
-			}
-
-			[System.Serializable]
-			public class UniqueItem
-			{
-				public enum CategoryType
-				{
-					CustomizeParts,
-				}
-
-				[SerializeField]
-				private CategoryType m_category;
-				public CategoryType Category => m_category;
-
-				[SerializeField]
-				private int m_id;
-				public int Id => m_id;
-
-				[SerializeField]
-				private int m_uniqueId;
-				public int UniqueId => m_uniqueId;
-			}
-
+			/// <summary>
+			/// チェックシートID
+			/// </summary>
 			[SerializeField]
-			private int m_stageId = -1;
-			public int StageId => m_stageId;
+			private int m_checkSheetId;
+			public int CheckSheetId => m_checkSheetId;
 
+			/// <summary>
+			/// 精度レベル
+			/// </summary>
 			[SerializeField]
-			private List<Item> m_itemList;
-			public List<Item> ItemList => m_itemList;
+			private int m_accuracyLevel;
+			public int AccuracyLevel => m_accuracyLevel;
 
+			/// <summary>
+			/// 発生バグIDリスト
+			/// </summary>
 			[SerializeField]
-			private List<UniqueItem> m_uniqueItemList;
-			public List<UniqueItem> UniqueItemList => m_uniqueItemList;
-
-
-
-			[System.Serializable]
-			public class CustomizeData
-			{
-				[System.Serializable]
-				public class BoardPartsData
-				{
-					public enum Rotate
-					{
-						Z0,
-						Z90,
-						Z180,
-						Z270,
-					}
-
-					[SerializeField]
-					private int m_uniqueId;
-					public int UniqueId => m_uniqueId;
-
-					[SerializeField]
-					private Grid m_grid;
-					public Grid Grid => m_grid;
-
-					[SerializeField]
-					private Rotate m_rot;
-					public Rotate Rot => m_rot;
-
-					public BoardPartsData(
-						int uniqueId,
-						Grid grid,
-						Rotate rot)
-					{
-						m_uniqueId = uniqueId;
-						m_grid = grid;
-						m_rot = rot;
-					}
-
-					public void UpdateGrid(Grid grid)
-					{
-						m_grid = grid;
-					}
-
-					public void UpdateRotate(Rotate rot)
-					{
-						m_rot = rot;
-					}
-				}
-
-				[SerializeField]
-				private BoardPartsData[] m_boardPartsDatas;
-				public BoardPartsData[] BoardPartsDatas => m_boardPartsDatas;
-
-				public BoardPartsData Find(int uniqueId)
-				{
-					return m_boardPartsDatas.FirstOrDefault(d => d.UniqueId == uniqueId);
-				}
-
-				public void Add(
-					int uniqueId,
-					Grid grid,
-					BoardPartsData.Rotate rot)
-				{
-					m_boardPartsDatas = m_boardPartsDatas
-						.Append(new BoardPartsData(uniqueId, grid, rot))
-						.ToArray();
-				}
-
-				public void Remove(
-					int uniqueId)
-				{
-					m_boardPartsDatas = m_boardPartsDatas
-						.Where(d => d.UniqueId != uniqueId)
-						.ToArray();
-				}
-			}
-
-			[SerializeField]
-			private CustomizeData m_customize;
-			public CustomizeData Customize => m_customize;
+			private int[] m_occurredBugIds;
+			public int[] OccurredBugIds => m_occurredBugIds;
 
 			/// <summary>
 			/// BGMボリューム
@@ -160,7 +47,7 @@ namespace data
 			private float m_bgmVolume = 0.5f;
 			public float BgmVolume { get { return m_bgmVolume; } }
 
-			public void SetBgmVolume(float value)
+			public void UpdateBgmVolume(float value)
 			{
 				m_bgmVolume = value;
 			}
@@ -172,7 +59,7 @@ namespace data
 			private float m_seVolume = 0.5f;
 			public float SEVolume { get { return m_seVolume; } }
 
-			public void SetSEVolume(float value)
+			public void UpdateSEVolume(float value)
 			{
 				m_seVolume = value;
 			}

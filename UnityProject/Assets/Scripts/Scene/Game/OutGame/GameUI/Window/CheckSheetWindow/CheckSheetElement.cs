@@ -19,22 +19,47 @@ namespace scene.game.outgame.window
 			}
 
 			[SerializeField]
+			private int m_bugId;
+			public int BugId => m_bugId;
+
+			[SerializeField]
 			private string m_info;
 			public string Info => m_info;
 
 			[SerializeField]
-			private State m_checkState;
-			public State CheckState => m_checkState;
+			private State m_nowCheckState;
+			public State NowCheckState => m_nowCheckState;
+
+			[SerializeField]
+			private State m_answerCheckState;
+			public State AnswerCheckState => m_answerCheckState;
 
 			[SerializeField]
 			private bool m_isSelected;
 			public bool IsSelected => m_isSelected;
 
-			public Data(string info, State checkState, bool isSelected)
+			public Data(
+				int bugId,
+				string info,
+				State nowCheckState,
+				State answerCheckState,
+				bool isSelected)
 			{
+				m_bugId = bugId;
 				m_info = info;
-				m_checkState = checkState;
+				m_nowCheckState = nowCheckState;
+				m_answerCheckState = answerCheckState;
 				m_isSelected = isSelected;
+			}
+
+			public void UpdateNowCheckState(State state)
+			{
+				m_nowCheckState = state;
+			}
+
+			public void UpdateIsSelect(bool value)
+			{
+				m_isSelected = value;
 			}
 		}
 
@@ -81,12 +106,12 @@ namespace scene.game.outgame.window
 		{
 			m_infoText.text = data.Info;
 			m_infoText.color = (data.IsSelected) ? m_selectedTextColor : m_unSelectTextColor;
-			m_goodButton.SetupActive(data.CheckState == Data.State.GOOD);
-			m_goodActiveObject.SetActive(data.CheckState == Data.State.GOOD);
-			m_questionButton.SetupActive(data.CheckState == Data.State.QUESTION);
-			m_questionActiveObject.SetActive(data.CheckState == Data.State.QUESTION);
-			m_badButton.SetupActive(data.CheckState == Data.State.BAD);
-			m_badActiveObject.SetActive(data.CheckState == Data.State.BAD);
+			m_goodButton.SetupActive(data.NowCheckState == Data.State.GOOD);
+			m_goodActiveObject.SetActive(data.NowCheckState == Data.State.GOOD);
+			m_questionButton.SetupActive(data.NowCheckState == Data.State.QUESTION);
+			m_questionActiveObject.SetActive(data.NowCheckState == Data.State.QUESTION);
+			m_badButton.SetupActive(data.NowCheckState == Data.State.BAD);
+			m_badActiveObject.SetActive(data.NowCheckState == Data.State.BAD);
 			m_cursorObject.SetActive(data.IsSelected);
 		}
 	}

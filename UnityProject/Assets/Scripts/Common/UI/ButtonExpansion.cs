@@ -45,33 +45,45 @@ namespace CommonUI
 			m_raycast.SetActive(value);
 		}
 
-		public override void OnPointerDown(PointerEventData e)
+		public void OnDown()
 		{
-			//Debug.Log("OnPointerDown");
 			if (m_animator != null)
 			{
 				m_animator.Play("Down", null);
 			}
+		}
+
+		public override void OnPointerDown(PointerEventData e)
+		{
+			OnDown();
 			base.OnPointerDown(e);
 		}
 
-		public override void OnPointerUp(PointerEventData e)
+		public void OnUp()
 		{
-			//Debug.Log("OnPointerUp");
 			if (m_animator != null)
 			{
 				m_animator.Play("Up", null);
 			}
+		}
+
+		public override void OnPointerUp(PointerEventData e)
+		{
+			OnUp();
 			base.OnPointerUp(e);
 		}
 
-		public void OnPointerClick(PointerEventData e)
+		public void OnClick()
 		{
-			//Debug.Log("OnPointerClick");
 			if (m_callback != null)
 			{
 				m_callback();
 			}
+		}
+
+		public void OnPointerClick(PointerEventData e)
+		{
+			OnClick();
 		}
 
 #if UNITY_EDITOR

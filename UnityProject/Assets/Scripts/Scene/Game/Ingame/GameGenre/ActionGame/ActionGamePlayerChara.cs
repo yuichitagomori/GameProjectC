@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -10,6 +11,9 @@ namespace scene.game.ingame.actiongame
 	{
 		[SerializeField]
 		private Rigidbody m_rigidbody;
+
+		[SerializeField]
+		private SphereCollider m_collider;
 
 		[SerializeField]
 		private FBXBase m_fbx;
@@ -40,16 +44,30 @@ namespace scene.game.ingame.actiongame
 		private Transform m_transform = null;
 		public new Transform transform => m_transform;
 
-		[SerializeField]
-		private bool m_isJump;
+		private bool m_isEnable = true;
+
+		private bool m_isAir = false;
+		private bool m_isJump = false;
+		private UnityAction<int> m_bugCallback;
 
 
-		public void Initialize()
+		public void Initialize(UnityAction<int> bugCallback)
 		{
 			m_transform = base.transform;
+			m_isEnable = true;
+			m_isAir = false;
 			m_isJump = false;
+			m_bugCallback = bugCallback;
 
-			m_fbx.Anime.PlayLoop("Wait");
+			var local = GeneralRoot.User.LocalSaveData;
+			if (local.OccurredBugIds.Contains(3) == false)
+			{
+				m_fbx.Anime.PlayLoop("Wait");
+			}
+			else
+			{
+				m_bugCallback(3);
+			}
 
 			SetSequenceTime(0);
 
@@ -60,9 +78,50 @@ namespace scene.game.ingame.actiongame
 		{
 			var wait = new WaitForFixedUpdate();
 			var faceMaterial = m_materials[1];
+			var local = GeneralRoot.User.LocalSaveData;
 
 			while (true)
 			{
+				if (m_isEnable == false)
+				{
+					yield return wait;
+					continue;
+				}
+
+				if (m_transform.position.y < -100.0f)
+				{
+					SetupEnable(false);
+					yield return wait;
+					continue;
+				}
+
+				m_isAir = true;
+				Vector3 rayPosition = m_collider.transform.position + Vector3.up * 0.5f;
+				Ray ray = new Ray(rayPosition, Vector3.down);
+				var hits = Physics.SphereCastAll(ray, m_collider.radius - 0.01f, 1.0f);
+				if (hits.Length > 0)
+				{
+					for (int i = 0; i < hits.Length; ++i)
+					{
+						if (hits[i].collider.tag == "IgnoreRaycast")
+						{
+							continue;
+						}
+
+						m_isAir = false;
+						break;
+					}
+				}
+				if (m_rigidbody.velocity.y < 0.0f)
+				{
+					// 落下中のみチェック
+					if (m_isAir == false)
+					{
+						// 着地しているか埋まっているので、着地させジャンプ状態解除
+						m_isJump = false;
+					}
+				}
+
 				// 重力を自前で対応
 				m_rigidbody.velocity += new Vector3(0.0f, -m_gravity, 0.0f);
 
@@ -72,7 +131,14 @@ namespace scene.game.ingame.actiongame
 				{
 					if (m_fbx.Anime.GetAnimationName() != "Walk" && m_isJump == false)
 					{
-						m_fbx.Anime.PlayLoop("Walk");
+						if (local.OccurredBugIds.Contains(3) == false)
+						{
+							m_fbx.Anime.PlayLoop("Walk");
+						}
+						else
+						{
+							m_bugCallback(3);
+						}
 					}
 					if (m_moveDustParticle.isStopped == true && m_isJump == false)
 					{
@@ -83,32 +149,18 @@ namespace scene.game.ingame.actiongame
 				{
 					if (m_fbx.Anime.GetAnimationName() != "Wait" && m_isJump == false)
 					{
-						m_fbx.Anime.PlayLoop("Wait");
+						if (local.OccurredBugIds.Contains(3) == false)
+						{
+							m_fbx.Anime.PlayLoop("Wait");
+						}
+						else
+						{
+							m_bugCallback(3);
+						}
 					}
 					if (m_moveDustParticle.isPlaying == true)
 					{
 						m_moveDustParticle.Stop();
-					}
-				}
-
-				Ray ray = new Ray(m_transform.position + Vector3.up * 10.0f, Vector3.down);
-				var hits = Physics.RaycastAll(ray, 20.0f);
-				if (hits.Length > 0)
-				{
-					for (int i = 0; i < hits.Length; ++i)
-					{
-						if (hits[i].collider.tag == "IgnoreRaycast")
-						{
-							continue;
-						}
-						if (hits[i].point.y >= m_transform.position.y - 0.01f)
-						{
-							// 着地しているか埋まっているので、着地させジャンプ状態解除
-							m_transform.position = hits[i].point;
-							//m_rigidbody.velocity = new Vector3(m_rigidbody.velocity.x, 0.0f, m_rigidbody.velocity.z);
-							m_isJump = false;
-							break;
-						}
 					}
 				}
 
@@ -141,6 +193,8 @@ namespace scene.game.ingame.actiongame
 			}
 			SetSequenceTime(1.0f);
 
+			SetupEnable(true);
+
 			if (callback != null)
 			{
 				callback();
@@ -154,6 +208,8 @@ namespace scene.game.ingame.actiongame
 
 		private IEnumerator SequenceOutCoroutine(float sequenceTime, UnityAction callback)
 		{
+			SetupEnable(false);
+
 			float time = 0.0f;
 			while (time < sequenceTime)
 			{
@@ -181,7 +237,12 @@ namespace scene.game.ingame.actiongame
 
 		public void Move(Vector3 direction)
 		{
-			float movePower = (m_isJump) ? m_movePower * 0.5f : m_movePower;
+			if (m_isEnable == false)
+			{
+				return;
+			}
+
+			float movePower = (m_isAir) ? m_movePower * 0.5f : m_movePower;
 			Vector3 add = direction * movePower;
 			m_rigidbody.velocity += add;
 			Vector3 move = new Vector3(m_rigidbody.velocity.x, 0.0f, m_rigidbody.velocity.z);
@@ -197,7 +258,12 @@ namespace scene.game.ingame.actiongame
 
 		public void Jump()
 		{
-			if (m_isJump == true)
+			if (m_isEnable == false)
+			{
+				return;
+			}
+
+			if (m_isAir == true || m_isJump == true)
 			{
 				return;
 			}
@@ -206,13 +272,50 @@ namespace scene.game.ingame.actiongame
 			m_rigidbody.velocity += add;
 			if (m_fbx.Anime.GetAnimationName() != "Jump")
 			{
-				m_fbx.Anime.Play("Jump");
+				var local = GeneralRoot.User.LocalSaveData;
+				if (local.OccurredBugIds.Contains(3) == false)
+				{
+					m_fbx.Anime.Play("Jump");
+				}
+				else
+				{
+					m_bugCallback(3);
+				}
 			}
 			if (m_moveDustParticle.isPlaying == true)
 			{
 				m_moveDustParticle.Stop();
 			}
 			m_isJump = true;
+		}
+
+		private void SetupEnable(bool value)
+		{
+			if (value == true)
+			{
+				m_isEnable = true;
+			}
+			else
+			{
+				m_isEnable = false;
+				m_rigidbody.velocity = Vector3.zero;
+				if (m_moveDustParticle.isPlaying == true)
+				{
+					m_moveDustParticle.Stop();
+				}
+				if (m_fbx.Anime.GetAnimationName() != "Wait")
+				{
+					var local = GeneralRoot.User.LocalSaveData;
+					if (local.OccurredBugIds.Contains(3) == false)
+					{
+						m_fbx.Anime.PlayLoop("Wait");
+					}
+					else
+					{
+						m_bugCallback(3);
+					}
+				}
+			}
 		}
 	}
 }

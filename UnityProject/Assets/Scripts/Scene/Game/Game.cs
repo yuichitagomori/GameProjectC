@@ -181,7 +181,16 @@ namespace scene
 				loadGameEvent: LoadGameEvent,
 				outgameSetupEvent: m_outgame.SetupEvent);
 			m_outgame.Initialize(
-				inputEvent: m_ingame.OnInputEvent);
+				uploadButtonEvent: () =>
+				{
+					m_movieController.Play(3, null);
+				},
+				commonWindowPlayMovieEvent: (int movieId) =>
+				{
+					m_movieController.Play(movieId, null);
+				},
+				mainWindowPowerButtonEvent: m_ingame.ResetGame,
+				mainWindowInputEvent: m_ingame.OnInputEvent);
 
 			//while (!isDone) { yield return null; }
 
@@ -197,14 +206,10 @@ namespace scene
 
 		private IEnumerator GoCoroutine()
 		{
-			bool isDone = false;
-			m_outgame.Fade(false, 1.0f, () => { isDone = true; });
-			while (!isDone) { yield return null; }
-
 			m_ingame.Go();
 			m_outgame.Go();
 
-			isDone = false;
+			bool isDone = false;
 			m_movieController.Play(2, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 		}

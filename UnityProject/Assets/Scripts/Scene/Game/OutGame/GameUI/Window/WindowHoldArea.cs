@@ -12,15 +12,6 @@ namespace scene.game.outgame.window
         [SerializeField]
         private Handler m_hander;
 
-        [SerializeField]
-        private Sprite m_enableSprite;
-
-        [SerializeField]
-        private Sprite m_disableSprite;
-
-        [SerializeField]
-        private Image m_image;
-
 
 
         private Transform m_windowTransform;
@@ -40,7 +31,7 @@ namespace scene.game.outgame.window
             UnityAction holdCallback)
 		{
             m_windowTransform = windowTransform;
-            m_windowSize = new Vector2(windowSize.x * 1.5f, windowSize.y * 1.5f + 80);
+            m_windowSize = new Vector2(windowSize.x * 1.5f, windowSize.y * 1.5f);
             m_areaWorldCorner = new Vector3[4];
             windowArea.GetWorldCorners(m_areaWorldCorner);
             m_holdCallback = holdCallback;
@@ -73,8 +64,6 @@ namespace scene.game.outgame.window
 
 		public void OnMove(Vector2 moveV)
 		{
-            Debug.Log("moveV = " + moveV.ToString());
-            Debug.Log("m_windowTransform.position = " + m_windowTransform.position.ToString());
             SetupWindowPosition(m_windowTransform.position + new Vector3(moveV.x, moveV.y, 0.0f));
         }
 
@@ -111,10 +100,5 @@ namespace scene.game.outgame.window
 
             m_windowTransform.position = position;
         }
-
-		public void SetupImage(bool isEnable)
-		{
-            m_image.sprite = (isEnable) ? m_enableSprite : m_disableSprite;
-		}
     }
 }

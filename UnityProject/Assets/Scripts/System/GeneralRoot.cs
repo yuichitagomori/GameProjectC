@@ -227,6 +227,7 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 	/// <param name="active"></param>
 	public void SetForeMostRayCast(bool active)
 	{
+		Input.SetRayCastActive(active);
 		m_foremostRayCast.SetActive(active);
 	}
 

@@ -21,6 +21,7 @@ namespace CommonUI
 		//	base.Start();
 		//}
 
+#if UNITY_EDITOR
 		private void Setting()
 		{
 			fontSize = 48;
@@ -33,5 +34,6 @@ namespace CommonUI
 			Setting();
 			base.Reset();
 		}
+#endif
 	}
 }

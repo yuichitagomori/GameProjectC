@@ -324,8 +324,17 @@ namespace scene.game
 			m_gameGenre.SetOutgameSetupEvent(m_outgameSetupEvent);
 		}
 
+		public void ResetGame()
+		{
+			m_loadGameEvent(m_gameGenre.name, m_gameGenre, SetupGameGunre);
+		}
+
 		public void OnInputEvent(KeyCode[] pressKeys)
 		{
+			if (m_gameGenre == null)
+			{
+				return;
+			}
 			m_gameGenre.OnInputEvent(pressKeys);
 		}
 	}

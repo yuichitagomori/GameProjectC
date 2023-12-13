@@ -1659,63 +1659,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_localSaveData:
-    m_stageId: -1
-    m_itemList: []
-    m_uniqueItemList:
-    - m_category: 0
-      m_id: 101
-      m_uniqueId: 0
-    - m_category: 0
-      m_id: 101
-      m_uniqueId: 1
-    - m_category: 0
-      m_id: 101
-      m_uniqueId: 2
-    - m_category: 0
-      m_id: 101
-      m_uniqueId: 3
-    - m_category: 0
-      m_id: 201
-      m_uniqueId: 4
-    - m_category: 0
-      m_id: 301
-      m_uniqueId: 5
-    - m_category: 0
-      m_id: 401
-      m_uniqueId: 6
-    - m_category: 0
-      m_id: 501
-      m_uniqueId: 7
-    - m_category: 0
-      m_id: 601
-      m_uniqueId: 8
-    m_customize:
-      m_boardPartsDatas:
-      - m_uniqueId: 0
-        m_grid:
-          x: 2
-          y: 2
-        m_rot: 0
-      - m_uniqueId: 1
-        m_grid:
-          x: 5
-          y: 2
-        m_rot: 0
-      - m_uniqueId: 2
-        m_grid:
-          x: 2
-          y: 5
-        m_rot: 0
-      - m_uniqueId: 3
-        m_grid:
-          x: 5
-          y: 5
-        m_rot: 0
-      - m_uniqueId: 8
-        m_grid:
-          x: 5
-          y: 5
-        m_rot: 0
+    m_checkSheetId: 1
+    m_accuracyLevel: 1
+    m_occurredBugIds: 
     m_bgmVolume: 0.5
     m_seVolume: 0.5
 --- !u!4 &1215556396
@@ -2671,10 +2617,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c264519128411a04e85673f36f543e30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_customizeParts: {fileID: 11400000, guid: 3ee98902960f8fa43ba880cdae5b7309, type: 2}
-  m_customizePartsEffect: {fileID: 11400000, guid: 5cc09966224c135498f014391ac2f7ba,
+  m_checkSheetData: {fileID: 11400000, guid: 5cbf2709f51b31844a659712553e16a6, type: 2}
+  m_checkSheetBugData: {fileID: 11400000, guid: 12c4c22d453715a45903d745c6bdfd77,
     type: 2}
-  m_customizePartsArea: {fileID: 11400000, guid: 00194840f3bec5748845c4278ab5c249,
+  m_movieData: {fileID: 11400000, guid: 032be64fd9905ac439e451eef034858c, type: 2}
+  m_charaWindowMovieData: {fileID: 11400000, guid: 4847c9fe03ddcdc46ac16642b1c64e06,
     type: 2}
   m_localize: {fileID: 11400000, guid: d3f24a51138b8084da4ae30a659623e9, type: 2}
 --- !u!4 &1964144804

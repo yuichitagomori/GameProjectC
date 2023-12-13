@@ -16,9 +16,13 @@ public class CsvStringData
 	/// <returns></returns>
 	public static string[][] GetCsv(string inputPath)
 	{
-		Debug.Log("inputPath = " + inputPath);
 		List<string[]> stringLists = new List<string[]>();
 		TextAsset asset = (TextAsset)AssetDatabase.LoadAssetAtPath(inputPath, typeof(TextAsset));
+		if (asset == null)
+		{
+			Debug.LogError(string.Format("{0} に、txtファイルが存在していません", inputPath));
+			return null;
+		}
 		string[] separator = { "\r\n" };
 		string[] splits = asset.text.Trim().Split(separator, System.StringSplitOptions.None);
 		List<string> splitList = new List<string>(splits);

@@ -15,18 +15,7 @@ namespace scene.game.outgame.window
 
 		private List<MessageElement.Node.Data> m_dataList = new List<MessageElement.Node.Data>();
 
-		public new void Initialize(RectTransform area, UnityAction holdCallback)
-		{
-			var elements = m_elementList.GetElements();
-			for (int i = 0; i < elements.Count; ++i)
-			{
-				elements[i].SetActive(false);
-				var element = elements[i].GetComponent<MessageElement>();
-				element.Initialize();
-			}
 
-			base.Initialize(area, holdCallback);
-		}
 
 		public override void SetupEvent(string[] paramStrings, UnityAction callback)
 		{
@@ -46,6 +35,7 @@ namespace scene.game.outgame.window
 				{
 					elements[i].SetActive(true);
 					var element = elements[i].GetComponent<MessageElement>();
+					element.Initialize();
 					element.Setting(m_dataList[i], (i == m_dataList.Count - 1));
 				}
 				else

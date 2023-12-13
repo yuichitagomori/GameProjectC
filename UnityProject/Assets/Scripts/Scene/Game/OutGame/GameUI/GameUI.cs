@@ -13,7 +13,7 @@ namespace scene.game.outgame
 	{
 
 		[SerializeField]
-		private CanvasGroup m_canvasGroup;
+		private CanvasGroup m_menuCanvasGroup;
 
 		[SerializeField]
 		private window.WindowController m_windowController;
@@ -21,16 +21,42 @@ namespace scene.game.outgame
 		[SerializeField]
 		private WindowIconController m_windowIconController;
 
+		[SerializeField]
+		private CommonUI.ButtonExpansion m_uploadButton;
+
+
+
+		private bool m_isMenuVisible = true;
 
 
 
 		public void Initialize(
-			UnityAction<KeyCode[]> inputEvent)
+			UnityAction uploadButtonEvent,
+			UnityAction<int> commonWindowPlayMovieEvent,
+			UnityAction mainWindowPowerButtonEvent,
+			UnityAction<KeyCode[]> mainWindowInputEvent)
 		{
 			m_windowController.Initialize(
-				inputEvent: inputEvent,
+				commonWindowPlayMovieEvent: commonWindowPlayMovieEvent,
+				mainWindowPowerButtonEvent: mainWindowPowerButtonEvent,
+				mainWindowInputEvent: mainWindowInputEvent,
 				updateWindowIcon: m_windowIconController.Setting);
-			m_windowIconController.Initialize(m_windowController.SelectWindow);
+			m_windowIconController.Initialize((index) => { m_windowController.SelectWindow(index, null); });
+			m_uploadButton.SetupClickEvent(uploadButtonEvent);
+
+			var input = GeneralRoot.Instance.Input;
+			input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.Z, () =>
+			{
+				m_uploadButton.OnDown();
+			});
+			input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.Z, () =>
+			{
+				m_uploadButton.OnUp();
+				if (m_isMenuVisible == true)
+				{
+					m_uploadButton.OnClick();
+				}
+			});
 		}
 
 		public void Go()
@@ -39,15 +65,43 @@ namespace scene.game.outgame
 		}
 
 
-		public void SetVisible(bool value)
+		public void SetMenuVisible(bool value, float time, UnityAction callback)
 		{
+			m_isMenuVisible = value;
+			StartCoroutine(SetMenuVisibleCoroutine(value, time, callback));
+		}
+
+		private IEnumerator SetMenuVisibleCoroutine(bool value, float time, UnityAction callback)
+		{
+			float nowTime = 0.0f;
+			while (nowTime < time)
+			{
+				if (value == true)
+				{
+					m_menuCanvasGroup.alpha = nowTime / time;
+				}
+				else
+				{
+					m_menuCanvasGroup.alpha = 1.0f - (nowTime / time);
+				}
+
+				nowTime += Time.deltaTime;
+
+				yield return null;
+			}
+
 			if (value == true)
 			{
-				m_canvasGroup.alpha = 1.0f;
+				m_menuCanvasGroup.alpha = 1.0f;
 			}
 			else
 			{
-				m_canvasGroup.alpha = 0.0f;
+				m_menuCanvasGroup.alpha = 0.0f;
+			}
+
+			if (callback != null)
+			{
+				callback();
 			}
 		}
 

@@ -16,20 +16,45 @@ namespace scene.game.outgame.window
 			Message,
 			DateTime,
 			CheckSheet,
+			Chara,
+			Common,
 		}
+
+		protected KeyCode[] k_useKeys = new KeyCode[]
+			{
+				KeyCode.W,
+				KeyCode.S,
+				KeyCode.A,
+				KeyCode.D,
+				KeyCode.Space,
+				KeyCode.X,
+				KeyCode.C
+			};
 
 		[SerializeField]
 		protected Type m_type;
 		public Type WindowType => m_type;
 
 		[SerializeField]
-		private Sprite m_frameEnableSprite;
+		private Sprite m_windowFrameEnableSprite;
 
 		[SerializeField]
-		private Sprite m_frameDisableSprite;
+		private Sprite m_windowFrameDisableSprite;
 
 		[SerializeField]
-		private Image m_frameImage;
+		private Image m_windowFrameImage;
+
+		[SerializeField]
+		private Sprite m_iconViewFrameEnableSprite;
+
+		[SerializeField]
+		private Sprite m_iconViewFrameDisableSprite;
+
+		[SerializeField]
+		private Image m_iconViewFrameImage;
+
+		[SerializeField]
+		private Image m_iconViewIconImage;
 
 		[SerializeField]
 		protected Transform m_windowTransform;
@@ -52,7 +77,7 @@ namespace scene.game.outgame.window
 
 
 
-		protected void Initialize(
+		public void Initialize(
 			RectTransform windowArea,
 			UnityAction holdCallback)
 		{
@@ -74,8 +99,9 @@ namespace scene.game.outgame.window
 
 		public IEnumerator AddWindow()
 		{
-			m_frameImage.sprite = m_frameDisableSprite;
-			m_holdArea.SetupImage(false);
+			m_windowFrameImage.sprite = m_windowFrameDisableSprite;
+			m_iconViewFrameImage.sprite = m_iconViewFrameDisableSprite;
+			m_iconViewIconImage.color = Color.white;
 
 			bool isDone = false;
 			m_windowAnime.Play("In", () => { isDone = true; });
@@ -85,8 +111,9 @@ namespace scene.game.outgame.window
 
 		public IEnumerator RemoveWindow()
 		{
-			m_frameImage.sprite = m_frameDisableSprite;
-			m_holdArea.SetupImage(false);
+			m_windowFrameImage.sprite = m_windowFrameDisableSprite;
+			m_iconViewFrameImage.sprite = m_iconViewFrameDisableSprite;
+			m_iconViewIconImage.color = Color.white;
 
 			m_isActiveWindow = false;
 			bool isDone = false;
@@ -94,27 +121,44 @@ namespace scene.game.outgame.window
 			while (!isDone) { yield return null; }
 		}
 
-		public void SetSelect(bool value, int windowCount)
+		public void SetSelect(bool value, int windowCount, UnityAction callback)
 		{
+			StartCoroutine(SetSelectCoroutine(value, windowCount, callback));
+		}
+
+		private IEnumerator SetSelectCoroutine(bool value, int windowCount, UnityAction callback)
+		{
+			bool isDone = false;
 			if (m_isSelectWindow == false && value == true)
 			{
-				m_frameImage.sprite = m_frameEnableSprite;
-				m_holdArea.SetupImage(true);
-
-				m_windowAnime.Play("Enable", null);
+				m_windowFrameImage.sprite = m_windowFrameEnableSprite;
+				m_iconViewFrameImage.sprite = m_iconViewFrameEnableSprite;
+				m_iconViewIconImage.color = new Color(0.0f, 0.75f, 1.0f);
+				m_windowAnime.Play("Enable", () => { isDone = true; });
 			}
 			else if (m_isSelectWindow == true && value == false)
 			{
-				m_frameImage.sprite = m_frameDisableSprite;
-				m_holdArea.SetupImage(false);
-
-				m_windowAnime.Play("Disable", null);
+				m_windowFrameImage.sprite = m_windowFrameDisableSprite;
+				m_iconViewFrameImage.sprite = m_iconViewFrameDisableSprite;
+				m_iconViewIconImage.color = Color.white;
+				m_windowAnime.Play("Disable", () => { isDone = true; });
 			}
+			else
+			{
+				isDone = true;
+			}
+			while (!isDone) { yield return null; }
+
 			m_isSelectWindow = value;
 			if (m_isSelectWindow == true)
 			{
 				m_windowTransform.SetSiblingIndex(windowCount - 1);
 				SetupInputKeyEvent();
+			}
+
+			if (callback != null)
+			{
+				callback();
 			}
 		}
 

@@ -19,10 +19,20 @@ namespace scene.game
 		}
 
 		[SerializeField]
-		private Image m_fade = null;
+		private Image m_fade;
 
 		[SerializeField]
-		private outgame.GameUI m_gameUI = null;
+		private outgame.GameUI m_gameUI;
+
+		[SerializeField]
+		private Material m_backgroundMaterial;
+
+
+
+		private float m_backgroundScrollSpeed;
+
+		private float m_backgroundScrollValue;
+
 
 
 		//public void Initialize(
@@ -47,13 +57,26 @@ namespace scene.game
 		//}
 
 		public void Initialize(
-			UnityAction<KeyCode[]> inputEvent)
+			UnityAction uploadButtonEvent,
+			UnityAction<int> commonWindowPlayMovieEvent,
+			UnityAction mainWindowPowerButtonEvent,
+			UnityAction<KeyCode[]> mainWindowInputEvent)
 		{
 			var fadeColor = m_fade.color;
 			fadeColor.a = 1.0f;
 			m_fade.color = fadeColor;
 
-			m_gameUI.Initialize(inputEvent: inputEvent);
+			m_backgroundMaterial.SetFloat("_Scroll", 0.0f);
+			m_backgroundMaterial.SetFloat("_Distortion", 0.0f);
+			m_backgroundScrollSpeed = 4.0f;
+			m_backgroundScrollValue = 0.0f;
+			StartCoroutine(UpdateBackgroundScroll());
+
+			m_gameUI.Initialize(
+				uploadButtonEvent: uploadButtonEvent,
+				commonWindowPlayMovieEvent: commonWindowPlayMovieEvent,
+				mainWindowPowerButtonEvent: mainWindowPowerButtonEvent,
+				mainWindowInputEvent: mainWindowInputEvent);
 		}
 
 		public void Go()
@@ -61,24 +84,24 @@ namespace scene.game
 			m_gameUI.Go();
 		}
 
-		public void Fade(bool isFadeIn, float fadeTime, UnityAction callback)
+		private void SetupFade(bool isIn, float time, UnityAction callback)
 		{
-			StartCoroutine(FadeCoroutine(isFadeIn, fadeTime, callback));
+			StartCoroutine(SetupFadeCoroutine(isIn, time, callback));
 		}
 
-		private IEnumerator FadeCoroutine(bool isFadeIn, float fadeTime, UnityAction callback)
+		private IEnumerator SetupFadeCoroutine(bool isIn, float time, UnityAction callback)
 		{
 			float nowTime = 0.0f;
-			while (nowTime < fadeTime)
+			while (nowTime < time)
 			{
 				nowTime += Time.deltaTime;
-				if (nowTime > fadeTime)
+				if (nowTime > time)
 				{
-					nowTime = fadeTime;
+					nowTime = time;
 				}
 
 				var fadeColor = m_fade.color;
-				float alpha = (isFadeIn) ? (nowTime / fadeTime) : 1.0f - (nowTime / fadeTime);
+				float alpha = (isIn) ? 1.0f - (nowTime / time) : (nowTime / time);
 				fadeColor.a = alpha;
 				m_fade.color = fadeColor;
 
@@ -91,10 +114,91 @@ namespace scene.game
 			}
 		}
 
+		private void SetupBackground(bool isFast, float time, UnityAction callback)
+		{
+			StartCoroutine(SetupBackgroundCoroutine(isFast, time, callback));
+		}
+
+		private IEnumerator SetupBackgroundCoroutine(bool isFast, float time, UnityAction callback)
+		{
+			float nowTime = 0.0f;
+			while (nowTime < time)
+			{
+				nowTime += Time.deltaTime;
+				if (nowTime > time)
+				{
+					nowTime = time;
+				}
+				m_backgroundScrollSpeed = (isFast) ?
+					3.0f * (nowTime / time) + 1.0f :
+					3.0f * (1.0f - (nowTime / time)) + 1.0f;
+				float distortionValue = (isFast) ?
+					0.5f * (1.0f - (nowTime / time)):
+					0.5f * (nowTime / time);
+				m_backgroundMaterial.SetFloat("_Distortion", distortionValue);
+
+				yield return null;
+			}
+
+			if (callback != null)
+			{
+				callback();
+			}
+			
+		}
+
+		private IEnumerator UpdateBackgroundScroll()
+		{
+			while (true)
+			{
+				m_backgroundScrollValue += Time.deltaTime * m_backgroundScrollSpeed;
+				m_backgroundScrollValue = m_backgroundScrollValue % 1.0f;
+				m_backgroundMaterial.SetFloat("_Scroll", m_backgroundScrollValue);
+
+				yield return null;
+			}
+		}
+
 		public void OnMovieStart(string[] paramStrings, UnityAction callback)
 		{
 			switch (paramStrings[0])
 			{
+				case "FadeIn":
+					{
+						float time = float.Parse(paramStrings[1]);
+						SetupFade(true, time, callback);
+						break;
+					}
+				case "FadeOut":
+					{
+						float time = float.Parse(paramStrings[1]);
+						SetupFade(false, time, callback);
+						break;
+					}
+				case "BackgroundFast":
+					{
+						float time = float.Parse(paramStrings[1]);
+						SetupBackground(true, time, callback);
+						break;
+					}
+				case "BackgroundSlow":
+					{
+						float time = float.Parse(paramStrings[1]);
+						SetupBackground(false, time, callback);
+						break;
+					}
+				case "MenuVisible":
+					{
+						float time = float.Parse(paramStrings[1]);
+						m_gameUI.SetMenuVisible(true, time, callback);
+						break;
+					}
+				case "MenuInvisible":
+					{
+						float time = float.Parse(paramStrings[1]);
+						m_gameUI.SetMenuVisible(false, time, callback);
+						break;
+					}
 				default:
 					{
 						m_gameUI.OnMovieStart(paramStrings, callback);

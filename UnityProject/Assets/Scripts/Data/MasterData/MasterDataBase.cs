@@ -31,7 +31,12 @@ namespace data.master
 
         public T Find(int id)
 		{
-            return m_datas.FirstOrDefault(d => d.Id == id);
+            var data = m_datas.FirstOrDefault(d => d.Id == id);
+            if (data == null)
+			{
+                Debug.LogError(string.Format("not found data {0}, id = {1}", typeof(T).ToString(), id));
+			}
+            return data;
 		}
 
         /// <summary>
@@ -40,6 +45,10 @@ namespace data.master
         /// <param name="csv"></param>
         public void Load(string[][] csv)
 		{
+            if (csv == null)
+			{
+                return;
+			}
             List<T> dataList = new List<T>();
             foreach (string[] strings in csv)
             {

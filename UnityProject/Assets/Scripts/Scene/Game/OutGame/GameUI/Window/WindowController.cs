@@ -20,31 +20,23 @@ namespace scene.game.outgame.window
 
 		private int m_selectWindowIndex = -1;
 
-		private UnityAction<WindowBase.Type[], int> m_updateWindowIcon;
-
 		private List<KeyCode> m_moveButtonPressKeys = new List<KeyCode>();
 		private Vector2 m_moveVector = Vector2.zero;
 
-		//private UnityAction<ingame.world.ActionTargetBase.Category, int> m_charaActionButtonEvent;
-		//private UnityAction<Vector2> m_cameraBeginMoveEvent;
-		//private UnityAction<Vector2> m_cameraMoveEvent;
-		//private UnityAction m_cameraEndMoveEvent;
-		private UnityAction<KeyCode[]> m_inputEvent;
-		//private UnityAction<Vector2> m_clickEvent;
-		//private UnityAction<float> m_cameraZoomEvent;
+		private UnityAction<int> m_commonWindowPlayMovieEvent;
+		private UnityAction m_mainWindowPowerButtonEvent;
+		private UnityAction<KeyCode[]> m_mainWindowInputEvent;
+		private UnityAction<WindowBase.Type[], int> m_updateWindowIcon;
 
 		public void Initialize(
-			UnityAction<KeyCode[]> inputEvent,
+			UnityAction<int> commonWindowPlayMovieEvent,
+			UnityAction mainWindowPowerButtonEvent,
+			UnityAction<KeyCode[]> mainWindowInputEvent,
 			UnityAction<WindowBase.Type[], int> updateWindowIcon)
 		{
-			//m_charaActionButtonEvent = charaActionButtonEvent;
-			//m_cameraBeginMoveEvent = cameraBeginMoveEvent;
-			//m_cameraMoveEvent = cameraMoveEvent;
-			//m_cameraEndMoveEvent = cameraEndMoveEvent;
-			m_inputEvent = inputEvent;
-			//m_clickEvent = clickEvent;
-			//m_cameraZoomEvent = cameraZoomEvent;
-
+			m_commonWindowPlayMovieEvent = commonWindowPlayMovieEvent;
+			m_mainWindowPowerButtonEvent = mainWindowPowerButtonEvent;
+			m_mainWindowInputEvent = mainWindowInputEvent;
 			m_updateWindowIcon = updateWindowIcon;
 
 
@@ -147,6 +139,14 @@ namespace scene.game.outgame.window
 						}
 					}
 
+					if ((m_moveVector.x < 0 && addVector.x > 0) || (m_moveVector.x > 0 && addVector.x < 0))
+					{
+						m_moveVector.x = 0.0f;
+					}
+					if ((m_moveVector.y < 0 && addVector.y > 0) || (m_moveVector.y > 0 && addVector.y < 0))
+					{
+						m_moveVector.y = 0.0f;
+					}
 					m_moveVector += addVector.normalized * 5.0f;
 					if (m_moveVector.magnitude > 25.0f)
 					{
@@ -171,7 +171,7 @@ namespace scene.game.outgame.window
 
 		private void OnWindowChangeRightButtonPressed()
 		{
-			if (m_windows.Count(d => d.IsActiveWindow == true) <= 1)
+			if (IsEnableChangeWindow() == false)
 			{
 				return;
 			}
@@ -189,12 +189,12 @@ namespace scene.game.outgame.window
 					break;
 				}
 			}
-			SelectWindow(nextWindowIndex);
+			SelectWindow(nextWindowIndex, null);
 		}
 
 		private void OnWindowChangeLeftButtonPressed()
 		{
-			if (m_windows.Count(d => d.IsActiveWindow == true) <= 1)
+			if (IsEnableChangeWindow() == false)
 			{
 				return;
 			}
@@ -212,7 +212,26 @@ namespace scene.game.outgame.window
 					break;
 				}
 			}
-			SelectWindow(nextWindowIndex);
+			SelectWindow(nextWindowIndex, null);
+		}
+
+		/// <summary>
+		/// ウィンドウ切り替え可能な状況かどうかを取得
+		/// </summary>
+		/// <returns></returns>
+		private bool IsEnableChangeWindow()
+		{
+			if (m_windows.Count(d => d.IsActiveWindow == true) <= 1)
+			{
+				return false;
+			}
+
+			if (m_windows[m_selectWindowIndex].WindowType == WindowBase.Type.Common)
+			{
+				// 汎用ダイアログ展開中で返事待ち
+				return false;
+			}
+			return true;
 		}
 
 		//public void AddWindow(WindowBase.Type windowType)
@@ -220,71 +239,106 @@ namespace scene.game.outgame.window
 		//	StartCoroutine(AddWindowCoroutine(windowType));
 		//}
 
-		private IEnumerator AddWindowCoroutine(WindowBase.Type windowType)
+		//private IEnumerator AddWindowCoroutine(WindowBase.Type windowType)
+		//{
+		//	var windowPrefab = m_windowPrefabList[(int)windowType];
+		//	var window = GameObject.Instantiate(windowPrefab);
+		//	window.transform.SetParent(m_windowParent);
+		//	window.transform.localPosition = new Vector3(0.0f, -64.0f, 0.0f);
+		//	window.transform.localScale = Vector3.one;
+		//	var windowBase = window.GetComponent<WindowBase>();
+		//	m_windows.Add(windowBase);
+		//	int index = m_windows.Count - 1;
+		//	switch (windowBase.WindowType)
+		//	{
+		//		case WindowBase.Type.Main:
+		//			{
+		//				((MainWindow)windowBase).Initialize(
+		//					powerButtonEvent: m_mainWindowPowerButtonEvent,
+		//					inputEvent: m_mainWindowInputEvent,
+		//					windowArea: m_windowParent.GetComponent<RectTransform>(),
+		//					holdCallback: () =>
+		//					{
+		//						SelectWindow(index);
+		//					});
+		//				break;
+		//			}
+		//		case WindowBase.Type.Message:
+		//			{
+		//				((MessageWindow)windowBase).Initialize(
+		//					area: m_windowParent.GetComponent<RectTransform>(),
+		//					holdCallback: () =>
+		//					{
+		//						SelectWindow(index);
+		//					});
+		//				break;
+		//			}
+		//		case WindowBase.Type.DateTime:
+		//			{
+		//				((DateTimeWindow)windowBase).Initialize(
+		//					area: m_windowParent.GetComponent<RectTransform>(),
+		//					holdCallback: () =>
+		//					{
+		//						SelectWindow(index);
+		//					});
+		//				break;
+		//			}
+		//		case WindowBase.Type.CheckSheet:
+		//			{
+		//				((CheckSheetWindow)windowBase).Initialize(
+		//					area: m_windowParent.GetComponent<RectTransform>(),
+		//					holdCallback: () =>
+		//					{
+		//						SelectWindow(index);
+		//					});
+		//				break;
+		//			}
+		//		case WindowBase.Type.Chara:
+		//			{
+		//				((CharaWindow)windowBase).Initialize(
+		//					area: m_windowParent.GetComponent<RectTransform>(),
+		//					holdCallback: () =>
+		//					{
+		//						SelectWindow(index);
+		//					});
+		//				break;
+		//			}
+		//	}
+		//	windowBase.Go();
+		//	yield return windowBase.AddWindow();
+		//	UpdateWindowIcon();
+		//}
+
+		private IEnumerator AddWindowCoroutine(WindowBase.Type windowType, UnityAction<WindowBase> settingEvent)
 		{
 			var windowPrefab = m_windowPrefabList[(int)windowType];
 			var window = GameObject.Instantiate(windowPrefab);
 			window.transform.SetParent(m_windowParent);
-			window.transform.localPosition = Vector3.zero;
+			window.transform.localPosition = new Vector3(0.0f, -64.0f, 0.0f);
 			window.transform.localScale = Vector3.one;
 			var windowBase = window.GetComponent<WindowBase>();
 			m_windows.Add(windowBase);
-			int index = m_windows.Count - 1;
-			switch (windowBase.WindowType)
+			windowBase.Initialize(
+				windowArea: m_windowParent.GetComponent<RectTransform>(),
+				holdCallback: null);
+			UpdateWindowIcon();
+
+			if (settingEvent != null)
 			{
-				case WindowBase.Type.Main:
-					{
-						((MainWindow)windowBase).Initialize(
-							inputEvent: m_inputEvent,
-							windowArea: m_windowParent.GetComponent<RectTransform>(),
-							holdCallback: () =>
-							{
-								SelectWindow(index);
-							});
-						break;
-					}
-				case WindowBase.Type.Message:
-					{
-						((MessageWindow)windowBase).Initialize(
-							area: m_windowParent.GetComponent<RectTransform>(),
-							holdCallback: () =>
-							{
-								SelectWindow(index);
-							});
-						break;
-					}
-				case WindowBase.Type.DateTime:
-					{
-						((DateTimeWindow)windowBase).Initialize(
-							area: m_windowParent.GetComponent<RectTransform>(),
-							holdCallback: () =>
-							{
-								SelectWindow(index);
-							});
-						break;
-					}
-				case WindowBase.Type.CheckSheet:
-					{
-						((CheckSheetWindow)windowBase).Initialize(
-							area: m_windowParent.GetComponent<RectTransform>(),
-							holdCallback: () =>
-							{
-								SelectWindow(index);
-							});
-						break;
-					}
+				settingEvent(windowBase);
 			}
+
 			windowBase.Go();
 			yield return windowBase.AddWindow();
-			UpdateWindowIcon();
+			yield return SelectWindowCoroutine(m_windows.Count - 1, null);
 		}
 
-		//public void RemoveWindow(int index)
-		//{
-		//	StartCoroutine(RemoveWindowCoroutine(index));
-		//}
+		private void RemoveWindow(int index, UnityAction callback)
+		{
+			StartCoroutine(RemoveWindowCoroutine(index, callback));
+		}
 
-		private IEnumerator RemoveWindowCoroutine(int index)
+		private IEnumerator RemoveWindowCoroutine(int index, UnityAction callback)
 		{
 			var window = m_windows[index];
 			yield return window.RemoveWindow();
@@ -293,27 +347,63 @@ namespace scene.game.outgame.window
 
 			if (m_windows.Count > index)
 			{
-				SelectWindow(index);
+				yield return SelectWindowCoroutine(index, null);
 			}
 			else if (m_windows.Count > 0)
 			{
-				SelectWindow(index - 1);
+				yield return SelectWindowCoroutine(index - 1, null);
 			}
 			else
 			{
-				SelectWindow(-1);
+				yield return SelectWindowCoroutine(-1, null);
 			}
 			UpdateWindowIcon();
+
+			if (callback != null)
+			{
+				callback();
+			}
 		}
 
-		public void SelectWindow(int index)
+		private IEnumerator MoveWindowCoroutine(int index, float time, Vector2 pos)
 		{
+			var curve = AnimationCurve.EaseInOut(0.0f, 0.0f, 1.0f, 1.0f);
+			var window = m_windows[index];
+			Vector2 beforePos = window.transform.localPosition;
+			float nowTime = 0.0f;
+			while (nowTime < time)
+			{
+				float value = curve.Evaluate(nowTime);
+				Vector2 nowPos = (pos - beforePos) * value + beforePos;
+				window.transform.localPosition = nowPos;
+
+				nowTime += Time.deltaTime;
+
+				yield return null;
+			}
+			window.transform.localPosition = pos;
+		}
+
+		public void SelectWindow(int index, UnityAction callback)
+		{
+			StartCoroutine(SelectWindowCoroutine(index, callback));
+		}
+
+		private IEnumerator SelectWindowCoroutine(int index, UnityAction callback)
+		{
+			int doneCount = 0;
 			for (int i = 0; i < m_windows.Count; ++i)
 			{
-				m_windows[i].SetSelect(i == index, m_windows.Count);
+				m_windows[i].SetSelect(i == index, m_windows.Count, () => { doneCount++; });
 			}
+			while (doneCount < m_windows.Count) { yield return null; }
 			m_selectWindowIndex = index;
 			UpdateWindowIcon();
+
+			if (callback != null)
+			{
+				callback();
+			}
 		}
 
 		private void UpdateWindowIcon()
@@ -357,38 +447,65 @@ namespace scene.game.outgame.window
 				case "SelectWindow":
 					{
 						int index = int.Parse(paramStrings[1]);
-						SelectWindow(index);
+						yield return SelectWindowCoroutine(index, null);
 						break;
 					}
 				case "AddMainWindow":
 					{
-						yield return AddWindowCoroutine(WindowBase.Type.Main);
+						yield return AddWindowCoroutine(WindowBase.Type.Main, (windowBase) =>
+						{
+							((MainWindow)windowBase).Setting(
+								powerButtonEvent: m_mainWindowPowerButtonEvent,
+								inputEvent: m_mainWindowInputEvent);
+						});
 						break;
 					}
 				case "AddMessageWindow":
 					{
-						yield return AddWindowCoroutine(WindowBase.Type.Message);
+						yield return AddWindowCoroutine(WindowBase.Type.Message, null);
 						break;
 					}
 				case "AddDateTimeWindow":
 					{
-						yield return AddWindowCoroutine(WindowBase.Type.DateTime);
-
-						var windowBase = m_windows[m_windows.Count - 1];
-						string dateTimeString = paramStrings[1];
-						yield return ((DateTimeWindow)windowBase).PlayCoroutine(dateTimeString);
+						yield return AddWindowCoroutine(WindowBase.Type.DateTime, null);
 						break;
 					}
 				case "AddCheckSheetWindow":
 					{
-						yield return AddWindowCoroutine(WindowBase.Type.CheckSheet);
-
-						var windowBase = m_windows[m_windows.Count - 1];
-						int dateId = int.Parse(paramStrings[1]);
-						((CheckSheetWindow)windowBase).Setting(dateId);
+						yield return AddWindowCoroutine(WindowBase.Type.CheckSheet, (windowBase) =>
+						{
+							var local = GeneralRoot.User.LocalSaveData;
+							int userCheckSheetId = local.CheckSheetId;
+							int userAccuracyLevel = local.AccuracyLevel;
+							int[] userOccurredBugIds = local.OccurredBugIds;
+							((CheckSheetWindow)windowBase).Setting(
+								userCheckSheetId,
+								userAccuracyLevel,
+								userOccurredBugIds);
+						});
 						break;
 					}
-				case "AddMessage":
+				case "AddCharaWindow":
+					{
+						yield return AddWindowCoroutine(WindowBase.Type.Chara, null);
+						break;
+					}
+				case "AddCommonWindow":
+					{
+						yield return AddWindowCoroutine(WindowBase.Type.Common, (windowBase) =>
+						{
+							int messageId = int.Parse(paramStrings[1]);
+							string message = "デバッグ結果の報告の為、アップロードしますが\nよろしいですか？";
+							int yesPlayMovieId = int.Parse(paramStrings[2]);
+							int noPlayMovieId = int.Parse(paramStrings[3]);
+							((CommonWindow)windowBase).Setting(
+								message,
+								() => { if (yesPlayMovieId >= 0) m_commonWindowPlayMovieEvent(yesPlayMovieId); },
+								() => { if (noPlayMovieId >= 0) m_commonWindowPlayMovieEvent(noPlayMovieId); });
+						});
+						break;
+					}
+				case "PlayMessageWindow":
 					{
 						var windowBase = m_windows.Find(d => d.WindowType == WindowBase.Type.Message);
 						if (windowBase != null)
@@ -397,13 +514,46 @@ namespace scene.game.outgame.window
 							int messageId = int.Parse(paramStrings[2]);
 							((MessageWindow)windowBase).AddMessage(isMine, messageId);
 						}
-
+						break;
+					}
+				case "PlayDateTimeWindow":
+					{
+						var windowBase = m_windows.Find(d => d.WindowType == WindowBase.Type.DateTime);
+						if (windowBase != null)
+						{
+							bool isDone = false;
+							int controllId = int.Parse(paramStrings[1]);
+							((DateTimeWindow)windowBase).Play(controllId, () => { isDone = true; });
+							while (!isDone) { yield return null; }
+						}
+						break;
+					}
+				case "PlayCharaWindow":
+					{
+						var windowBase = m_windows.Find(d => d.WindowType == WindowBase.Type.Chara);
+						if (windowBase != null)
+						{
+							bool isDone = false;
+							int controllId = int.Parse(paramStrings[1]);
+							((CharaWindow)windowBase).Play(controllId, () => { isDone = true; });
+							while (!isDone) { yield return null; }
+						}
 						break;
 					}
 				case "RemoveWindow":
 					{
 						int index = int.Parse(paramStrings[1]);
-						yield return RemoveWindowCoroutine(index);
+						bool isDone = false;
+						RemoveWindow(index, () => { isDone = true; });
+						while (!isDone) { yield return null; }
+						break;
+					}
+				case "MoveWindow":
+					{
+						int index = int.Parse(paramStrings[1]);
+						float time = float.Parse(paramStrings[2]);
+						Vector2 pos = new Vector2(float.Parse(paramStrings[3]), float.Parse(paramStrings[4]));
+						yield return MoveWindowCoroutine(index, time, pos);
 						break;
 					}
 				default:
@@ -425,7 +575,6 @@ namespace scene.game.outgame.window
 
 		public void SetupEvent(string param, UnityAction callback)
 		{
-			Debug.Log("WindowController param = " + param);
 			string[] paramStrings = param.Split(',');
 			WindowBase window = null;
 			switch (paramStrings[0])
@@ -433,6 +582,11 @@ namespace scene.game.outgame.window
 				case "Main":
 					{
 						window = m_windows.Find(d => d.WindowType == WindowBase.Type.Main);
+						break;
+					}
+				case "Chara":
+					{
+						window = m_windows.Find(d => d.WindowType == WindowBase.Type.Chara);
 						break;
 					}
 			}

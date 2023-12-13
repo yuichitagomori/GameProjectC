@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using System.Collections;
-using System.Collections.Generic;
+using System.Linq;
 
 namespace Common
 {
@@ -76,7 +76,7 @@ namespace Common
 			{
 				StopCoroutine(m_playCoroutine);
 			}
-			m_playCoroutine = StartCoroutine(PlayColoutine(name, callback, time));
+			m_playCoroutine = StartCoroutine(PlayColoutine(callback, time));
 		}
 
 		/// <summary>
@@ -93,7 +93,7 @@ namespace Common
 			m_animationName = name;
 			m_eventFucntion = eventFucntion;
 			m_animator.enabled = true;
-			m_animator.Play(name, m_layer, time);
+			m_animator.Play(m_animationName, m_layer, time);
 		}
 
 		/// <summary>
@@ -134,14 +134,33 @@ namespace Common
 		/// <summary>
 		/// 待機
 		/// </summary>
-		/// <param name="name"></param>
 		/// <param name="callback"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		private IEnumerator PlayColoutine(string name, UnityAction callback, float time)
+		private IEnumerator PlayColoutine(UnityAction callback, float time)
 		{
 			m_animator.enabled = true;
-			m_animator.Play(name, m_layer, 0.0f);
+			m_animator.Play(m_animationName, m_layer, 0.0f);
+
+			var clip = m_animator.runtimeAnimatorController.animationClips.FirstOrDefault(d => d.name == m_animationName);
+			//if (clip != null)
+			//{
+			//	Debug.Log("AnimatorExpansion m_animationName = " + m_animationName);
+			//	Debug.Log("AnimatorExpansion length = " + clip.length);
+			//}
+			if (clip != null && clip.length == 0)
+			{
+				// 長さが0のアニメーションであるため、すぐにコールバックを呼ぶ
+				if (callback != null)
+				{
+					callback();
+				}
+
+				// 1フレーム待機後に停止させる
+				yield return null;
+				m_animator.enabled = false;
+				yield break;
+			}
 
 			while (true)
 			{
@@ -158,7 +177,7 @@ namespace Common
 			while (true)
 			{
 				var info = m_animator.GetCurrentAnimatorStateInfo(m_layer);
-				if (info.IsName(name) == true &&
+				if (info.IsName(m_animationName) == true &&
 					info.normalizedTime >= 1.0f)
 				{
 					break;

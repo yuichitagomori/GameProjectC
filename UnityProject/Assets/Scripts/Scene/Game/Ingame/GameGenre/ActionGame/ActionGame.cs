@@ -1,14 +1,20 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
-using System.Linq;
 
 namespace scene.game.ingame
 {
 	public class ActionGame : GameGenreBase
 	{
+		private string SequenceAnimeStringFormat = "Main,SequenceAnime,{0}";
+		private string UpdateInfoViewStringFormat = "Main,UpdateInfoView,{0}";
+		private string UpdateLifeGameStringFormat = "Main,UpdateLifeGauge,{0}";
+		private string CharaReactionStringFormat = "Chara,Play,{0}";
+
+
 		[SerializeField]
 		private Transform[] m_cameraAngles;
 
@@ -19,7 +25,13 @@ namespace scene.game.ingame
 		private actiongame.ActionGamePlayerChara m_player;
 
 		[SerializeField]
+		private GameObject[] m_mapColliders;
+
+		[SerializeField]
 		private actiongame.TransferObject[] m_transfers;
+
+		[SerializeField]
+		private actiongame.GuideObject[] m_guides;
 
 
 
@@ -27,10 +39,15 @@ namespace scene.game.ingame
 
 		private KeyCode[] m_beforePressKeys;
 
+		private int m_life;
+
+		private List<int> m_reactionBugIdList = new List<int>();
+
+
+
 		public override void Initialize()
 		{
 			m_state = State.None;
-			m_outgameSetupEvent("Main,SequenceAnime,Default", null);
 
 			m_cameraTransform.localPosition = m_cameraAngles[0].localPosition;
 			m_cameraTransform.localRotation = m_cameraAngles[0].localRotation;
@@ -39,13 +56,30 @@ namespace scene.game.ingame
 			{
 				m_mapEvents[i].Initialize(OnMapEvent);
 			}
-			m_player.Initialize();
+			m_player.Initialize(BugEvent);
 			for (int i = 0; i < m_transfers.Length; ++i)
 			{
 				m_transfers[i].Initialize(OnTransferEvent);
 			}
+			for (int i = 0; i < m_guides.Length; ++i)
+			{
+				m_guides[i].Initialize();
+			}
 			m_isEnableControll = false;
 			m_beforePressKeys = null;
+			m_life = 4;
+
+			var local = GeneralRoot.User.LocalSaveData;
+			if (local.OccurredBugIds.Contains(4))
+			{
+				// 一部の足場用コライダー削除
+				m_mapColliders[2].SetActive(false);
+			}
+			if (local.OccurredBugIds.Contains(5))
+			{
+				// 落下用コライダー削除
+				m_mapColliders[0].SetActive(false);
+			}
 		}
 
 		public override void Go()
@@ -56,14 +90,21 @@ namespace scene.game.ingame
 		private IEnumerator GoCoroutine()
 		{
 			bool isDone = false;
-			m_outgameSetupEvent("Main,SequenceAnime,TitleIn", () => { isDone = true; });
+			string paramString = string.Format(SequenceAnimeStringFormat, "TitleIn");
+			m_outgameSetupEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			m_state = State.Title;
 			while (m_state == State.Title) { yield return null; }
 
 			isDone = false;
-			m_outgameSetupEvent("Main,SequenceAnime,TitleOut", () => { isDone = true; });
+			paramString = string.Format(SequenceAnimeStringFormat, "TitleOut");
+			m_outgameSetupEvent(paramString, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
+			isDone = false;
+			paramString = string.Format(UpdateLifeGameStringFormat, 0);
+			m_outgameSetupEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			isDone = false;
@@ -83,11 +124,23 @@ namespace scene.game.ingame
 				1.0f,
 				null);
 
-			m_isEnableControll = true;
-
 			isDone = false;
-			m_outgameSetupEvent("Main,SequenceAnime,GameIn", () => { isDone = true; });
+			paramString = string.Format(SequenceAnimeStringFormat, "GameIn");
+			m_outgameSetupEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
+
+			var wait = new WaitForSeconds(0.2f);
+			for (int i = 0; i < m_life; ++i)
+			{
+				isDone = false;
+				paramString = string.Format(UpdateLifeGameStringFormat, i + 1);
+				m_outgameSetupEvent(paramString, () => { isDone = true; });
+				while (!isDone) { yield return null; }
+
+				yield return wait;
+			}
+
+			m_isEnableControll = true;
 		}
 
 		private void FixedUpdate()
@@ -110,7 +163,7 @@ namespace scene.game.ingame
 			}
 			else if (m_state == State.Title)
 			{
-				if (pressKeys.Contains(KeyCode.Space) || pressKeys.Contains(KeyCode.Return))
+				if (pressKeys.Contains(KeyCode.Space))
 				{
 					m_state = State.Game;
 				}
@@ -135,6 +188,11 @@ namespace scene.game.ingame
 				{
 					m_player.Jump();
 				}
+
+				if (pressKeys.Contains(KeyCode.Space))
+				{
+					m_state = State.Game;
+				}
 			}
 
 			m_beforePressKeys = pressKeys;
@@ -154,7 +212,13 @@ namespace scene.game.ingame
 			{
 				case "Delete":
 					{
-						OnTransferEvent(0);
+						m_life--;
+						string paramString = string.Format(UpdateLifeGameStringFormat, m_life);
+						m_outgameSetupEvent(paramString, () =>
+						{
+							OnTransferEvent(0);
+						});
+						
 						break;
 					}
 			}
@@ -182,6 +246,27 @@ namespace scene.game.ingame
 			while (!isDone) { yield return null; }
 
 			m_isEnableControll = true;
+		}
+
+		private void BugEvent(int bugId)
+		{
+			if (m_reactionBugIdList.Contains(bugId) == true)
+			{
+				return;
+			}
+			m_reactionBugIdList.Add(bugId);
+
+			int reactionId = 0;
+			switch (bugId)
+			{
+				case 3:
+					{
+						reactionId = 3;
+						break;
+					}
+			}
+			string paramString = string.Format(CharaReactionStringFormat, reactionId);
+			m_outgameSetupEvent(paramString, null);
 		}
 	}
 }

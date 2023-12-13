@@ -77,13 +77,13 @@ namespace scene
 		private void SetupBgmVolume(float _volume)
 		{
 			var localSaveData = GeneralRoot.User.LocalSaveData;
-			localSaveData.SetBgmVolume(_volume);
+			localSaveData.UpdateBgmVolume(_volume);
 		}
 
 		private void SetupSEVolume(float _volume)
 		{
 			var localSaveData = GeneralRoot.User.LocalSaveData;
-			localSaveData.SetSEVolume(_volume);
+			localSaveData.UpdateSEVolume(_volume);
 		}
 
 		private void OnBackButtonPressed()

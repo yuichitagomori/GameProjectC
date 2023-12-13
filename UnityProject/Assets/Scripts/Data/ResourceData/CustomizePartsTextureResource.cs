@@ -5,6 +5,7 @@
 	/// </summary>
 	public class CustomizePartsTextureResource : TextureResource
 	{
+#if UNITY_EDITOR
 		/// <summary>
 		/// 生成
 		/// </summary>
@@ -16,5 +17,6 @@
 			string path = string.Format(CommonPath + format, id);
 			return CreateData(id, path);
 		}
+#endif
 	}
 }
