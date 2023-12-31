@@ -9,6 +9,18 @@ namespace scene.game.ingame
 {
 	public class ActionGame : GameGenreBase
 	{
+		[System.Serializable]
+		public class MoveVector
+		{
+			[SerializeField]
+			private KeyCode m_key;
+			public KeyCode Key => m_key;
+
+			[SerializeField]
+			private Vector3 m_vector;
+			public Vector3 Vector => m_vector;
+		}
+
 		private string SequenceAnimeStringFormat = "Main,SequenceAnime,{0}";
 		private string UpdateInfoViewStringFormat = "Main,UpdateInfoView,{0}";
 		private string UpdateLifeGameStringFormat = "Main,UpdateLifeGauge,{0}";
@@ -17,6 +29,9 @@ namespace scene.game.ingame
 
 		[SerializeField]
 		private Transform[] m_cameraAngles;
+
+		[SerializeField]
+		private MoveVector[] m_moveVectors;
 
 		[SerializeField]
 		private EventBase[] m_mapEvents;
@@ -33,6 +48,9 @@ namespace scene.game.ingame
 		[SerializeField]
 		private actiongame.GuideObject[] m_guides;
 
+		[SerializeField]
+		private actiongame.SwitchObject[] m_switches;
+
 
 
 		private bool m_isEnableControll = false;
@@ -47,8 +65,6 @@ namespace scene.game.ingame
 
 		public override void Initialize()
 		{
-			m_state = State.None;
-
 			m_cameraTransform.localPosition = m_cameraAngles[0].localPosition;
 			m_cameraTransform.localRotation = m_cameraAngles[0].localRotation;
 
@@ -59,11 +75,18 @@ namespace scene.game.ingame
 			m_player.Initialize(BugEvent);
 			for (int i = 0; i < m_transfers.Length; ++i)
 			{
-				m_transfers[i].Initialize(OnTransferEvent);
+				m_transfers[i].Initialize(
+					OnTransferEvent,
+					OnChangeGameEvent);
 			}
 			for (int i = 0; i < m_guides.Length; ++i)
 			{
 				m_guides[i].Initialize();
+			}
+			for (int i = 0; i < m_switches.Length; ++i)
+			{
+				int id = i + 1;
+				m_switches[i].Initialize(false, (value) => { OnSwitchEvent(id, value); });
 			}
 			m_isEnableControll = false;
 			m_beforePressKeys = null;
@@ -90,17 +113,25 @@ namespace scene.game.ingame
 		private IEnumerator GoCoroutine()
 		{
 			bool isDone = false;
-			string paramString = string.Format(SequenceAnimeStringFormat, "TitleIn");
+			string paramString = string.Format(SequenceAnimeStringFormat, "LoadingOut");
 			m_outgameSetupEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
-			m_state = State.Title;
-			while (m_state == State.Title) { yield return null; }
+			if (m_state == State.None)
+			{
+				isDone = false;
+				paramString = string.Format(SequenceAnimeStringFormat, "TitleIn");
+				m_outgameSetupEvent(paramString, () => { isDone = true; });
+				while (!isDone) { yield return null; }
 
-			isDone = false;
-			paramString = string.Format(SequenceAnimeStringFormat, "TitleOut");
-			m_outgameSetupEvent(paramString, () => { isDone = true; });
-			while (!isDone) { yield return null; }
+				m_state = State.Title;
+				while (m_state == State.Title) { yield return null; }
+
+				isDone = false;
+				paramString = string.Format(SequenceAnimeStringFormat, "TitleOut");
+				m_outgameSetupEvent(paramString, () => { isDone = true; });
+				while (!isDone) { yield return null; }
+			}
 
 			isDone = false;
 			paramString = string.Format(UpdateLifeGameStringFormat, 0);
@@ -177,16 +208,40 @@ namespace scene.game.ingame
 
 				if (pressKeys.Contains(KeyCode.A))
 				{
-					m_player.Move(new Vector3(1.0f, 0.0f, 0.0f));
+					var moveVector = m_moveVectors.FirstOrDefault(d => d.Key == KeyCode.A);
+					if (moveVector != null)
+					{
+						m_player.Move(moveVector.Vector);
+					}
 				}
 				else if (pressKeys.Contains(KeyCode.D))
 				{
-					m_player.Move(new Vector3(-1.0f, 0.0f, 0.0f));
+					var moveVector = m_moveVectors.FirstOrDefault(d => d.Key == KeyCode.D);
+					if (moveVector != null)
+					{
+						m_player.Move(moveVector.Vector);
+					}
 				}
 
-				if (pressKeys.Contains(KeyCode.W) && m_beforePressKeys != null & !m_beforePressKeys.Contains(KeyCode.W))
+				if (pressKeys.Contains(KeyCode.W))
 				{
-					m_player.Jump();
+					var moveVector = m_moveVectors.FirstOrDefault(d => d.Key == KeyCode.W);
+					if (moveVector != null)
+					{
+						m_player.Move(moveVector.Vector);
+					}
+					else if (m_beforePressKeys != null & !m_beforePressKeys.Contains(KeyCode.W))
+					{
+						m_player.Jump();
+					}
+				}
+				else if (pressKeys.Contains(KeyCode.S))
+				{
+					var moveVector = m_moveVectors.FirstOrDefault(d => d.Key == KeyCode.S);
+					if (moveVector != null)
+					{
+						m_player.Move(moveVector.Vector);
+					}
 				}
 
 				if (pressKeys.Contains(KeyCode.Space))
@@ -237,6 +292,8 @@ namespace scene.game.ingame
 			m_player.SequenceOut(0.5f, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
+			m_player.Transfer();
+
 			yield return new WaitForSeconds(0.5f);
 			m_player.transform.position = m_transfers[index].transform.position;
 			yield return new WaitForSeconds(0.5f);
@@ -246,6 +303,39 @@ namespace scene.game.ingame
 			while (!isDone) { yield return null; }
 
 			m_isEnableControll = true;
+		}
+
+		private void OnChangeGameEvent(string sceneName)
+		{
+			StartCoroutine(OnChangeGameEventCoroutine(sceneName));
+		}
+
+		private IEnumerator OnChangeGameEventCoroutine(string sceneName)
+		{
+			m_isEnableControll = false;
+
+			bool isDone = false;
+			m_player.SequenceOut(0.5f, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
+			m_player.Transfer();
+
+			isDone = true;
+			string paramString = string.Format(SequenceAnimeStringFormat, "GameOut");
+			m_outgameSetupEvent(paramString, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
+			isDone = false;
+			paramString = string.Format(SequenceAnimeStringFormat, "LoadingIn");
+			m_outgameSetupEvent(paramString, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
+			m_changeGameEvent(sceneName);
+		}
+
+		private void OnSwitchEvent(int id, bool value)
+		{
+
 		}
 
 		private void BugEvent(int bugId)

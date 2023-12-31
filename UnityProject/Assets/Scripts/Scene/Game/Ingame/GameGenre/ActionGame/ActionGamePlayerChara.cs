@@ -45,7 +45,6 @@ namespace scene.game.ingame.actiongame
 		public new Transform transform => m_transform;
 
 		private bool m_isEnable = true;
-
 		private bool m_isAir = false;
 		private bool m_isJump = false;
 		private UnityAction<int> m_bugCallback;
@@ -62,7 +61,7 @@ namespace scene.game.ingame.actiongame
 			var local = GeneralRoot.User.LocalSaveData;
 			if (local.OccurredBugIds.Contains(3) == false)
 			{
-				m_fbx.Anime.PlayLoop("Wait");
+				m_fbx.Anime.Play("Jump");
 			}
 			else
 			{
@@ -95,6 +94,7 @@ namespace scene.game.ingame.actiongame
 					continue;
 				}
 
+				//bool isAirBefore = m_isAir;
 				m_isAir = true;
 				Vector3 rayPosition = m_collider.transform.position + Vector3.up * 0.5f;
 				Ray ray = new Ray(rayPosition, Vector3.down);
@@ -287,6 +287,19 @@ namespace scene.game.ingame.actiongame
 				m_moveDustParticle.Stop();
 			}
 			m_isJump = true;
+		}
+
+		public void Transfer()
+		{
+			var local = GeneralRoot.User.LocalSaveData;
+			if (local.OccurredBugIds.Contains(3) == false)
+			{
+				m_fbx.Anime.Play("Jump", time: 1.0f);
+			}
+			else
+			{
+				m_bugCallback(3);
+			}
 		}
 
 		private void SetupEnable(bool value)

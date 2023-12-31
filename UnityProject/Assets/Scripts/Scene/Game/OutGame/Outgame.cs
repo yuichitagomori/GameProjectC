@@ -11,50 +11,13 @@ namespace scene.game
 	[System.Serializable]
 	public class Outgame : MonoBehaviour
 	{
-		public enum Target
-		{
-			None,
-			Game,
-			Movie,
-		}
-
 		[SerializeField]
 		private Image m_fade;
 
 		[SerializeField]
 		private outgame.GameUI m_gameUI;
 
-		[SerializeField]
-		private Material m_backgroundMaterial;
 
-
-
-		private float m_backgroundScrollSpeed;
-
-		private float m_backgroundScrollValue;
-
-
-
-		//public void Initialize(
-		//	UnityAction<ingame.world.ActionTargetBase.Category, int> charaActionButtonEvent,
-		//	UnityAction<Vector2> cameraBeginMoveEvent,
-		//	UnityAction<Vector2> cameraMoveEvent,
-		//	UnityAction cameraEndMoveEvent,
-		//	UnityAction<KeyCode[]> inputEvent)
-		//{
-		//	var fadeColor = m_fade.color;
-		//	fadeColor.a = 1.0f;
-		//	m_fade.color = fadeColor;
-
-		//	m_gameUI.Initialize(
-		//		charaActionButtonEvent: charaActionButtonEvent,
-		//		cameraBeginMoveEvent: cameraBeginMoveEvent,
-		//		cameraMoveEvent: cameraMoveEvent,
-		//		cameraEndMoveEvent: cameraEndMoveEvent,
-		//		inputEvent: inputEvent,
-		//		clickEvent: clickEvent,
-		//		cameraZoomEvent: cameraZoomEvent);
-		//}
 
 		public void Initialize(
 			UnityAction uploadButtonEvent,
@@ -65,12 +28,6 @@ namespace scene.game
 			var fadeColor = m_fade.color;
 			fadeColor.a = 1.0f;
 			m_fade.color = fadeColor;
-
-			m_backgroundMaterial.SetFloat("_Scroll", 0.0f);
-			m_backgroundMaterial.SetFloat("_Distortion", 0.0f);
-			m_backgroundScrollSpeed = 4.0f;
-			m_backgroundScrollValue = 0.0f;
-			StartCoroutine(UpdateBackgroundScroll());
 
 			m_gameUI.Initialize(
 				uploadButtonEvent: uploadButtonEvent,
@@ -114,50 +71,7 @@ namespace scene.game
 			}
 		}
 
-		private void SetupBackground(bool isFast, float time, UnityAction callback)
-		{
-			StartCoroutine(SetupBackgroundCoroutine(isFast, time, callback));
-		}
-
-		private IEnumerator SetupBackgroundCoroutine(bool isFast, float time, UnityAction callback)
-		{
-			float nowTime = 0.0f;
-			while (nowTime < time)
-			{
-				nowTime += Time.deltaTime;
-				if (nowTime > time)
-				{
-					nowTime = time;
-				}
-				m_backgroundScrollSpeed = (isFast) ?
-					3.0f * (nowTime / time) + 1.0f :
-					3.0f * (1.0f - (nowTime / time)) + 1.0f;
-				float distortionValue = (isFast) ?
-					0.5f * (1.0f - (nowTime / time)):
-					0.5f * (nowTime / time);
-				m_backgroundMaterial.SetFloat("_Distortion", distortionValue);
-
-				yield return null;
-			}
-
-			if (callback != null)
-			{
-				callback();
-			}
-			
-		}
-
-		private IEnumerator UpdateBackgroundScroll()
-		{
-			while (true)
-			{
-				m_backgroundScrollValue += Time.deltaTime * m_backgroundScrollSpeed;
-				m_backgroundScrollValue = m_backgroundScrollValue % 1.0f;
-				m_backgroundMaterial.SetFloat("_Scroll", m_backgroundScrollValue);
-
-				yield return null;
-			}
-		}
+		
 
 		public void OnMovieStart(string[] paramStrings, UnityAction callback)
 		{
@@ -173,18 +87,6 @@ namespace scene.game
 					{
 						float time = float.Parse(paramStrings[1]);
 						SetupFade(false, time, callback);
-						break;
-					}
-				case "BackgroundFast":
-					{
-						float time = float.Parse(paramStrings[1]);
-						SetupBackground(true, time, callback);
-						break;
-					}
-				case "BackgroundSlow":
-					{
-						float time = float.Parse(paramStrings[1]);
-						SetupBackground(false, time, callback);
 						break;
 					}
 				case "MenuVisible":

@@ -9,12 +9,14 @@ namespace scene.game.ingame.actiongame
 	public class TransferObject : ObjectBase
 	{
 		private UnityAction<int> m_transferEvent;
+		private UnityAction<string> m_changeGameEvent;
 
 
 
-		public void Initialize(UnityAction<int> transferEvent)
+		public void Initialize(UnityAction<int> transferEvent, UnityAction<string> changeGameEvent)
 		{
 			m_transferEvent = transferEvent;
+			m_changeGameEvent = changeGameEvent;
 			m_fbx.Anime.PlayLoop("InactiveLoop");
 			base.Initialize(OnEvent);
 		}
@@ -28,6 +30,12 @@ namespace scene.game.ingame.actiongame
 					{
 						int index = int.Parse(actionStrings[1]);
 						m_transferEvent(index);
+						break;
+					}
+				case "ChangeGame":
+					{
+						string changeGameName = actionStrings[1];
+						m_changeGameEvent(changeGameName);
 						break;
 					}
 				case "In":

@@ -10,6 +10,10 @@ namespace data.master
 		public class Data : DataBase
 		{
 			[SerializeField]
+			private bool m_disableInput;
+			public bool DisableInput => m_disableInput;
+
+			[SerializeField]
 			private string[] m_paramStrings;
 			public string[] ParamStrings => m_paramStrings;
 		}

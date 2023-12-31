@@ -234,81 +234,6 @@ namespace scene.game.outgame.window
 			return true;
 		}
 
-		//public void AddWindow(WindowBase.Type windowType)
-		//{
-		//	StartCoroutine(AddWindowCoroutine(windowType));
-		//}
-
-		//private IEnumerator AddWindowCoroutine(WindowBase.Type windowType)
-		//{
-		//	var windowPrefab = m_windowPrefabList[(int)windowType];
-		//	var window = GameObject.Instantiate(windowPrefab);
-		//	window.transform.SetParent(m_windowParent);
-		//	window.transform.localPosition = new Vector3(0.0f, -64.0f, 0.0f);
-		//	window.transform.localScale = Vector3.one;
-		//	var windowBase = window.GetComponent<WindowBase>();
-		//	m_windows.Add(windowBase);
-		//	int index = m_windows.Count - 1;
-		//	switch (windowBase.WindowType)
-		//	{
-		//		case WindowBase.Type.Main:
-		//			{
-		//				((MainWindow)windowBase).Initialize(
-		//					powerButtonEvent: m_mainWindowPowerButtonEvent,
-		//					inputEvent: m_mainWindowInputEvent,
-		//					windowArea: m_windowParent.GetComponent<RectTransform>(),
-		//					holdCallback: () =>
-		//					{
-		//						SelectWindow(index);
-		//					});
-		//				break;
-		//			}
-		//		case WindowBase.Type.Message:
-		//			{
-		//				((MessageWindow)windowBase).Initialize(
-		//					area: m_windowParent.GetComponent<RectTransform>(),
-		//					holdCallback: () =>
-		//					{
-		//						SelectWindow(index);
-		//					});
-		//				break;
-		//			}
-		//		case WindowBase.Type.DateTime:
-		//			{
-		//				((DateTimeWindow)windowBase).Initialize(
-		//					area: m_windowParent.GetComponent<RectTransform>(),
-		//					holdCallback: () =>
-		//					{
-		//						SelectWindow(index);
-		//					});
-		//				break;
-		//			}
-		//		case WindowBase.Type.CheckSheet:
-		//			{
-		//				((CheckSheetWindow)windowBase).Initialize(
-		//					area: m_windowParent.GetComponent<RectTransform>(),
-		//					holdCallback: () =>
-		//					{
-		//						SelectWindow(index);
-		//					});
-		//				break;
-		//			}
-		//		case WindowBase.Type.Chara:
-		//			{
-		//				((CharaWindow)windowBase).Initialize(
-		//					area: m_windowParent.GetComponent<RectTransform>(),
-		//					holdCallback: () =>
-		//					{
-		//						SelectWindow(index);
-		//					});
-		//				break;
-		//			}
-		//	}
-		//	windowBase.Go();
-		//	yield return windowBase.AddWindow();
-		//	UpdateWindowIcon();
-		//}
-
 		private IEnumerator AddWindowCoroutine(WindowBase.Type windowType, UnityAction<WindowBase> settingEvent)
 		{
 			var windowPrefab = m_windowPrefabList[(int)windowType];
@@ -341,21 +266,24 @@ namespace scene.game.outgame.window
 		private IEnumerator RemoveWindowCoroutine(int index, UnityAction callback)
 		{
 			var window = m_windows[index];
+			if (index == m_selectWindowIndex)
+			{
+				yield return SelectWindowCoroutine(-1, null);
+			}
 			yield return window.RemoveWindow();
 			GameObject.Destroy(window.gameObject);
 			m_windows.RemoveAt(index);
 
-			if (m_windows.Count > index)
+			if (m_windows.Count > 0)
 			{
-				yield return SelectWindowCoroutine(index, null);
-			}
-			else if (m_windows.Count > 0)
-			{
-				yield return SelectWindowCoroutine(index - 1, null);
-			}
-			else
-			{
-				yield return SelectWindowCoroutine(-1, null);
+				if (m_windows.Count > index)
+				{
+					yield return SelectWindowCoroutine(index, null);
+				}
+				else
+				{
+					yield return SelectWindowCoroutine(index - 1, null);
+				}
 			}
 			UpdateWindowIcon();
 
@@ -448,6 +376,17 @@ namespace scene.game.outgame.window
 					{
 						int index = int.Parse(paramStrings[1]);
 						yield return SelectWindowCoroutine(index, null);
+						break;
+					}
+				case "AddTitleWindow":
+					{
+						bool isDone = false;
+						yield return AddWindowCoroutine(WindowBase.Type.Title, (windowBase) =>
+						{
+							((TitleWindow)windowBase).Setting(
+								onButtonPressEvent: () => { isDone = true; });
+						});
+						while (!isDone) { yield return null; }
 						break;
 					}
 				case "AddMainWindow":

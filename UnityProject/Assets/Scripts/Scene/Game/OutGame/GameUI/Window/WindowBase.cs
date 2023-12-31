@@ -12,6 +12,7 @@ namespace scene.game.outgame.window
 		public enum Type
 		{
 			None = -1,
+			Title,
 			Main,
 			Message,
 			DateTime,
@@ -100,8 +101,14 @@ namespace scene.game.outgame.window
 		public IEnumerator AddWindow()
 		{
 			m_windowFrameImage.sprite = m_windowFrameDisableSprite;
-			m_iconViewFrameImage.sprite = m_iconViewFrameDisableSprite;
-			m_iconViewIconImage.color = Color.white;
+			if (m_iconViewFrameImage != null)
+			{
+				m_iconViewFrameImage.sprite = m_iconViewFrameDisableSprite;
+			}
+			if (m_iconViewIconImage != null)
+			{
+				m_iconViewIconImage.color = Color.white;
+			}
 
 			bool isDone = false;
 			m_windowAnime.Play("In", () => { isDone = true; });
@@ -112,8 +119,14 @@ namespace scene.game.outgame.window
 		public IEnumerator RemoveWindow()
 		{
 			m_windowFrameImage.sprite = m_windowFrameDisableSprite;
-			m_iconViewFrameImage.sprite = m_iconViewFrameDisableSprite;
-			m_iconViewIconImage.color = Color.white;
+			if (m_iconViewFrameImage != null)
+			{
+				m_iconViewFrameImage.sprite = m_iconViewFrameDisableSprite;
+			}
+			if (m_iconViewIconImage != null)
+			{
+				m_iconViewIconImage.color = Color.white;
+			}
 
 			m_isActiveWindow = false;
 			bool isDone = false;
@@ -132,15 +145,27 @@ namespace scene.game.outgame.window
 			if (m_isSelectWindow == false && value == true)
 			{
 				m_windowFrameImage.sprite = m_windowFrameEnableSprite;
-				m_iconViewFrameImage.sprite = m_iconViewFrameEnableSprite;
-				m_iconViewIconImage.color = new Color(0.0f, 0.75f, 1.0f);
+				if (m_iconViewFrameImage != null)
+				{
+					m_iconViewFrameImage.sprite = m_iconViewFrameEnableSprite;
+				}
+				if (m_iconViewIconImage != null)
+				{
+					m_iconViewIconImage.color = new Color(0.0f, 0.75f, 1.0f);
+				}
 				m_windowAnime.Play("Enable", () => { isDone = true; });
 			}
 			else if (m_isSelectWindow == true && value == false)
 			{
 				m_windowFrameImage.sprite = m_windowFrameDisableSprite;
-				m_iconViewFrameImage.sprite = m_iconViewFrameDisableSprite;
-				m_iconViewIconImage.color = Color.white;
+				if (m_iconViewFrameImage != null)
+				{
+					m_iconViewFrameImage.sprite = m_iconViewFrameDisableSprite;
+				}
+				if (m_iconViewIconImage != null)
+				{
+					m_iconViewIconImage.color = Color.white;
+				}
 				m_windowAnime.Play("Disable", () => { isDone = true; });
 			}
 			else
@@ -164,7 +189,10 @@ namespace scene.game.outgame.window
 
 		public void OnMove(Vector2 moveV)
 		{
-			m_holdArea.OnMove(moveV);
+			if (m_holdArea != null)
+			{
+				m_holdArea.OnMove(moveV);
+			}
 		}
 	}
 }

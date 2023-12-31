@@ -210,6 +210,10 @@ namespace scene
 			m_outgame.Go();
 
 			bool isDone = false;
+			m_movieController.Play(1, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
+			isDone = false;
 			m_movieController.Play(2, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 		}

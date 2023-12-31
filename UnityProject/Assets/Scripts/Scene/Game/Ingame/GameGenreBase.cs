@@ -9,7 +9,7 @@ namespace scene.game.ingame
 	[System.Serializable]
 	public abstract class GameGenreBase : SceneBase
 	{
-		protected enum State
+		public enum State
 		{
 			None,
 			Title,
@@ -56,13 +56,20 @@ namespace scene.game.ingame
 
 		protected State m_state;
 
+		protected UnityAction<string> m_changeGameEvent;
+
 		protected UnityAction<string, UnityAction> m_outgameSetupEvent;
 
 
 		public abstract void Initialize();
 
-		public void SetOutgameSetupEvent(UnityAction<string, UnityAction> outgameSetupEvent)
+		public void Setting(
+			State state,
+			UnityAction<string> changeGameEvent,
+			UnityAction<string, UnityAction> outgameSetupEvent)
 		{
+			m_state = state;
+			m_changeGameEvent = changeGameEvent;
 			m_outgameSetupEvent = outgameSetupEvent;
 		}
 

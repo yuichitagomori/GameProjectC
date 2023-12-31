@@ -140,7 +140,7 @@ namespace Common
 		private IEnumerator PlayColoutine(UnityAction callback, float time)
 		{
 			m_animator.enabled = true;
-			m_animator.Play(m_animationName, m_layer, 0.0f);
+			m_animator.Play(m_animationName, m_layer, time);
 
 			var clip = m_animator.runtimeAnimatorController.animationClips.FirstOrDefault(d => d.name == m_animationName);
 			//if (clip != null)

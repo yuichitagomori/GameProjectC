@@ -38,8 +38,10 @@ namespace scene.game
 				yield break;
 			}
 
-
-			GeneralRoot.Instance.SetForeMostRayCast(true);
+			if (masterData.DisableInput == true)
+			{
+				GeneralRoot.Instance.SetForeMostRayCast(true);
+			}
 
 			bool isDone = false;
 			for (int i = 0; i < masterData.ParamStrings.Length; ++i)
@@ -50,7 +52,10 @@ namespace scene.game
 				while (!isDone) { yield return null; }
 			}
 
-			GeneralRoot.Instance.SetForeMostRayCast(false);
+			if (masterData.DisableInput == true)
+			{
+				GeneralRoot.Instance.SetForeMostRayCast(false);
+			}
 
 			if (callback != null)
 			{
