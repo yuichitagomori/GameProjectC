@@ -1,0 +1,6 @@
+プロンプト
+4K、女、上半身、ショートヘア、無表情、座る、視線が何かに向く、ジャージ、部屋、デスク
+4k, girl, upper body, Medium short hair, expressionless, sitting, looking to the side, tracksuit, room, desk
+
+ネガティブプロンプト
+low quality, out of forcus, uglu, error, blurry, bokeh, extra_arms
