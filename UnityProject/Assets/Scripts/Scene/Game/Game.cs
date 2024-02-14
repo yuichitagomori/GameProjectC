@@ -9,131 +9,13 @@ namespace scene
 {
 	public class Game : SceneBase
 	{
-		public class NpcReleaseData
+		public enum GenreType
 		{
-			public class Data
-			{
-				public class Color
-				{
-					private int m_colorId;
-					public int ColorId => m_colorId;
-
-					private int m_count;
-					public int Count => m_count;
-
-					private bool m_isEnemy;
-					public bool IsEnemy => m_isEnemy;
-
-					public Color(int colorId, int count, bool isEnemy)
-					{
-						m_colorId = colorId;
-						m_count = count;
-						m_isEnemy = isEnemy;
-					}
-
-					public void AddCount(int count)
-					{
-						m_count += count;
-					}
-
-					public void UpdateIsEnemy(bool isEnemy)
-					{
-						m_isEnemy = isEnemy;
-					}
-				}
-
-				private int m_npcId;
-				public int NPCId => m_npcId;
-
-				private List<Color> m_colorList = new List<Color>();
-				
-
-				public Data(int npcId, int colorId, int count, bool isEnemy)
-				{
-					m_npcId = npcId;
-					m_colorList.Add(new Color(colorId, count, isEnemy));
-				}
-
-				public void Add(int colorId, int count, bool isEnemy)
-				{
-					var color = m_colorList.Find(d => d.ColorId == colorId);
-					if (color != null)
-					{
-						color.AddCount(count);
-						color.UpdateIsEnemy(isEnemy);
-					}
-					else
-					{
-						m_colorList.Add(new Color(colorId, count, isEnemy));
-					}
-				}
-
-				public bool IsEnemy(int colorId)
-				{
-					var color = m_colorList.Find(d => d.ColorId == colorId);
-					if (color == null)
-					{
-						return false;
-					}
-					if (color.Count <= 0)
-					{
-						return false;
-					}
-					return color.IsEnemy;
-				}
-
-				public int GetEnemyTotalCount()
-				{
-					int totalCount = 0;
-					for (int i = 0; i < m_colorList.Count; ++i)
-					{
-						if (m_colorList[i].IsEnemy == false)
-						{
-							continue;
-						}
-						totalCount += m_colorList[i].Count;
-					}
-					return totalCount;
-				}
-			}
-
-			private List<Data> m_dataList = new List<Data>();
+			Action,
+			Puzzle,
+		}
 
 
-
-			public void Add(int npcId, int colorId, int count, bool isEnemy)
-			{
-				var data = m_dataList.Find(d => d.NPCId == npcId);
-				if (data != null)
-				{
-					data.Add(colorId, count, isEnemy);
-				}
-				else
-				{
-					m_dataList.Add(new Data(npcId, colorId, count, isEnemy));
-				}
-			}
-
-			public bool IsEnemy(game.ingame.world.NPC npc)
-			{
-				var data = m_dataList.Find(d => d.NPCId == npc.NPCId);
-				if (data == null)
-				{
-					return false;
-				}
-				return data.IsEnemy(npc.ColorId);
-			}
-
-			public int GetEnemyTotalCount()
-            {
-                int totalCount = 0;
-                for (int i = 0; i < m_dataList.Count; ++i)
-                {
-					totalCount += m_dataList[i].GetEnemyTotalCount();
-				}
-                return totalCount;
-            }
-        }
 
 		[Header("Game")]
 
@@ -163,10 +45,6 @@ namespace scene
 
 
 
-		private NpcReleaseData m_npcReleaseData = new NpcReleaseData();
-
-
-
 		public override void Ready(UnityAction callback)
 		{
 			StartCoroutine(ReadyCoroutine(callback));
@@ -174,25 +52,61 @@ namespace scene
 
 		private IEnumerator ReadyCoroutine(UnityAction callback)
 		{
+			var local = GeneralRoot.User.LocalSaveData;
+			var gameGunreMaster = GeneralRoot.Master.GameGunreData;
+			var gameGunreMasterData = gameGunreMaster.Find(local.ChallengeGameGunreId);
+			if (gameGunreMasterData == null)
+			{
+				yield break;
+			}
+			var bugIds = gameGunreMasterData.CheckSheetBugIds;
+			int index = UnityEngine.Random.Range(0, bugIds.Length);
+			local.UpdateOccurredBugId(bugIds[index]);
+			local.UpdateTryCount(1);
+
 			m_movieController.Initialize(OnMovieStart);
 
-			//bool isDone = false;
 			m_ingame.Initialize(
 				loadGameEvent: LoadGameEvent,
 				outgameSetupEvent: m_outgame.SetupEvent);
 			m_outgame.Initialize(
-				uploadButtonEvent: () =>
-				{
-					m_movieController.Play(3, null);
-				},
 				commonWindowPlayMovieEvent: (int movieId) =>
 				{
 					m_movieController.Play(movieId, null);
 				},
-				mainWindowPowerButtonEvent: m_ingame.ResetGame,
+				mainWindowPowerButtonEvent: () =>
+				{
+					m_ingame.ResetGame();
+				},
+				mainWindowRecreateButtonEvent: () =>
+				{
+					var local = GeneralRoot.User.LocalSaveData;
+					if (local.TryCount > 4 && UnityEngine.Random.Range(0, 2) == 0)
+					{
+						local.UpdateOccurredBugId(-1);
+					}
+					else
+					{
+						var gameGunreMaster = GeneralRoot.Master.GameGunreData;
+						var gameGunreMasterData = gameGunreMaster.Find(local.ChallengeGameGunreId);
+						if (gameGunreMasterData == null)
+						{
+							return;
+						}
+						var bugIds = gameGunreMasterData.CheckSheetBugIds;
+						int index = UnityEngine.Random.Range(0, bugIds.Length);
+						local.UpdateOccurredBugId(bugIds[index]);
+					}
+					local.UpdateTryCount(local.TryCount + 1);
+					m_ingame.ResetGame();
+				},
+				mainWindowReleaseButtonEvent: () =>
+				{
+					m_movieController.Play((int)data.master.MovieListData.MovieType.Release, null);
+				},
 				mainWindowInputEvent: m_ingame.OnInputEvent);
 
-			//while (!isDone) { yield return null; }
+			//GeneralRoot.Sound.PlayBGM(100);
 
 			yield return null;
 
@@ -210,11 +124,18 @@ namespace scene
 			m_outgame.Go();
 
 			bool isDone = false;
-			m_movieController.Play(1, () => { isDone = true; });
+			m_movieController.Play((int)data.master.MovieListData.MovieType.Title, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
+			var local = GeneralRoot.User.LocalSaveData;
+			var gameGunreMaster = GeneralRoot.Master.GameGunreData;
+			var gameGunreMasterData = gameGunreMaster.Find(local.ChallengeGameGunreId);
+			if (gameGunreMasterData == null)
+			{
+				yield break;
+			}
 			isDone = false;
-			m_movieController.Play(2, () => { isDone = true; });
+			m_movieController.Play(gameGunreMasterData.MovieDataId, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 		}
 
@@ -238,7 +159,7 @@ namespace scene
 				while (!isDone) { yield return null; }
 			}
 
-			m_sceneController.AddScene<game.ingame.GameGenreBase>(
+			m_sceneController.AddScene(
 				sceneName: gameGenreName,
 				added: addedEvent);
 		}
@@ -254,16 +175,6 @@ namespace scene
 						StartCoroutine(WaitTimeCoroutine(time, callback));
 						break;
 					}
-				case "Data":
-					{
-						paramStrings = paramStrings.Skip(1).ToArray();
-						UpdateData(paramStrings);
-						if (callback != null)
-						{
-							callback();
-						}
-						break;
-					}
 				case "Ingame":
 					{
 						paramStrings = paramStrings.Skip(1).ToArray();
@@ -274,6 +185,24 @@ namespace scene
 					{
 						paramStrings = paramStrings.Skip(1).ToArray();
 						m_outgame.OnMovieStart(paramStrings, callback);
+						break;
+					}
+				case "EnableInput":
+					{
+						GeneralRoot.Instance.SetForeMostRayCast(false);
+						if (callback != null)
+						{
+							callback();
+						}
+						break;
+					}
+				case "DisableInput":
+					{
+						GeneralRoot.Instance.SetForeMostRayCast(true);
+						if (callback != null)
+						{
+							callback();
+						}
 						break;
 					}
 				default:
@@ -294,27 +223,6 @@ namespace scene
 			if (callback != null)
 			{
 				callback();
-			}
-		}
-
-		private void UpdateData(string[] paramStrings)
-		{
-			switch (paramStrings[0])
-			{
-				case "AddReleaseData":
-					{
-						int npcId = int.Parse(paramStrings[1]);
-						int colorId = int.Parse(paramStrings[2]);
-                        int count = int.Parse(paramStrings[3]);
-                        bool isEnemy = bool.Parse(paramStrings[4]);
-						m_npcReleaseData.Add(npcId, colorId, count, isEnemy);
-						break;
-					}
-				default:
-					{
-						Debug.LogError("Game.cs UpdateData ErrorCommand");
-						break;
-					}
 			}
 		}
 	}

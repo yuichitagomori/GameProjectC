@@ -21,9 +21,6 @@ namespace scene.game.outgame
 		[SerializeField]
 		private WindowIconController m_windowIconController;
 
-		[SerializeField]
-		private CommonUI.ButtonExpansion m_uploadButton;
-
 
 
 		private bool m_isMenuVisible = true;
@@ -31,32 +28,20 @@ namespace scene.game.outgame
 
 
 		public void Initialize(
-			UnityAction uploadButtonEvent,
 			UnityAction<int> commonWindowPlayMovieEvent,
 			UnityAction mainWindowPowerButtonEvent,
+			UnityAction mainWindowRecreateButtonEvent,
+			UnityAction mainWindowReleaseButtonEvent,
 			UnityAction<KeyCode[]> mainWindowInputEvent)
 		{
 			m_windowController.Initialize(
 				commonWindowPlayMovieEvent: commonWindowPlayMovieEvent,
 				mainWindowPowerButtonEvent: mainWindowPowerButtonEvent,
+				mainWindowRecreateButtonEvent: mainWindowRecreateButtonEvent,
+				mainWindowReleaseButtonEvent: mainWindowReleaseButtonEvent,
 				mainWindowInputEvent: mainWindowInputEvent,
 				updateWindowIcon: m_windowIconController.Setting);
 			m_windowIconController.Initialize((index) => { m_windowController.SelectWindow(index, null); });
-			m_uploadButton.SetupClickEvent(uploadButtonEvent);
-
-			var input = GeneralRoot.Instance.Input;
-			input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.Z, () =>
-			{
-				m_uploadButton.OnDown();
-			});
-			input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.Z, () =>
-			{
-				m_uploadButton.OnUp();
-				if (m_isMenuVisible == true)
-				{
-					m_uploadButton.OnClick();
-				}
-			});
 		}
 
 		public void Go()

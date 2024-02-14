@@ -11,25 +11,18 @@ namespace data
 	public class MasterData : MonoBehaviour
 	{
 		/// <summary>
-		/// チェックシートデータ
+		/// ゲーム内容データ
 		/// </summary>
 		[SerializeField]
-		private master.CheckSheetData m_checkSheetData;
-		public master.CheckSheetData CheckSheetData => m_checkSheetData;
-
-		/// <summary>
-		/// チェックシートバグ内容データ
-		/// </summary>
-		[SerializeField]
-		private master.CheckSheetBugData m_checkSheetBugData;
-		public master.CheckSheetBugData CheckSheetBugData => m_checkSheetBugData;
+		private master.GameGunreData m_gameGunreData;
+		public master.GameGunreData GameGunreData => m_gameGunreData;
 
 		/// <summary>
 		/// ムービー内容データ
 		/// </summary>
 		[SerializeField]
-		private master.MovieData m_movieData;
-		public master.MovieData MovieData => m_movieData;
+		private master.MovieListData m_movieListData;
+		public master.MovieListData MovieListData => m_movieListData;
 
 		/// <summary>
 		/// キャラクターウィンドウ用ムービー内容データ
@@ -39,11 +32,25 @@ namespace data
 		public master.CharaWindowMovieData CharaWindowMovieData => m_charaWindowMovieData;
 
 		/// <summary>
+		/// チェックシートバグ内容データ
+		/// </summary>
+		[SerializeField]
+		private master.CheckSheetBugData m_checkSheetBugData;
+		public master.CheckSheetBugData CheckSheetBugData => m_checkSheetBugData;
+
+		/// <summary>
+		/// 報酬データ
+		/// </summary>
+		[SerializeField]
+		private master.RewardData m_rewardData;
+		public master.RewardData RewardData => m_rewardData;
+
+		/// <summary>
 		/// ローカライズデータ
 		/// </summary>
 		[SerializeField]
-		private master.Localize m_localize;
-		public master.Localize Localize => m_localize;
+		private master.LocalizeData m_localizeData;
+		public master.LocalizeData LocalizeData => m_localizeData;
 
 		///// <summary>
 		///// 汎用情報データ

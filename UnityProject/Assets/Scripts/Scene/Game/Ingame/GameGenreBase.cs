@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using System.Linq;
 
 namespace scene.game.ingame
 {
 	[System.Serializable]
 	public abstract class GameGenreBase : SceneBase
 	{
+		protected string SequenceAnimeStringFormat = "Main,SequenceAnime,{0}";
+		protected string UpdateInfoViewStringFormat = "Main,UpdateInfoView,{0}";
+		protected string CharaReactionStringFormat = "Chara,Play,{0}";
+
 		public enum State
 		{
 			None,
@@ -38,6 +41,9 @@ namespace scene.game.ingame
 		private Color m_fogColor = Color.white;
 
 		[SerializeField]
+		private system.PosproController.Data m_posproData;
+
+		[SerializeField]
 		private Material[] m_mapMaterials;
 
 		/// <summary>
@@ -52,25 +58,38 @@ namespace scene.game.ingame
 		[SerializeField]
 		protected Transform m_cameraParentTransform;
 
+		[SerializeField]
+		protected Transform[] m_cameraAngles;
+
+
+
+		private string m_sceneName;
+		protected string SceneName => m_sceneName;
+
+		private UnityAction<string, State> m_changeGameEvent;
+		protected UnityAction<string, State> ChangeGameEvent => m_changeGameEvent;
+
+		private UnityAction<string, UnityAction> m_outgameSetupEvent;
+		protected UnityAction<string, UnityAction> OutgameSetupEvent => m_outgameSetupEvent;
+
 
 
 		protected State m_state;
 
-		protected UnityAction<string> m_changeGameEvent;
-
-		protected UnityAction<string, UnityAction> m_outgameSetupEvent;
 
 
 		public abstract void Initialize();
 
 		public void Setting(
-			State state,
-			UnityAction<string> changeGameEvent,
-			UnityAction<string, UnityAction> outgameSetupEvent)
+			string sceneName,
+			UnityAction<string, State> changeGameEvent,
+			UnityAction<string, UnityAction> outgameSetupEvent,
+			State state)
 		{
-			m_state = state;
+			m_sceneName = sceneName;
 			m_changeGameEvent = changeGameEvent;
 			m_outgameSetupEvent = outgameSetupEvent;
+			m_state = state;
 		}
 
 		public override void Ready(UnityAction callback)
@@ -85,9 +104,11 @@ namespace scene.game.ingame
 		{
 			RenderSettings.skybox = m_skyboxMaterial;
 			RenderSettings.sun = m_directionLight;  // この処理はなくても大丈夫そう
-			RenderSettings.ambientLight = m_ambient;
-			RenderSettings.fog = true;
-			RenderSettings.fogColor = m_fogColor;
+			//RenderSettings.ambientLight = m_ambient;
+			//RenderSettings.fog = (m_fogColor.a >= 1.0f);
+			//RenderSettings.fogColor = m_fogColor;
+
+			GeneralRoot.Pospro.Setting(m_posproData);
 
 			StartCoroutine(UpdateSkyboxCoroutine());
 		}

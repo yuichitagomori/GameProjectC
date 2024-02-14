@@ -16,10 +16,30 @@ namespace CommonUI
 	/// </summary>
 	public class TextExpansion : Text
 	{
-		//private new void Start()
-		//{
-		//	base.Start();
-		//}
+		public void PlayProgression(string str, float waitTime, UnityAction callback)
+		{
+			StartCoroutine(PlayProgressionCoroutine(str, waitTime, callback));
+		}
+
+		private IEnumerator PlayProgressionCoroutine(string str, float waitTime, UnityAction callback)
+		{
+			text = "";
+			yield return null;
+
+			var wait = new WaitForSeconds(waitTime);
+
+			while (text.Length < str.Length)
+			{
+				text = str.Substring(0, text.Length + 1);
+				yield return wait;
+				yield return null;
+			}
+
+			if (callback != null)
+			{
+				callback();
+			}
+		}
 
 #if UNITY_EDITOR
 		private void Setting()

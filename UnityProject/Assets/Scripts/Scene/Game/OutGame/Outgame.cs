@@ -20,9 +20,10 @@ namespace scene.game
 
 
 		public void Initialize(
-			UnityAction uploadButtonEvent,
 			UnityAction<int> commonWindowPlayMovieEvent,
 			UnityAction mainWindowPowerButtonEvent,
+			UnityAction mainWindowRecreateButtonEvent,
+			UnityAction mainWindowReleaseButtonEvent,
 			UnityAction<KeyCode[]> mainWindowInputEvent)
 		{
 			var fadeColor = m_fade.color;
@@ -30,9 +31,10 @@ namespace scene.game
 			m_fade.color = fadeColor;
 
 			m_gameUI.Initialize(
-				uploadButtonEvent: uploadButtonEvent,
 				commonWindowPlayMovieEvent: commonWindowPlayMovieEvent,
 				mainWindowPowerButtonEvent: mainWindowPowerButtonEvent,
+				mainWindowRecreateButtonEvent: mainWindowRecreateButtonEvent,
+				mainWindowReleaseButtonEvent: mainWindowReleaseButtonEvent,
 				mainWindowInputEvent: mainWindowInputEvent);
 		}
 

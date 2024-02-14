@@ -10,12 +10,22 @@ namespace data.master
 		public class Data : DataBase
 		{
 			[SerializeField]
-			private bool m_disableInput;
-			public bool DisableInput => m_disableInput;
+			private string m_param;
+			public string Param => m_param;
 
-			[SerializeField]
-			private string[] m_paramStrings;
-			public string[] ParamStrings => m_paramStrings;
+			/// <summary>
+			/// コンストラクタ
+			/// </summary>
+			/// <param name="id"></param>
+			/// <param name="param"></param>
+			public Data(
+				int id,
+				string param)
+			{
+				m_name = string.Format("{0}: {1}", id.ToString("000"), param);
+				m_id = id;
+				m_param = param;
+			}
 		}
 
 		/// <summary>
@@ -24,7 +34,9 @@ namespace data.master
 		/// <param name="csvParam"></param>
 		public override Data CreateData(string[] csvParam)
 		{
-			return null;
+			int id = int.Parse(csvParam[0]);
+			string param = csvParam[1];
+			return new Data(id, param);
 		}
 	}
 }

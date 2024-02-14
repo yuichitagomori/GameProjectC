@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 using UnityEditor;
 using System.IO;
@@ -11,6 +13,8 @@ namespace data
 	/// </summary>
 	public class CreateData : MonoBehaviour
 	{
+		private const string k_masterFolderRoot = "Assets/Contents/MasterData";
+
 		[MenuItem("Assets/Create/Build AssetBundles")]
 		public static void BuildAllAssetBundles()
 		{
@@ -48,12 +52,17 @@ namespace data
 		}
 
 
-
 		#region Master
-		[MenuItem("Assets/Create/ScriptableObject/MasterData/CheckSheetData")]
-		public static void CreateCheckSheetData()
+		[MenuItem("Assets/Create/ScriptableObject/MasterData/LocalizeData")]
+		public static void CreateLocalizeData()
 		{
-			CreateMasterAsset<master.CheckSheetData, master.CheckSheetData.Data>("CheckSheetData");
+			CreateMasterAsset<master.LocalizeData, master.LocalizeData.Data>("LocalizeData");
+		}
+
+		[MenuItem("Assets/Create/ScriptableObject/MasterData/GameGunreData")]
+		public static void CreateGameGunreData()
+		{
+			CreateMasterAsset<master.GameGunreData, master.GameGunreData.Data>("GameGunreData");
 		}
 
 		[MenuItem("Assets/Create/ScriptableObject/MasterData/CheckSheetBugData")]
@@ -62,10 +71,16 @@ namespace data
 			CreateMasterAsset<master.CheckSheetBugData, master.CheckSheetBugData.Data>("CheckSheetBugData");
 		}
 
-		[MenuItem("Assets/Create/ScriptableObject/MasterData/MovieData")]
+		[MenuItem("Assets/Create/ScriptableObject/MasterData/RewardData")]
+		public static void CreateRewardData()
+		{
+			CreateMasterAsset<master.RewardData, master.RewardData.Data>("RewardData");
+		}
+
+		[MenuItem("Assets/Create/ScriptableObject/MasterData/MovieListData")]
 		public static void CreateMovieData()
 		{
-			CreateMasterAsset<master.MovieData, master.MovieData.Data>("MovieData");
+			CreateMasterAssets<master.MovieListData, master.MovieData, master.MovieData.Data>("MovieListData");
 		}
 
 		[MenuItem("Assets/Create/ScriptableObject/MasterData/CharaWindowMovieData")]
@@ -73,9 +88,9 @@ namespace data
 		{
 			CreateMasterAsset<master.CharaWindowMovieData, master.CharaWindowMovieData.Data>("CharaWindowMovieData");
 		}
-		#endregion
+#endregion
 
-		#region Resource
+#region Resource
 		[MenuItem("Assets/Create/ScriptableObject/ResourceData/EnemyColor")]
 		public static void CreateEnemyColor()
 		{
@@ -95,19 +110,65 @@ namespace data
 		//}
 
 		/// <summary>
-		/// アセット作成
+		/// 複数アセット作成（まとめ形式）
 		/// </summary>
-		/// <param name="path"></param>
-		private static void CreateMasterAsset<TBase, TData>(string path)
-			where TBase : master.MasterDataBase<TData>
+		/// <typeparam name="TListMaster"></typeparam>
+		/// <typeparam name="TMaster"></typeparam>
+		/// <typeparam name="TData"></typeparam>
+		/// <param name="folderName"></param>
+		private static void CreateMasterAssets<TListMaster, TMaster, TData>(string folderName)
+			where TListMaster : master.MasterListDataBase<TMaster, TData>
+			where TMaster : master.MasterDataBase<TData>
 			where TData : master.MasterDataBase<TData>.DataBase
 		{
-			var data = ScriptableObject.CreateInstance<TBase>();
+			string folderPath = string.Format("{0}/Text/{1}", k_masterFolderRoot, folderName);
+			Debug.Log("folderPath = " + folderPath);
+			string[] fileNames = Directory.GetFiles(folderPath, "*.txt");
+
+			List<master.MasterListDataBase<TMaster, TData>.Data> masterListDataList =
+				new List<master.MasterListDataBase<TMaster, TData>.Data>();
+			for (int i = 0; i < fileNames.Length; ++i)
+			{
+				Debug.Log("fileNames[i] = " + fileNames[i]);
+				string fileName = Path.GetFileNameWithoutExtension(fileNames[i]);
+				string createFileName = string.Format("{0}/{1}", folderName, fileName);
+				var master = CreateMasterAsset<TMaster, TData>(createFileName);
+				masterListDataList.Add(new data.master.MasterListDataBase<TMaster, TData>.Data(
+					int.Parse(fileName),
+					master));
+			}
+
+			var listMaster = ScriptableObject.CreateInstance<TListMaster>();
 
 			// エディタからの変更を無効に
 			//data.hideFlags = HideFlags.NotEditable;
 
-			string inputPath = string.Format("Assets/Contents/MasterData/Text/{0}.txt", path);
+			string outputPath = string.Format("{0}/AssetBundle/{1}.asset", k_masterFolderRoot, folderName);
+
+			// アセット作成
+			AssetDatabase.DeleteAsset(outputPath);
+			AssetDatabase.CreateAsset(listMaster, outputPath);
+
+			listMaster.Load(masterListDataList.ToArray());
+			SaveAsset(listMaster);
+		}
+
+		/// <summary>
+		/// アセット作成
+		/// </summary>
+		/// <typeparam name="TMaster"></typeparam>
+		/// <typeparam name="TData"></typeparam>
+		/// <param name="fileName"></param>
+		private static TMaster CreateMasterAsset<TMaster, TData>(string fileName)
+			where TMaster : master.MasterDataBase<TData>
+			where TData : master.MasterDataBase<TData>.DataBase
+		{
+			var data = ScriptableObject.CreateInstance<TMaster>();
+
+			// エディタからの変更を無効に
+			//data.hideFlags = HideFlags.NotEditable;
+
+			string inputPath = string.Format("{0}/Text/{1}.txt", k_masterFolderRoot, fileName);
 			string outputPath = inputPath.Replace("Text", "AssetBundle").Replace(".txt", ".asset");
 
 			// アセット作成
@@ -116,6 +177,7 @@ namespace data
 
 			data.Load(CsvStringData.GetCsv(inputPath));
 			SaveAsset(data);
+			return data;
 		}
 
 		/// <summary>

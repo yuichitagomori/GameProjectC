@@ -9,9 +9,6 @@ namespace scene.game.outgame.window
     public class MainWindow : WindowBase
 	{
 		[SerializeField]
-		private Common.AnimatorExpansion m_sequenceAnimation;
-
-		[SerializeField]
 		private Common.AnimatorExpansion m_infoViewAnimation;
 
 		[SerializeField]
@@ -21,7 +18,19 @@ namespace scene.game.outgame.window
 		private CommonUI.ButtonExpansion m_powerButton;
 
 		[SerializeField]
-		private Common.ElementList m_lifeGaugeElementList;
+		private CommonUI.ButtonExpansion m_recreateButton;
+
+		[SerializeField]
+		private CommonUI.ButtonExpansion m_releaseButton;
+
+		[SerializeField]
+		private GameObject[] m_infoMenuCursols;
+
+		[SerializeField]
+		private Transform m_sequenceViewParent;
+
+		[SerializeField]
+		private GameObject[] m_sequenceViewPrefabs;
 
 
 
@@ -30,6 +39,10 @@ namespace scene.game.outgame.window
 		private UnityAction<KeyCode[]> m_inputEvent;
 
 		private bool m_isEnableInfoView;
+
+		private int m_infoMenuSelectIndex;
+
+		private main.SequenceViewBase m_sequenceView;
 
 
 
@@ -59,29 +72,44 @@ namespace scene.game.outgame.window
 		}
 
 		public void Setting(
+			Game.GenreType genreType,
 			UnityAction powerButtonEvent,
+			UnityAction recreateButtonEvent,
+			UnityAction releaseButtonEvent,
 			UnityAction<KeyCode[]> inputEvent)
 		{
-			m_sequenceAnimation.Play("Default");
+			var prefab = m_sequenceViewPrefabs[(int)genreType];
+			var sequenceViewObject = GameObject.Instantiate(prefab, m_sequenceViewParent);
+			m_sequenceView = sequenceViewObject.GetComponent<main.SequenceViewBase>();
+			m_sequenceView.Setting();
+
 			m_infoViewAnimation.Play("Default");
 			m_changeInfoViewButton.SetupClickEvent(() =>
 			{
 				m_isEnableInfoView = !m_isEnableInfoView;
 				string animationName = (m_isEnableInfoView == true) ? "In" : "Out";
 				m_infoViewAnimation.Play(animationName);
+
+				if (m_infoMenuSelectIndex != 0)
+				{
+					m_infoMenuSelectIndex = 0;
+					UpdateInfoMenuCursols();
+				}
 			});
 			m_powerButton.SetupClickEvent(powerButtonEvent);
+			m_recreateButton.SetupClickEvent(recreateButtonEvent);
+			m_releaseButton.SetupClickEvent(releaseButtonEvent);
 
 			m_downKeyList.Clear();
 			m_inputEvent = inputEvent;
 			m_isEnableInfoView = false;
-
-			UpdateLifeGauge(0);
+			m_infoMenuSelectIndex = 2;
+			UpdateInfoMenuCursols();
 		}
 
 		public override void SetupEvent(string[] paramStrings, UnityAction callback)
 		{
-			StartCoroutine(SetupEventCoroutine(paramStrings, callback));
+			StartCoroutine(m_sequenceView.SetupEventCoroutine(paramStrings, callback));
 		}
 
 		protected override void SetupInputKeyEvent()
@@ -91,41 +119,16 @@ namespace scene.game.outgame.window
 				return;
 			}
 
-			var input = GeneralRoot.Instance.Input;
-			UnityAction<KeyCode> setupKey = (key) =>
-			{
-				input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
-				{
-					if (m_downKeyList.Contains(key) == false)
-					{
-						m_downKeyList.Add(key);
-					}
-				});
-				input.UpdateEvent(system.InputSystem.Type.Up, key, () =>
-				{
-					if (m_downKeyList.Contains(key) == true)
-					{
-						m_downKeyList.Remove(key);
-					}
-				});
-			};
 			for (int i = 0; i < k_useKeys.Length; ++i)
 			{
 				var key = k_useKeys[i];
-				if (key == KeyCode.W ||
-					key == KeyCode.S ||
-					key == KeyCode.A ||
-					key == KeyCode.D)
+				if (key == KeyCode.W)
 				{
-					setupKey(key);
-				}
-				else if (key == KeyCode.Space)
-				{
-					input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
 					{
 						if (m_isEnableInfoView == true)
 						{
-							m_powerButton.OnDown();
+
 						}
 						else
 						{
@@ -135,12 +138,137 @@ namespace scene.game.outgame.window
 							}
 						}
 					});
-					input.UpdateEvent(system.InputSystem.Type.Up, key, () =>
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, () =>
 					{
 						if (m_isEnableInfoView == true)
 						{
-							m_powerButton.OnUp();
-							m_powerButton.OnClick();
+							if (m_infoMenuSelectIndex < 2)
+							{
+								m_infoMenuSelectIndex++;
+								UpdateInfoMenuCursols();
+							}
+						}
+						else
+						{
+							if (m_downKeyList.Contains(key) == true)
+							{
+								m_downKeyList.Remove(key);
+							}
+						}
+					});
+				}
+				else if (key == KeyCode.S)
+				{
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
+					{
+						if (m_isEnableInfoView == true)
+						{
+
+						}
+						else
+						{
+							if (m_downKeyList.Contains(key) == false)
+							{
+								m_downKeyList.Add(key);
+							}
+						}
+					});
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, () =>
+					{
+						if (m_isEnableInfoView == true)
+						{
+							if (m_infoMenuSelectIndex > 0)
+							{
+								m_infoMenuSelectIndex--;
+								UpdateInfoMenuCursols();
+							}
+						}
+						else
+						{
+							if (m_downKeyList.Contains(key) == true)
+							{
+								m_downKeyList.Remove(key);
+							}
+						}
+					});
+				}
+				else if (key == KeyCode.A || key == KeyCode.D)
+				{
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
+					{
+						if (m_isEnableInfoView == true)
+						{
+
+						}
+						else
+						{
+							if (m_downKeyList.Contains(key) == false)
+							{
+								m_downKeyList.Add(key);
+							}
+						}
+					});
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, () =>
+					{
+						if (m_isEnableInfoView == true)
+						{
+
+						}
+						else
+						{
+							if (m_downKeyList.Contains(key) == true)
+							{
+								m_downKeyList.Remove(key);
+							}
+						}
+					});
+				}
+				else if (key == KeyCode.Space)
+				{
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
+					{
+						if (m_isEnableInfoView == true)
+						{
+							if (m_infoMenuSelectIndex == 0)
+							{
+								m_powerButton.OnDown();
+							}
+							else if (m_infoMenuSelectIndex == 1)
+							{
+								m_recreateButton.OnDown();
+							}
+							else if (m_infoMenuSelectIndex == 2)
+							{
+								m_releaseButton.OnDown();
+							}
+						}
+						else
+						{
+							if (m_downKeyList.Contains(key) == false)
+							{
+								m_downKeyList.Add(key);
+							}
+						}
+					});
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, () =>
+					{
+						if (m_isEnableInfoView == true)
+						{
+							if (m_infoMenuSelectIndex == 0)
+							{
+								m_powerButton.OnUp();
+								m_powerButton.OnClick();
+							}
+							else if (m_infoMenuSelectIndex == 1)
+							{
+								m_recreateButton.OnUp();
+								m_recreateButton.OnClick();
+							}
+							else if (m_infoMenuSelectIndex == 2)
+							{
+								m_releaseButton.OnUp();
+								m_releaseButton.OnClick();
+							}
 						}
 						else
 						{
@@ -153,11 +281,11 @@ namespace scene.game.outgame.window
 				}
 				else if (key == KeyCode.X)
 				{
-					input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
 					{
 						m_changeInfoViewButton.OnDown();
 					});
-					input.UpdateEvent(system.InputSystem.Type.Up, key, () =>
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, () =>
 					{
 						m_changeInfoViewButton.OnUp();
 						m_changeInfoViewButton.OnClick();
@@ -165,42 +293,17 @@ namespace scene.game.outgame.window
 				}
 				else
 				{
-					input.UpdateEvent(system.InputSystem.Type.Down, key, null);
-					input.UpdateEvent(system.InputSystem.Type.Up, key, null);
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, null);
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, null);
 				}
 			}
 		}
 
-		private IEnumerator SetupEventCoroutine(string[] paramStrings, UnityAction callback)
+		private void UpdateInfoMenuCursols()
 		{
-			switch (paramStrings[0])
+			for (int i = 0; i < m_infoMenuCursols.Length; ++i)
 			{
-				case "SequenceAnime":
-					{
-						string animationName = paramStrings[1];
-						bool isDone = false;
-						m_sequenceAnimation.Play(animationName, () => { isDone = true; });
-						while (!isDone) { yield return null; }
-
-						break;
-					}
-				case "UpdateLifeGauge":
-					{
-						int life = int.Parse(paramStrings[1]);
-						UpdateLifeGauge(life);
-						yield return null;
-
-						break;
-					}
-				default:
-					{
-						break;
-					}
-			}
-
-			if (callback != null)
-			{
-				callback();
+				m_infoMenuCursols[i].SetActive(i == m_infoMenuSelectIndex);
 			}
 		}
 
@@ -250,21 +353,5 @@ namespace scene.game.outgame.window
 		//	position.y -= m_windowTransform.localPosition.y * (1080.0f / 506.25f);
 		//	m_clickEvent(new Vector2(position.x / 1920.0f, position.y / 1080.0f));
 		//}
-
-        private void UpdateLifeGauge(int value)
-		{
-			var elements = m_lifeGaugeElementList.GetElements();
-			for (int i = 0; i < elements.Count; ++i)
-			{
-				if (i >= value)
-				{
-					elements[i].SetActive(false);
-					continue;
-				}
-				elements[i].SetActive(true);
-				var lifeGaugeElement = elements[i].GetComponent<main.LifeGaugeElement>();
-				lifeGaugeElement.Setting(new main.LifeGaugeElement.Data(main.LifeGaugeElement.Data.State.NORMAL));
-			}
-		}
-    }
+	}
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace scene.game.ingame.actiongame
+namespace scene.game.ingame
 {
 	[System.Serializable]
 	public class ObjectBase : MonoBehaviour

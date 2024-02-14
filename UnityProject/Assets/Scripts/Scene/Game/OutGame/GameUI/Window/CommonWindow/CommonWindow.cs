@@ -46,17 +46,16 @@ namespace scene.game.outgame.window
 				return;
 			}
 
-			var input = GeneralRoot.Instance.Input;
 			for (int i = 0; i < k_useKeys.Length; ++i)
 			{
 				var key = k_useKeys[i];
 				if (key == KeyCode.Space)
 				{
-					input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.Space, () =>
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.Space, () =>
 					{
 						m_yesButton.OnDown();
 					});
-					input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.Space, () =>
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.Space, () =>
 					{
 						m_yesButton.OnUp();
 						m_yesButton.OnClick();
@@ -64,11 +63,11 @@ namespace scene.game.outgame.window
 				}
 				else if (key == KeyCode.C)
 				{
-					input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.C, () =>
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.C, () =>
 					{
 						m_noButton.OnDown();
 					});
-					input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.C, () =>
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.C, () =>
 					{
 						m_noButton.OnUp();
 						m_noButton.OnClick();
@@ -76,8 +75,8 @@ namespace scene.game.outgame.window
 				}
 				else
 				{
-					input.UpdateEvent(system.InputSystem.Type.Down, key, null);
-					input.UpdateEvent(system.InputSystem.Type.Up, key, null);
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, null);
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, null);
 				}
 			}
 		}

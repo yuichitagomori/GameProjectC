@@ -25,65 +25,68 @@ namespace scene.game.outgame.window
 
 		private UnityAction<int> m_commonWindowPlayMovieEvent;
 		private UnityAction m_mainWindowPowerButtonEvent;
+		private UnityAction m_mainWindowRecreateButtonEvent;
+		private UnityAction m_mainWindowReleaseButtonEvent;
 		private UnityAction<KeyCode[]> m_mainWindowInputEvent;
 		private UnityAction<WindowBase.Type[], int> m_updateWindowIcon;
 
 		public void Initialize(
 			UnityAction<int> commonWindowPlayMovieEvent,
 			UnityAction mainWindowPowerButtonEvent,
+			UnityAction mainWindowRecreateButtonEvent,
+			UnityAction mainWindowReleaseButtonEvent,
 			UnityAction<KeyCode[]> mainWindowInputEvent,
 			UnityAction<WindowBase.Type[], int> updateWindowIcon)
 		{
 			m_commonWindowPlayMovieEvent = commonWindowPlayMovieEvent;
 			m_mainWindowPowerButtonEvent = mainWindowPowerButtonEvent;
+			m_mainWindowRecreateButtonEvent = mainWindowRecreateButtonEvent;
+			m_mainWindowReleaseButtonEvent = mainWindowReleaseButtonEvent;
 			m_mainWindowInputEvent = mainWindowInputEvent;
 			m_updateWindowIcon = updateWindowIcon;
-
-
 
 			if (GeneralRoot.Instance.IsPCPlatform() == false)
 			{
 				return;
 			}
 
-			var input = GeneralRoot.Instance.Input;
-			input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.E, () =>
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.E, () =>
 			{
 				OnWindowChangeRightButtonPressed();
 			});
-			input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.Q, () =>
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.Q, () =>
 			{
 				OnWindowChangeLeftButtonPressed();
 			});
-			input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.UpArrow, () =>
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.UpArrow, () =>
 			{
 				OnWindowMoveButtonPressed(KeyCode.UpArrow);
 			});
-			input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.DownArrow, () =>
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.DownArrow, () =>
 			{
 				OnWindowMoveButtonPressed(KeyCode.DownArrow);
 			});
-			input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.LeftArrow, () =>
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.LeftArrow, () =>
 			{
 				OnWindowMoveButtonPressed(KeyCode.LeftArrow);
 			});
-			input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.RightArrow, () =>
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.RightArrow, () =>
 			{
 				OnWindowMoveButtonPressed(KeyCode.RightArrow);
 			});
-			input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.UpArrow, () =>
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.UpArrow, () =>
 			{
 				OnWindowMoveButtonReleased(KeyCode.UpArrow);
 			});
-			input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.DownArrow, () =>
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.DownArrow, () =>
 			{
 				OnWindowMoveButtonReleased(KeyCode.DownArrow);
 			});
-			input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.LeftArrow, () =>
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.LeftArrow, () =>
 			{
 				OnWindowMoveButtonReleased(KeyCode.LeftArrow);
 			});
-			input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.RightArrow, () =>
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.RightArrow, () =>
 			{
 				OnWindowMoveButtonReleased(KeyCode.RightArrow);
 			});
@@ -234,12 +237,12 @@ namespace scene.game.outgame.window
 			return true;
 		}
 
-		private IEnumerator AddWindowCoroutine(WindowBase.Type windowType, UnityAction<WindowBase> settingEvent)
+		private IEnumerator AddWindowCoroutine(WindowBase.Type windowType, Vector3 pos, UnityAction<WindowBase> settingEvent)
 		{
 			var windowPrefab = m_windowPrefabList[(int)windowType];
 			var window = GameObject.Instantiate(windowPrefab);
 			window.transform.SetParent(m_windowParent);
-			window.transform.localPosition = new Vector3(0.0f, -64.0f, 0.0f);
+			window.transform.localPosition = pos;
 			window.transform.localScale = Vector3.one;
 			var windowBase = window.GetComponent<WindowBase>();
 			m_windows.Add(windowBase);
@@ -381,7 +384,9 @@ namespace scene.game.outgame.window
 				case "AddTitleWindow":
 					{
 						bool isDone = false;
-						yield return AddWindowCoroutine(WindowBase.Type.Title, (windowBase) =>
+						int x = int.Parse(paramStrings[1]);
+						int y = int.Parse(paramStrings[2]);
+						yield return AddWindowCoroutine(WindowBase.Type.Title, new Vector3(x, y, 0), (windowBase) =>
 						{
 							((TitleWindow)windowBase).Setting(
 								onButtonPressEvent: () => { isDone = true; });
@@ -391,56 +396,85 @@ namespace scene.game.outgame.window
 					}
 				case "AddMainWindow":
 					{
-						yield return AddWindowCoroutine(WindowBase.Type.Main, (windowBase) =>
+						int x = int.Parse(paramStrings[1]);
+						int y = int.Parse(paramStrings[2]);
+						Game.GenreType genreType = (Game.GenreType)System.Enum.Parse(typeof(Game.GenreType), paramStrings[3]);
+						yield return AddWindowCoroutine(WindowBase.Type.Main, new Vector3(x, y, 0), (windowBase) =>
 						{
 							((MainWindow)windowBase).Setting(
+								genreType: genreType,
 								powerButtonEvent: m_mainWindowPowerButtonEvent,
+								recreateButtonEvent: m_mainWindowRecreateButtonEvent,
+								releaseButtonEvent: m_mainWindowReleaseButtonEvent,
 								inputEvent: m_mainWindowInputEvent);
 						});
 						break;
 					}
 				case "AddMessageWindow":
 					{
-						yield return AddWindowCoroutine(WindowBase.Type.Message, null);
+						int x = int.Parse(paramStrings[1]);
+						int y = int.Parse(paramStrings[2]);
+						yield return AddWindowCoroutine(WindowBase.Type.Message, new Vector3(x, y, 0), null);
 						break;
 					}
 				case "AddDateTimeWindow":
 					{
-						yield return AddWindowCoroutine(WindowBase.Type.DateTime, null);
+						int x = int.Parse(paramStrings[1]);
+						int y = int.Parse(paramStrings[2]);
+						yield return AddWindowCoroutine(WindowBase.Type.DateTime, new Vector3(x, y, 0), null);
 						break;
 					}
 				case "AddCheckSheetWindow":
 					{
-						yield return AddWindowCoroutine(WindowBase.Type.CheckSheet, (windowBase) =>
+						int x = int.Parse(paramStrings[1]);
+						int y = int.Parse(paramStrings[2]);
+						yield return AddWindowCoroutine(WindowBase.Type.CheckSheet, new Vector3(x, y, 0), (windowBase) =>
 						{
-							var local = GeneralRoot.User.LocalSaveData;
-							int userCheckSheetId = local.CheckSheetId;
-							int userAccuracyLevel = local.AccuracyLevel;
-							int[] userOccurredBugIds = local.OccurredBugIds;
-							((CheckSheetWindow)windowBase).Setting(
-								userCheckSheetId,
-								userAccuracyLevel,
-								userOccurredBugIds);
+							((CheckSheetWindow)windowBase).Setting();
 						});
 						break;
 					}
-				case "AddCharaWindow":
+				case "AddCameraWindow":
 					{
-						yield return AddWindowCoroutine(WindowBase.Type.Chara, null);
+						int x = int.Parse(paramStrings[1]);
+						int y = int.Parse(paramStrings[2]);
+						yield return AddWindowCoroutine(WindowBase.Type.Camera, new Vector3(x, y, 0), null);
 						break;
 					}
 				case "AddCommonWindow":
 					{
-						yield return AddWindowCoroutine(WindowBase.Type.Common, (windowBase) =>
+						int x = int.Parse(paramStrings[1]);
+						int y = int.Parse(paramStrings[2]);
+						int messageId = int.Parse(paramStrings[3]);
+						int yesPlayMovieId = int.Parse(paramStrings[4]);
+						int noPlayMovieId = int.Parse(paramStrings[5]);
+						yield return AddWindowCoroutine(WindowBase.Type.Common, new Vector3(x, y, 0), (windowBase) =>
 						{
-							int messageId = int.Parse(paramStrings[1]);
-							string message = "デバッグ結果の報告の為、アップロードしますが\nよろしいですか？";
-							int yesPlayMovieId = int.Parse(paramStrings[2]);
-							int noPlayMovieId = int.Parse(paramStrings[3]);
 							((CommonWindow)windowBase).Setting(
-								message,
+								CommonUI.LocalizeText.GetString(messageId),
 								() => { if (yesPlayMovieId >= 0) m_commonWindowPlayMovieEvent(yesPlayMovieId); },
-								() => { if (noPlayMovieId >= 0) m_commonWindowPlayMovieEvent(noPlayMovieId); });
+								() => { if (noPlayMovieId >= 0) m_commonWindowPlayMovieEvent(noPlayMovieId); }); ;
+						});
+						break;
+					}
+				case "AddImageWindow":
+					{
+						int x = int.Parse(paramStrings[1]);
+						int y = int.Parse(paramStrings[2]);
+						int id = int.Parse(paramStrings[3]);
+						yield return AddWindowCoroutine(WindowBase.Type.Image, new Vector3(x, y, 0), (windowBase) =>
+						{
+							((ImageWindow)windowBase).Setting(id);
+						});
+						break;
+					}
+				case "AddResultWindow":
+					{
+						int x = int.Parse(paramStrings[1]);
+						int y = int.Parse(paramStrings[2]);
+						yield return AddWindowCoroutine(WindowBase.Type.Result, new Vector3(x, y, 0), (windowBase) =>
+						{
+							((ResultWindow)windowBase).Setting();
 						});
 						break;
 					}
@@ -467,14 +501,25 @@ namespace scene.game.outgame.window
 						}
 						break;
 					}
-				case "PlayCharaWindow":
+				case "PlayCameraWindow":
 					{
-						var windowBase = m_windows.Find(d => d.WindowType == WindowBase.Type.Chara);
+						var windowBase = m_windows.Find(d => d.WindowType == WindowBase.Type.Camera);
 						if (windowBase != null)
 						{
 							bool isDone = false;
 							int controllId = int.Parse(paramStrings[1]);
-							((CharaWindow)windowBase).Play(controllId, () => { isDone = true; });
+							((CameraWindow)windowBase).Play(controllId, () => { isDone = true; });
+							while (!isDone) { yield return null; }
+						}
+						break;
+					}
+				case "PlayResultWindow":
+					{
+						var windowBase = m_windows.Find(d => d.WindowType == WindowBase.Type.Result);
+						if (windowBase != null)
+						{
+							bool isDone = false;
+							((ResultWindow)windowBase).Play(() => { isDone = true; });
 							while (!isDone) { yield return null; }
 						}
 						break;
@@ -525,7 +570,7 @@ namespace scene.game.outgame.window
 					}
 				case "Chara":
 					{
-						window = m_windows.Find(d => d.WindowType == WindowBase.Type.Chara);
+						window = m_windows.Find(d => d.WindowType == WindowBase.Type.Camera);
 						break;
 					}
 			}

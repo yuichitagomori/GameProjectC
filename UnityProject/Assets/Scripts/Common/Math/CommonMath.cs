@@ -21,7 +21,26 @@ public class CommonMath : MonoBehaviour
 		return angle;
 	}
 
-	public static IEnumerator TransformLerpCoroutine(
+	public static IEnumerator EaseInOut(float time, UnityAction<float> update, UnityAction callback)
+	{
+		float nowTime = 0.0f;
+		var curve = AnimationCurve.EaseInOut(0.0f, 0.0f, 1.0f, 1.0f);
+		while (nowTime < time)
+		{
+			nowTime += Time.deltaTime;
+			float t = curve.Evaluate(nowTime / time);
+			update(t);
+			yield return null;
+		}
+		update(1);
+
+		if (callback != null)
+		{
+			callback();
+		}
+	}
+
+	public static IEnumerator EaseInOutTransform(
 		Transform transform,
 		Vector3 beforePosition,
 		Quaternion beforeRotation,
@@ -30,39 +49,13 @@ public class CommonMath : MonoBehaviour
 		float time,
 		UnityAction callback)
 	{
-		float nowTime = 0.0f;
-		var curve = AnimationCurve.EaseInOut(0.0f, 0.0f, 1.0f, 1.0f);
-		while (nowTime < time)
+		UnityAction<float> update = (t) =>
 		{
-			nowTime += Time.deltaTime;
-			float t = curve.Evaluate(nowTime / time);
-			TransformLerp(
-				transform,
-				beforePosition,
-				beforeRotation,
-				afterPosition,
-				afterRotation,
-				t);
-			yield return null;
-		}
-
-		if (callback != null)
-		{
-			callback();
-		}
-	}
-
-	public static void TransformLerp(
-		Transform transform,
-		Vector3 beforePosition,
-		Quaternion beforeRotation,
-		Vector3 afterPosition,
-		Quaternion afterRotation,
-		float value)
-	{
-		Vector3 position = Vector3.Lerp(beforePosition, afterPosition, value);
-		Quaternion rotation = Quaternion.Lerp(beforeRotation, afterRotation, value);
-		transform.localPosition = position;
-		transform.localRotation = rotation;
+			Vector3 position = Vector3.Lerp(beforePosition, afterPosition, t);
+			Quaternion rotation = Quaternion.Lerp(beforeRotation, afterRotation, t);
+			transform.localPosition = position;
+			transform.localRotation = rotation;
+		}; 
+		yield return EaseInOut(time, update, callback);
 	}
 }

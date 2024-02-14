@@ -19,16 +19,16 @@ namespace scene.game
 			m_playMovieEvent = playMovieEvent;
 		}
 
-		public void Play(int controllId, UnityAction callback)
+		public void Play(int movieDataId, UnityAction callback)
 		{
-			StartCoroutine(PlayCoroutine(controllId, callback));
+			StartCoroutine(PlayCoroutine(movieDataId, callback));
 		}
 
 		private IEnumerator PlayCoroutine(
-			int controllId,
+			int movieDataId,
 			UnityAction callback)
 		{
-			var masterData = GeneralRoot.Master.MovieData.Find(controllId);
+			var masterData = GeneralRoot.Master.MovieListData.Find(movieDataId);
 			if (masterData == null)
 			{
 				if (callback != null)
@@ -38,23 +38,12 @@ namespace scene.game
 				yield break;
 			}
 
-			if (masterData.DisableInput == true)
-			{
-				GeneralRoot.Instance.SetForeMostRayCast(true);
-			}
-
 			bool isDone = false;
-			for (int i = 0; i < masterData.ParamStrings.Length; ++i)
+			for (int i = 0; i < masterData.Datas.Length; ++i)
 			{
 				isDone = false;
-				string param = masterData.ParamStrings[i];
-				m_playMovieEvent(param, () => { isDone = true; });
+				m_playMovieEvent(masterData.Datas[i].Param, () => { isDone = true; });
 				while (!isDone) { yield return null; }
-			}
-
-			if (masterData.DisableInput == true)
-			{
-				GeneralRoot.Instance.SetForeMostRayCast(false);
 			}
 
 			if (callback != null)

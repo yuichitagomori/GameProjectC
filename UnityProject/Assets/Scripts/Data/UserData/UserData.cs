@@ -16,36 +16,60 @@ namespace data
 		private string kAesIV = "pf69DL6GrWFyZcMK";
 		private string kAesKey = "9Fix4L4HB4PKeKWY";
 
+		public enum Language
+		{
+			JP,	// 日本語
+			EN,	// 英語
+			ZH,	// 中国繁体字
+		}
+
 		[System.Serializable]
 		public class LocalSave
 		{
 			/// <summary>
-			/// チェックシートID
+			/// 挑戦中ゲームID
 			/// </summary>
 			[SerializeField]
-			private int m_checkSheetId;
-			public int CheckSheetId => m_checkSheetId;
+			private int m_challengeGameGunreId;
+			public int ChallengeGameGunreId => m_challengeGameGunreId;
+
+			public void UpdateChallengeGameGunreId(int id)
+			{
+				m_challengeGameGunreId = id;
+			}
 
 			/// <summary>
-			/// 精度レベル
+			/// 発生バグID
 			/// </summary>
 			[SerializeField]
-			private int m_accuracyLevel;
-			public int AccuracyLevel => m_accuracyLevel;
+			private int m_occurredBugId;
+			public int OccurredBugId => m_occurredBugId;
+
+			public void UpdateOccurredBugId(int id)
+			{
+				m_occurredBugId = id;
+			}
+
 
 			/// <summary>
-			/// 発生バグIDリスト
+			/// 発生バグID
 			/// </summary>
 			[SerializeField]
-			private int[] m_occurredBugIds;
-			public int[] OccurredBugIds => m_occurredBugIds;
+			private int m_tryCount;
+			public int TryCount => m_tryCount;
+
+			public void UpdateTryCount(int count)
+			{
+				m_tryCount = count;
+			}
+
 
 			/// <summary>
 			/// BGMボリューム
 			/// </summary>
 			[SerializeField]
 			private float m_bgmVolume = 0.5f;
-			public float BgmVolume { get { return m_bgmVolume; } }
+			public float BgmVolume => m_bgmVolume;
 
 			public void UpdateBgmVolume(float value)
 			{
@@ -57,13 +81,16 @@ namespace data
 			/// </summary>
 			[SerializeField]
 			private float m_seVolume = 0.5f;
-			public float SEVolume { get { return m_seVolume; } }
+			public float SEVolume => m_seVolume;
 
 			public void UpdateSEVolume(float value)
 			{
 				m_seVolume = value;
 			}
 
+			[SerializeField]
+			private Language m_language = Language.JP;
+			public Language Language => m_language;
 
 			public LocalSave()
 			{

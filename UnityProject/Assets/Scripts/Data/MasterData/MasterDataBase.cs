@@ -7,7 +7,8 @@ namespace data.master
     /// <summary>
     /// スクリプタブルオブジェクトデータ基底クラス
     /// </summary>
-    public abstract class MasterDataBase<T> : ScriptableObject where T : MasterDataBase<T>.DataBase 
+    public abstract class MasterDataBase<T> : ScriptableObject
+        where T : MasterDataBase<T>.DataBase 
     {
         [System.Serializable]
         public abstract class DataBase
@@ -28,6 +29,7 @@ namespace data.master
 		/// </summary>
 		[SerializeField]
         private T[] m_datas;
+        public T[] Datas => m_datas;
 
         public T Find(int id)
 		{

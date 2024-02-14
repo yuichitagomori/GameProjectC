@@ -17,8 +17,11 @@ namespace scene.game.outgame.window
 			Message,
 			DateTime,
 			CheckSheet,
-			Chara,
+			Camera,
+
 			Common,
+			Image,
+			Result,
 		}
 
 		protected KeyCode[] k_useKeys = new KeyCode[]
@@ -61,7 +64,7 @@ namespace scene.game.outgame.window
 		protected Transform m_windowTransform;
 
 		[SerializeField]
-		private Vector2 m_windowSize;
+		protected Vector2 m_windowSize;
 
         [SerializeField]
         protected Common.AnimatorExpansion m_windowAnime;
@@ -82,7 +85,7 @@ namespace scene.game.outgame.window
 			RectTransform windowArea,
 			UnityAction holdCallback)
 		{
-			m_windowAnime.Play("Default");
+			PlayAnimation("Default");
 
 			if (m_holdArea != null)
 			{
@@ -110,8 +113,9 @@ namespace scene.game.outgame.window
 				m_iconViewIconImage.color = Color.white;
 			}
 
+			GeneralRoot.Sound.PlaySE((int)system.SoundSystem.SEType.WINDOW_OPEN);
 			bool isDone = false;
-			m_windowAnime.Play("In", () => { isDone = true; });
+			PlayAnimation("In", () => { isDone = true; });
 			while (!isDone) { yield return null; }
 			m_isActiveWindow = true;
 		}
@@ -130,7 +134,7 @@ namespace scene.game.outgame.window
 
 			m_isActiveWindow = false;
 			bool isDone = false;
-			m_windowAnime.Play("Out", () => { isDone = true; });
+			PlayAnimation("Out", () => { isDone = true; });
 			while (!isDone) { yield return null; }
 		}
 
@@ -153,7 +157,7 @@ namespace scene.game.outgame.window
 				{
 					m_iconViewIconImage.color = new Color(0.0f, 0.75f, 1.0f);
 				}
-				m_windowAnime.Play("Enable", () => { isDone = true; });
+				PlayAnimation("Enable", () => { isDone = true; });
 			}
 			else if (m_isSelectWindow == true && value == false)
 			{
@@ -166,7 +170,7 @@ namespace scene.game.outgame.window
 				{
 					m_iconViewIconImage.color = Color.white;
 				}
-				m_windowAnime.Play("Disable", () => { isDone = true; });
+				PlayAnimation("Disable", () => { isDone = true; });
 			}
 			else
 			{
@@ -192,6 +196,78 @@ namespace scene.game.outgame.window
 			if (m_holdArea != null)
 			{
 				m_holdArea.OnMove(moveV);
+			}
+		}
+
+		private void PlayAnimation(string name, UnityAction callback = null)
+		{
+			if (m_windowAnime != null)
+			{
+				m_windowAnime.Play(name, callback);
+			}
+			else
+			{
+				StartCoroutine(PlayAnimationCoroutine(name, callback));
+			}
+		}
+
+		private IEnumerator PlayAnimationCoroutine(string name, UnityAction callback)
+		{
+			var animatorTransform = m_windowTransform.GetChild(0).GetComponent<RectTransform>();
+			switch (name)
+			{
+				case "Default":
+					{
+						m_windowFrameImage.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+						animatorTransform.sizeDelta = new Vector2(0, 0);
+						break;
+					}
+				case "In":
+					{
+						m_windowFrameImage.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+						animatorTransform.sizeDelta = new Vector2(0, 0);
+
+						UnityAction<float> update = (t) =>
+						{
+							animatorTransform.sizeDelta = new Vector2(m_windowSize.x * t, 0.0f);
+						};
+						yield return CommonMath.EaseInOut(0.1f, update, null);
+						animatorTransform.sizeDelta = new Vector2(m_windowSize.x, 0.0f);
+
+						update = (t) =>
+						{
+							animatorTransform.sizeDelta = new Vector2(m_windowSize.x, m_windowSize.y * t);
+						};
+						yield return CommonMath.EaseInOut(0.1f, update, null);
+						animatorTransform.sizeDelta = new Vector2(m_windowSize.x, m_windowSize.y);
+						break;
+					}
+				case "Out":
+					{
+						animatorTransform.sizeDelta = m_windowSize;
+
+						UnityAction<float> update = (t) =>
+						{
+							animatorTransform.sizeDelta = new Vector2(m_windowSize.x, m_windowSize.y * (1 - t));
+						};
+						yield return CommonMath.EaseInOut(0.1f, update, null);
+						animatorTransform.sizeDelta = new Vector2(m_windowSize.x, 0.0f);
+
+						update = (t) =>
+						{
+							animatorTransform.sizeDelta = new Vector2(m_windowSize.x * (1 - t), 0.0f);
+						};
+						yield return CommonMath.EaseInOut(0.1f, update, null);
+						animatorTransform.sizeDelta = new Vector2(0.0f, 0.0f);
+
+						m_windowFrameImage.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+						break;
+					}
+			}
+
+			if (callback != null)
+			{
+				callback();
 			}
 		}
 	}

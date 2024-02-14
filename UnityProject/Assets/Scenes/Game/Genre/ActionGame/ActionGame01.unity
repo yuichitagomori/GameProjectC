@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.11694341, g: 0.35337186, b: 0.75331885, a: 1}
+  m_IndirectSpecularColor: {r: 0.11694341, g: 0.35131907, b: 0.74511796, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -8962,7 +8962,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_canvas: {fileID: 0}
   m_topCanvasGroup: {fileID: 0}
-  m_localizeTextList: []
   m_skyboxMaterial: {fileID: 2100000, guid: 7064191eb5a94d140841ff4797760494, type: 2}
   m_skyboxTextures:
   - {fileID: 2800000, guid: faef718026f0f1349888a4347ab56b38, type: 3}
@@ -8977,6 +8976,11 @@ MonoBehaviour:
   m_directionLight: {fileID: 1839148016}
   m_ambient: {r: 0.627451, g: 1, b: 0.8784314, a: 1}
   m_fogColor: {r: 0.0627451, g: 0.1882353, b: 0.1254902, a: 1}
+  m_posproData:
+    m_enableBloom: 1
+    m_enableVignette: 1
+    m_vignetteColor: {r: 0.0627451, g: 0.1882353, b: 0.1254902, a: 1}
+    m_enableDepthOfField: 1
   m_mapMaterials:
   - {fileID: 2100000, guid: e30adc9fad0434d4ab2288dafc06ed4a, type: 2}
   - {fileID: 2100000, guid: 2163b9f2db7249c4aad04193b78c73b6, type: 2}
@@ -8994,10 +8998,13 @@ MonoBehaviour:
   m_mapEvents:
   - {fileID: 1559189906}
   m_player: {fileID: 403988216}
-  m_mapColliders:
-  - {fileID: 1559189901}
-  - {fileID: 1559189903}
-  - {fileID: 1559189904}
+  m_bugTargets:
+  - m_bugId: 4
+    m_colliders:
+    - {fileID: 1559189904}
+  - m_bugId: 5
+    m_colliders:
+    - {fileID: 1559189901}
   m_transfers:
   - {fileID: 1270533752}
   - {fileID: 195032819}

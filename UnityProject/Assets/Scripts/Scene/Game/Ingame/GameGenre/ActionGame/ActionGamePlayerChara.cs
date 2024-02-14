@@ -59,7 +59,7 @@ namespace scene.game.ingame.actiongame
 			m_bugCallback = bugCallback;
 
 			var local = GeneralRoot.User.LocalSaveData;
-			if (local.OccurredBugIds.Contains(3) == false)
+			if (local.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation)
 			{
 				m_fbx.Anime.Play("Jump");
 			}
@@ -131,7 +131,7 @@ namespace scene.game.ingame.actiongame
 				{
 					if (m_fbx.Anime.GetAnimationName() != "Walk" && m_isJump == false)
 					{
-						if (local.OccurredBugIds.Contains(3) == false)
+						if (local.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation)
 						{
 							m_fbx.Anime.PlayLoop("Walk");
 						}
@@ -149,7 +149,7 @@ namespace scene.game.ingame.actiongame
 				{
 					if (m_fbx.Anime.GetAnimationName() != "Wait" && m_isJump == false)
 					{
-						if (local.OccurredBugIds.Contains(3) == false)
+						if (local.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation)
 						{
 							m_fbx.Anime.PlayLoop("Wait");
 						}
@@ -273,7 +273,7 @@ namespace scene.game.ingame.actiongame
 			if (m_fbx.Anime.GetAnimationName() != "Jump")
 			{
 				var local = GeneralRoot.User.LocalSaveData;
-				if (local.OccurredBugIds.Contains(3) == false)
+				if (local.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation)
 				{
 					m_fbx.Anime.Play("Jump");
 				}
@@ -292,7 +292,7 @@ namespace scene.game.ingame.actiongame
 		public void Transfer()
 		{
 			var local = GeneralRoot.User.LocalSaveData;
-			if (local.OccurredBugIds.Contains(3) == false)
+			if (local.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation)
 			{
 				m_fbx.Anime.Play("Jump", time: 1.0f);
 			}
@@ -319,7 +319,7 @@ namespace scene.game.ingame.actiongame
 				if (m_fbx.Anime.GetAnimationName() != "Wait")
 				{
 					var local = GeneralRoot.User.LocalSaveData;
-					if (local.OccurredBugIds.Contains(3) == false)
+					if (local.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation)
 					{
 						m_fbx.Anime.PlayLoop("Wait");
 					}

@@ -26,12 +26,6 @@ namespace scene
 		public CanvasGroup TopCanvasGroup { get { return m_topCanvasGroup; } }
 
 		/// <summary>
-		/// 翻訳をかけるテキストリスト
-		/// </summary>
-		[SerializeField]
-		private List<CommonUI.LocalizeText> m_localizeTextList;
-
-		/// <summary>
 		/// シーン管理
 		/// </summary>
 		protected scene.SceneController m_sceneController;
@@ -42,14 +36,9 @@ namespace scene
 		/// 初期化
 		/// </summary>
 		/// <param name="sceneController"></param>
-		public void Initialize(scene.SceneController sceneController)
+		public void Initialize(SceneController sceneController)
 		{
 			m_sceneController = sceneController;
-
-			for (int i = 0; i < m_localizeTextList.Count; ++i)
-			{
-				m_localizeTextList[i].SetText();
-			}
 		}
 
 		/// <summary>
@@ -74,16 +63,5 @@ namespace scene
 				callback();
 			}
 		}
-
-#if UNITY_EDITOR
-		/// <summary>
-		/// テキストリスト設定
-		/// </summary>
-		/// <param name="localizeTextList"></param>
-		public void SetTextList(List<CommonUI.LocalizeText> localizeTextList)
-		{
-			m_localizeTextList = localizeTextList;
-		}
-#endif
 	}
 }

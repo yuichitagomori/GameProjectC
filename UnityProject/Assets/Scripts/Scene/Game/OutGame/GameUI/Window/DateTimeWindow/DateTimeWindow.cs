@@ -87,12 +87,11 @@ namespace scene.game.outgame.window
 				return;
 			}
 
-			var input = GeneralRoot.Instance.Input;
 			for (int i = 0; i < k_useKeys.Length; ++i)
 			{
 				var key = k_useKeys[i];
-				input.UpdateEvent(system.InputSystem.Type.Down, key, null);
-				input.UpdateEvent(system.InputSystem.Type.Up, key, null);
+				GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, null);
+				GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, null);
 			}
 		}
 

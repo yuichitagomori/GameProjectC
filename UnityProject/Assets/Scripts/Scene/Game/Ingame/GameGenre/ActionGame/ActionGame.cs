@@ -9,6 +9,10 @@ namespace scene.game.ingame
 {
 	public class ActionGame : GameGenreBase
 	{
+		private string UpdateLifeGameStringFormat = "Main,UpdateLifeGauge,{0}";
+
+
+
 		[System.Serializable]
 		public class MoveVector
 		{
@@ -21,14 +25,19 @@ namespace scene.game.ingame
 			public Vector3 Vector => m_vector;
 		}
 
-		private string SequenceAnimeStringFormat = "Main,SequenceAnime,{0}";
-		private string UpdateInfoViewStringFormat = "Main,UpdateInfoView,{0}";
-		private string UpdateLifeGameStringFormat = "Main,UpdateLifeGauge,{0}";
-		private string CharaReactionStringFormat = "Chara,Play,{0}";
+		[System.Serializable]
+		public class BugTarget
+		{
+			[SerializeField]
+			private int m_bugId;
+			public int BugId => m_bugId;
+
+			[SerializeField]
+			private GameObject[] m_colliders;
+			public GameObject[] Colliders => m_colliders;
+		}
 
 
-		[SerializeField]
-		private Transform[] m_cameraAngles;
 
 		[SerializeField]
 		private MoveVector[] m_moveVectors;
@@ -40,7 +49,7 @@ namespace scene.game.ingame
 		private actiongame.ActionGamePlayerChara m_player;
 
 		[SerializeField]
-		private GameObject[] m_mapColliders;
+		private BugTarget[] m_bugTargets;
 
 		[SerializeField]
 		private actiongame.TransferObject[] m_transfers;
@@ -53,7 +62,7 @@ namespace scene.game.ingame
 
 
 
-		private bool m_isEnableControll = false;
+		private bool m_isEnableInput = false;
 
 		private KeyCode[] m_beforePressKeys;
 
@@ -65,6 +74,8 @@ namespace scene.game.ingame
 
 		public override void Initialize()
 		{
+			m_isEnableInput = false;
+
 			m_cameraTransform.localPosition = m_cameraAngles[0].localPosition;
 			m_cameraTransform.localRotation = m_cameraAngles[0].localRotation;
 
@@ -88,20 +99,18 @@ namespace scene.game.ingame
 				int id = i + 1;
 				m_switches[i].Initialize(false, (value) => { OnSwitchEvent(id, value); });
 			}
-			m_isEnableControll = false;
 			m_beforePressKeys = null;
 			m_life = 4;
 
 			var local = GeneralRoot.User.LocalSaveData;
-			if (local.OccurredBugIds.Contains(4))
+			var bugTarget = m_bugTargets.FirstOrDefault(d => d.BugId == local.OccurredBugId);
+			if (bugTarget != null)
 			{
-				// 一部の足場用コライダー削除
-				m_mapColliders[2].SetActive(false);
-			}
-			if (local.OccurredBugIds.Contains(5))
-			{
-				// 落下用コライダー削除
-				m_mapColliders[0].SetActive(false);
+				// コライダー削除
+				for (int i = 0; i < bugTarget.Colliders.Length; ++i)
+				{
+					bugTarget.Colliders[i].SetActive(false);
+				}
 			}
 		}
 
@@ -114,29 +123,26 @@ namespace scene.game.ingame
 		{
 			bool isDone = false;
 			string paramString = string.Format(SequenceAnimeStringFormat, "LoadingOut");
-			m_outgameSetupEvent(paramString, () => { isDone = true; });
+			OutgameSetupEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			if (m_state == State.None)
 			{
 				isDone = false;
 				paramString = string.Format(SequenceAnimeStringFormat, "TitleIn");
-				m_outgameSetupEvent(paramString, () => { isDone = true; });
+				OutgameSetupEvent(paramString, () => { isDone = true; });
 				while (!isDone) { yield return null; }
 
 				m_state = State.Title;
+				m_isEnableInput = true;
 				while (m_state == State.Title) { yield return null; }
+				m_isEnableInput = false;
 
 				isDone = false;
 				paramString = string.Format(SequenceAnimeStringFormat, "TitleOut");
-				m_outgameSetupEvent(paramString, () => { isDone = true; });
+				OutgameSetupEvent(paramString, () => { isDone = true; });
 				while (!isDone) { yield return null; }
 			}
-
-			isDone = false;
-			paramString = string.Format(UpdateLifeGameStringFormat, 0);
-			m_outgameSetupEvent(paramString, () => { isDone = true; });
-			while (!isDone) { yield return null; }
 
 			isDone = false;
 			m_player.SequenceIn(2.0f, () => { isDone = true; });
@@ -146,7 +152,7 @@ namespace scene.game.ingame
 			Quaternion beforeRotation = m_cameraAngles[0].localRotation;
 			Vector3 afterPosition = m_cameraAngles[1].localPosition;
 			Quaternion afterRotation = m_cameraAngles[1].localRotation;
-			yield return CommonMath.TransformLerpCoroutine(
+			yield return CommonMath.EaseInOutTransform(
 				m_cameraTransform,
 				beforePosition,
 				beforeRotation,
@@ -156,8 +162,13 @@ namespace scene.game.ingame
 				null);
 
 			isDone = false;
+			paramString = string.Format(UpdateLifeGameStringFormat, 0);
+			OutgameSetupEvent(paramString, () => { isDone = true; });
+			while (!isDone) { yield return null; }
+
+			isDone = false;
 			paramString = string.Format(SequenceAnimeStringFormat, "GameIn");
-			m_outgameSetupEvent(paramString, () => { isDone = true; });
+			OutgameSetupEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			var wait = new WaitForSeconds(0.2f);
@@ -165,13 +176,13 @@ namespace scene.game.ingame
 			{
 				isDone = false;
 				paramString = string.Format(UpdateLifeGameStringFormat, i + 1);
-				m_outgameSetupEvent(paramString, () => { isDone = true; });
+				OutgameSetupEvent(paramString, () => { isDone = true; });
 				while (!isDone) { yield return null; }
 
 				yield return wait;
 			}
 
-			m_isEnableControll = true;
+			m_isEnableInput = true;
 		}
 
 		private void FixedUpdate()
@@ -188,6 +199,11 @@ namespace scene.game.ingame
 
 		public override void OnInputEvent(KeyCode[] pressKeys)
 		{
+			if (m_isEnableInput == false)
+			{
+				return;
+			}
+
 			if (m_state == State.None)
 			{
 				return;
@@ -201,11 +217,6 @@ namespace scene.game.ingame
 			}
 			else
 			{
-				if (m_isEnableControll == false)
-				{
-					return;
-				}
-
 				if (pressKeys.Contains(KeyCode.A))
 				{
 					var moveVector = m_moveVectors.FirstOrDefault(d => d.Key == KeyCode.A);
@@ -269,7 +280,7 @@ namespace scene.game.ingame
 					{
 						m_life--;
 						string paramString = string.Format(UpdateLifeGameStringFormat, m_life);
-						m_outgameSetupEvent(paramString, () =>
+						OutgameSetupEvent(paramString, () =>
 						{
 							OnTransferEvent(0);
 						});
@@ -286,7 +297,7 @@ namespace scene.game.ingame
 
 		private IEnumerator TransferCoroutine(int index)
 		{
-			m_isEnableControll = false;
+			m_isEnableInput = false;
 
 			bool isDone = false;
 			m_player.SequenceOut(0.5f, () => { isDone = true; });
@@ -302,7 +313,7 @@ namespace scene.game.ingame
 			m_player.SequenceIn(1.0f, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
-			m_isEnableControll = true;
+			m_isEnableInput = true;
 		}
 
 		private void OnChangeGameEvent(string sceneName)
@@ -312,7 +323,7 @@ namespace scene.game.ingame
 
 		private IEnumerator OnChangeGameEventCoroutine(string sceneName)
 		{
-			m_isEnableControll = false;
+			m_isEnableInput = false;
 
 			bool isDone = false;
 			m_player.SequenceOut(0.5f, () => { isDone = true; });
@@ -322,15 +333,15 @@ namespace scene.game.ingame
 
 			isDone = true;
 			string paramString = string.Format(SequenceAnimeStringFormat, "GameOut");
-			m_outgameSetupEvent(paramString, () => { isDone = true; });
+			OutgameSetupEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			isDone = false;
 			paramString = string.Format(SequenceAnimeStringFormat, "LoadingIn");
-			m_outgameSetupEvent(paramString, () => { isDone = true; });
+			OutgameSetupEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
-			m_changeGameEvent(sceneName);
+			ChangeGameEvent(sceneName, State.Game);
 		}
 
 		private void OnSwitchEvent(int id, bool value)
@@ -356,7 +367,7 @@ namespace scene.game.ingame
 					}
 			}
 			string paramString = string.Format(CharaReactionStringFormat, reactionId);
-			m_outgameSetupEvent(paramString, null);
+			OutgameSetupEvent(paramString, null);
 		}
 	}
 }

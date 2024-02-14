@@ -24,19 +24,18 @@ namespace scene.game.outgame.window
 				return;
 			}
 
-			var input = GeneralRoot.Instance.Input;
 			for (int i = 0; i < k_useKeys.Length; ++i)
 			{
 				var key = k_useKeys[i];
 				if (key == KeyCode.Space)
 				{
-					input.UpdateEvent(system.InputSystem.Type.Down, key, null);
-					input.UpdateEvent(system.InputSystem.Type.Up, key, m_onButtonPressEvent);
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, null);
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, m_onButtonPressEvent);
 				}
 				else
 				{
-					input.UpdateEvent(system.InputSystem.Type.Down, key, null);
-					input.UpdateEvent(system.InputSystem.Type.Up, key, null);
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, null);
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, null);
 				}
 			}
 		}

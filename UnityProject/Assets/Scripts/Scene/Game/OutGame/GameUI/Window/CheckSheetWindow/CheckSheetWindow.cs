@@ -10,52 +10,28 @@ namespace scene.game.outgame.window
     [System.Serializable]
     public class CheckSheetWindow : WindowBase
     {
-		[System.Serializable]
 		public class Data
 		{
-			[SerializeField]
-			private int m_checkDataId;
-			public int CheckDataId => m_checkDataId;
-
-			[SerializeField]
-			private CheckSheetElement.Data[] m_datas;
-			public CheckSheetElement.Data[] Datas => m_datas;
+			private checksheet.CheckSheetElement.Data[] m_datas;
+			public checksheet.CheckSheetElement.Data[] Datas => m_datas;
 
 
 
-			public Data(
-				int checkDataId,
-				int accuracyLevel,
-				int[] occurredBugIds)
+			public Data(int[] checkSheetBugDataIds)
 			{
-				m_checkDataId = checkDataId;
-				var checkSheedMaster = GeneralRoot.Master.CheckSheetData;
-				var checkSheedMasterData = checkSheedMaster.Find(checkDataId);
-				if (checkSheedMasterData == null)
-				{
-					return;
-				}
-				var checkSheetMasterAccuracyData = checkSheedMasterData.CheckDatas.FirstOrDefault(d => d.AccuracyLevel == accuracyLevel);
-				if (checkSheetMasterAccuracyData == null)
-				{
-					return;
-				}
-
-				List<CheckSheetElement.Data> dataList = new List<CheckSheetElement.Data>();
 				var checkSheetBugMaster = GeneralRoot.Master.CheckSheetBugData;
-				for (int i = 0; i < checkSheetMasterAccuracyData.BudIds.Length; ++i)
+				List<checksheet.CheckSheetElement.Data> dataList = new List<checksheet.CheckSheetElement.Data>();
+				for (int i = 0; i < checkSheetBugDataIds.Length; ++i)
 				{
-					int bugId = checkSheetMasterAccuracyData.BudIds[i];
+					int bugId = checkSheetBugDataIds[i];
 					var checkSheetBugMasterData = checkSheetBugMaster.Find(bugId);
 					if (checkSheetBugMasterData == null)
 					{
 						continue;
 					}
-					dataList.Add(new CheckSheetElement.Data(
+					dataList.Add(new checksheet.CheckSheetElement.Data(
 						bugId,
-						checkSheetBugMasterData.Info,
-						CheckSheetElement.Data.State.QUESTION,
-						(occurredBugIds.Contains(bugId) ? CheckSheetElement.Data.State.BAD : CheckSheetElement.Data.State.GOOD),
+						checkSheetBugMasterData.InfoTextId,
 						false));
 				}
 				m_datas = dataList.ToArray();
@@ -68,10 +44,10 @@ namespace scene.game.outgame.window
 		[SerializeField]
 		private ScrollRect m_scroll;
 
-		[SerializeField]
+
+
+
 		private Data m_checkSheetData;
-
-
 
 		private int m_selectIndex;
 
@@ -80,6 +56,7 @@ namespace scene.game.outgame.window
 		public override void SetupEvent(string[] paramStrings, UnityAction callback)
 		{
 		}
+
 		protected override void SetupInputKeyEvent()
 		{
 			if (GeneralRoot.Instance.IsPCPlatform() == false)
@@ -87,7 +64,6 @@ namespace scene.game.outgame.window
 				return;
 			}
 
-			var input = GeneralRoot.Instance.Input;
 			UnityAction<int, int> updateSelectIndexEvent = (beforeIndex, afterIndex) =>
 			{
 				if (beforeIndex == afterIndex)
@@ -110,10 +86,10 @@ namespace scene.game.outgame.window
 					key == KeyCode.A ||
 					key == KeyCode.D)
 				{
-					input.UpdateEvent(system.InputSystem.Type.Up, key, null);
+					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, null);
 					if (key == KeyCode.W)
 					{
-						input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
+						GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
 						{
 							int index = m_selectIndex;
 							index--;
@@ -126,7 +102,7 @@ namespace scene.game.outgame.window
 					}
 					else if (key == KeyCode.S)
 					{
-						input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
+						GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
 						{
 							int index = m_selectIndex;
 							index++;
@@ -138,60 +114,25 @@ namespace scene.game.outgame.window
 							updateSelectIndexEvent(m_selectIndex, index);
 						});
 					}
-					else if (key == KeyCode.A)
-					{
-						input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
-						{
-							var state = m_checkSheetData.Datas[m_selectIndex].NowCheckState;
-							if (state == CheckSheetElement.Data.State.BAD)
-							{
-								state = CheckSheetElement.Data.State.QUESTION;
-							}
-							else if (state == CheckSheetElement.Data.State.QUESTION)
-							{
-								state = CheckSheetElement.Data.State.GOOD;
-							}
-							if (state != m_checkSheetData.Datas[m_selectIndex].NowCheckState)
-							{
-								m_checkSheetData.Datas[m_selectIndex].UpdateNowCheckState(state);
-								SetupElements();
-							}
-						});
-					}
-					else if (key == KeyCode.D)
-					{
-						input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
-						{
-							var state = m_checkSheetData.Datas[m_selectIndex].NowCheckState;
-							if (state == CheckSheetElement.Data.State.GOOD)
-							{
-								state = CheckSheetElement.Data.State.QUESTION;
-							}
-							else if (state == CheckSheetElement.Data.State.QUESTION)
-							{
-								state = CheckSheetElement.Data.State.BAD;
-							}
-							if (state != m_checkSheetData.Datas[m_selectIndex].NowCheckState)
-							{
-								m_checkSheetData.Datas[m_selectIndex].UpdateNowCheckState(state);
-								SetupElements();
-							}
-						});
-					}
 					else
 					{
-						input.UpdateEvent(system.InputSystem.Type.Down, key, null);
+						GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, null);
 					}
 				}
 			}
 		}
 
-		public void Setting(
-			int checkSheedId,
-			int accuracyLevel,
-			int[] occurredBugIds)
+		public void Setting()
 		{
-			m_checkSheetData = new Data(checkSheedId, accuracyLevel, occurredBugIds);
+			var local = GeneralRoot.User.LocalSaveData;
+			var gameGunreMaster = GeneralRoot.Master.GameGunreData;
+			var gameGunreMasterData = gameGunreMaster.Find(local.ChallengeGameGunreId);
+			if (gameGunreMasterData == null)
+			{
+				return;
+			}
+
+			m_checkSheetData = new Data(gameGunreMasterData.CheckSheetBugIds);
 			m_selectIndex = 0;
 			for (int i = 0; i < m_checkSheetData.Datas.Length; ++i)
 			{
@@ -202,12 +143,8 @@ namespace scene.game.outgame.window
 			for (int i = 0; i < documentElements.Count; ++i)
 			{
 				int index = i;
-				var element = documentElements[index].GetComponent<CheckSheetElement>();
-				element.Initialize((checkState) =>
-				{
-					m_checkSheetData.Datas[index].UpdateNowCheckState(checkState);
-					SetupElements();
-				});
+				var element = documentElements[index].GetComponent<checksheet.CheckSheetElement>();
+				element.Initialize();
 			}
 
 			SetupElements();
@@ -219,11 +156,12 @@ namespace scene.game.outgame.window
 			for (int i = 0; i < documentElements.Count; ++i)
 			{
 				documentElements[i].SetActive(m_checkSheetData.Datas.Length > i);
-				if (m_checkSheetData.Datas.Length > i)
+				if (m_checkSheetData.Datas.Length <= i)
 				{
-					var element = documentElements[i].GetComponent<CheckSheetElement>();
-					element.Setting(m_checkSheetData.Datas[i]);
+					continue;
 				}
+				var element = documentElements[i].GetComponent<checksheet.CheckSheetElement>();
+				element.Setting(m_checkSheetData.Datas[i]);
 			}
 		}
 

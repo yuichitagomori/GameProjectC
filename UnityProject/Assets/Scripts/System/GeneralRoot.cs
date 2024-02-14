@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Advertisements;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 /// <summary>
 /// 一般的な機能取得先
@@ -62,13 +60,6 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 
 
 
-	public static data.MasterData Master => Instance.m_masterData;
-
-	public static data.UserData User => Instance.m_userData;
-
-	public static data.ResourceData Resource => Instance.m_resourceData;
-
-
 
 	public readonly static string DEBUG_ANDROID = "Debug_Android";
 	public readonly static string RELEASE_ANDROID = "Release_Android";
@@ -95,14 +86,28 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 	/// </summary>
 	[SerializeField]
 	private system.InputSystem m_input;
-	public system.InputSystem Input => m_input;
+	public static system.InputSystem Input => Instance.m_input;
+
+	/// <summary>
+	/// サウンドシステム
+	/// </summary>
+	[SerializeField]
+	private system.SoundSystem m_soundSystem;
+	public static system.SoundSystem Sound => Instance.m_soundSystem;
+
+	/// <summary>
+	/// ポスプロ管理
+	/// </summary>
+	[SerializeField]
+	private system.PosproController m_posproController;
+	public static system.PosproController Pospro => Instance.m_posproController;
 
 	/// <summary>
 	/// Ads操作
 	/// </summary>
 	[SerializeField]
 	private system.AdsController m_adsController;
-	public system.AdsController AdsController { get { return m_adsController; } }
+	public static system.AdsController Ads => Instance.m_adsController;
 
 	///// <summary>
 	///// 通信コネクター
@@ -116,18 +121,21 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 	/// </summary>
 	[SerializeField]
 	private data.ResourceData m_resourceData;
+	public static data.ResourceData Resource => Instance.m_resourceData;
 
 	/// <summary>
 	/// マスター情報
 	/// </summary>
 	[SerializeField]
 	private data.MasterData m_masterData;
+	public static data.MasterData Master => Instance.m_masterData;
 
 	/// <summary>
 	/// ユーザー情報
 	/// </summary>
 	[SerializeField]
 	private data.UserData m_userData;
+	public static data.UserData User => Instance.m_userData;
 
 	/// <summary>
 	/// マウスカーソル
@@ -135,13 +143,6 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 	[SerializeField]
 	private MouseCursor m_mouseCursor;
 	public MouseCursor mouseCursor => m_mouseCursor;
-
-	///// <summary>
-	///// サウンドシステム
-	///// </summary>
-	//[SerializeField]
-	//private SoundSystem m_soundSystem;
-	//public SoundSystem SoundSystem { get { return m_soundSystem; } }
 
 	///// <summary>
 	///// ストアシステム
@@ -162,33 +163,6 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 	[SerializeField]
 	private scene.DebugMenu m_debugMenu;
 
-	/// <summary>
-	/// ポスプロ
-	/// </summary>
-	[SerializeField]
-	private Volume m_volume;
-
-
-
-	public Vignette GetVignette()
-	{
-		Vignette vignette = null;
-		if (m_volume.profile.TryGet<Vignette>(out vignette))
-		{
-			return vignette;
-		}
-		return null;
-	}
-	public Bloom GetBloom()
-	{
-		Bloom bloom = null;
-		if (m_volume.profile.TryGet<Bloom>(out bloom))
-		{
-			return bloom;
-		}
-		return null;
-	}
-
 
 
 	private void Start()
@@ -199,7 +173,7 @@ public class GeneralRoot : SingletonMonoBehaviour<GeneralRoot>
 		QualitySettings.vSyncCount = 0;
 		Application.targetFrameRate = 60;
 
-		m_adsController.Initialize();
+		//m_adsController.Initialize();
 		m_sceneController.Initialize();
 		m_input.Initialize();
 
