@@ -1,0 +1,144 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e97c9ccdbd197d84c959f293f05d4173, type: 3}
+  m_Name: 100
+  m_EditorClassIdentifier: 
+  m_datas:
+  - m_name: '001: DisableInput'
+    m_id: 1
+    m_param: DisableInput
+  - m_name: '002: Ingame,PlayDisplayChara,Default,false'
+    m_id: 2
+    m_param: Ingame,PlayDisplayChara,Default,false
+  - m_name: '003: Ingame,MoveDisplayChara,0,8,0,0,180,0,0.0'
+    m_id: 3
+    m_param: Ingame,MoveDisplayChara,0,8,0,0,180,0,0.0
+  - m_name: '004: Outgame,MenuInvisible,0'
+    m_id: 4
+    m_param: Outgame,MenuInvisible,0
+  - m_name: '005: Outgame,FadeIn,2.0'
+    m_id: 5
+    m_param: Outgame,FadeIn,2.0
+  - m_name: '006: WaitTime,0.5'
+    m_id: 6
+    m_param: WaitTime,0.5
+  - m_name: '007: Ingame,BackgroundSlow,1.0'
+    m_id: 7
+    m_param: Ingame,BackgroundSlow,1.0
+  - m_name: '008: Outgame,AddDateTimeWindow,0,-64'
+    m_id: 8
+    m_param: Outgame,AddDateTimeWindow,0,-64
+  - m_name: '009: Outgame,PlayDateTimeWindow,1'
+    m_id: 9
+    m_param: Outgame,PlayDateTimeWindow,1
+  - m_name: '010: Outgame,RemoveWindow,0'
+    m_id: 10
+    m_param: Outgame,RemoveWindow,0
+  - m_name: '011: WaitTime,0.5'
+    m_id: 11
+    m_param: WaitTime,0.5
+  - m_name: '012: Outgame,AddImageWindow,-360,64,1'
+    m_id: 12
+    m_param: Outgame,AddImageWindow,-360,64,1
+  - m_name: '013: WaitTime,2.0'
+    m_id: 13
+    m_param: WaitTime,2.0
+  - m_name: '014: Outgame,AddImageWindow,-200,-64,2'
+    m_id: 14
+    m_param: Outgame,AddImageWindow,-200,-64,2
+  - m_name: '015: Outgame,RemoveWindow,0'
+    m_id: 15
+    m_param: Outgame,RemoveWindow,0
+  - m_name: '016: WaitTime,2.0'
+    m_id: 16
+    m_param: WaitTime,2.0
+  - m_name: '017: Outgame,AddImageWindow,-40,-192,3'
+    m_id: 17
+    m_param: Outgame,AddImageWindow,-40,-192,3
+  - m_name: '018: Outgame,RemoveWindow,0'
+    m_id: 18
+    m_param: Outgame,RemoveWindow,0
+  - m_name: '019: WaitTime,1.0'
+    m_id: 19
+    m_param: WaitTime,1.0
+  - m_name: '020: Outgame,AddImageWindow,240,-160,4'
+    m_id: 20
+    m_param: Outgame,AddImageWindow,240,-160,4
+  - m_name: '021: WaitTime,2.0'
+    m_id: 21
+    m_param: WaitTime,2.0
+  - m_name: '022: Outgame,RemoveWindow,1'
+    m_id: 22
+    m_param: Outgame,RemoveWindow,1
+  - m_name: '023: WaitTime,1.0'
+    m_id: 23
+    m_param: WaitTime,1.0
+  - m_name: '024: Outgame,RemoveWindow,0'
+    m_id: 24
+    m_param: Outgame,RemoveWindow,0
+  - m_name: '025: WaitTime,1.0'
+    m_id: 25
+    m_param: WaitTime,1.0
+  - m_name: '026: Outgame,AddCameraWindow,0,-64'
+    m_id: 26
+    m_param: Outgame,AddCameraWindow,0,-64
+  - m_name: '027: WaitTime,0.5'
+    m_id: 27
+    m_param: WaitTime,0.5
+  - m_name: '028: Outgame,PlayCameraWindow,1'
+    m_id: 28
+    m_param: Outgame,PlayCameraWindow,1
+  - m_name: '029: Outgame,MoveWindow,0,1.0,400,-160'
+    m_id: 29
+    m_param: Outgame,MoveWindow,0,1.0,400,-160
+  - m_name: '030: Ingame,PlayDisplayChara,In,false'
+    m_id: 30
+    m_param: Ingame,PlayDisplayChara,In,false
+  - m_name: '031: Ingame,PlayDisplayChara,Wait,true'
+    m_id: 31
+    m_param: Ingame,PlayDisplayChara,Wait,true
+  - m_name: '032: Ingame,MoveDisplayChara,60,30,25,0,220,0,1.0'
+    m_id: 32
+    m_param: Ingame,MoveDisplayChara,60,30,25,0,220,0,1.0
+  - m_name: '033: Ingame,MoveDisplayChara,60,20,25,0,220,0,1.0'
+    m_id: 33
+    m_param: Ingame,MoveDisplayChara,60,20,25,0,220,0,1.0
+  - m_name: '034: WaitTime,0.5'
+    m_id: 34
+    m_param: WaitTime,0.5
+  - m_name: '035: Outgame,AddCheckSheetWindow,-360,-160'
+    m_id: 35
+    m_param: Outgame,AddCheckSheetWindow,-360,-160
+  - m_name: '036: WaitTime,0.5'
+    m_id: 36
+    m_param: WaitTime,0.5
+  - m_name: '037: Outgame,AddMainWindow,0,90,Action'
+    m_id: 37
+    m_param: Outgame,AddMainWindow,0,90,Action
+  - m_name: '038: Ingame,PlayDisplayChara,Recreate,false'
+    m_id: 38
+    m_param: Ingame,PlayDisplayChara,Recreate,false
+  - m_name: '039: Ingame,PlayDisplayChara,Gaming,true'
+    m_id: 39
+    m_param: Ingame,PlayDisplayChara,Gaming,true
+  - m_name: '040: Ingame,StartGame,ActionGame02'
+    m_id: 40
+    m_param: Ingame,StartGame,ActionGame02
+  - m_name: '041: WaitTime,0.5'
+    m_id: 41
+    m_param: WaitTime,0.5
+  - m_name: '042: Outgame,MenuVisible,1.0'
+    m_id: 42
+    m_param: Outgame,MenuVisible,1.0
+  - m_name: '043: EnableInput'
+    m_id: 43
+    m_param: EnableInput

@@ -1,0 +1,16 @@
+1	DisableInput
+2	Outgame,RemoveWindow,3
+3	Outgame,RemoveWindow,2
+4	Outgame,RemoveWindow,1
+5	Outgame,MoveWindow,0,2.0,400,-240
+6	Outgame,AddResultWindow,0,-64
+7	EnableInput
+8	Outgame,PlayResultWindow
+9	DisableInput
+10	Outgame,RemoveWindow,1
+11	Outgame,MoveWindow,0,2.0,0,-64
+12	Outgame,PlayCameraWindow,2
+13	Outgame,RemoveWindow,0
+14	Ingame,BackgroundFast,2.0
+15	Outgame,FadeOut,2.0
+16	EnableInput

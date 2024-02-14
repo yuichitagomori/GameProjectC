@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7f7cff0fac7f264c95328aad375926e, type: 3}
+  m_Name: MovieListData
+  m_EditorClassIdentifier: 
+  m_datas:
+  - m_name: 1
+    m_id: 1
+    m_master: {fileID: 11400000, guid: 3675bc7f118cc1c4894e7fba0954c38c, type: 2}
+  - m_name: 10
+    m_id: 10
+    m_master: {fileID: 11400000, guid: 623be924c2c2e65498f5959bafc3e154, type: 2}
+  - m_name: 11
+    m_id: 11
+    m_master: {fileID: 11400000, guid: a62376acd93405442a70c42faaae656c, type: 2}
+  - m_name: 100
+    m_id: 100
+    m_master: {fileID: 11400000, guid: 94d0ec779ee557a45a8d05a6d8a505e2, type: 2}
+  - m_name: 101
+    m_id: 101
+    m_master: {fileID: 11400000, guid: fc977175f4d26d549a21329ea9a450c9, type: 2}
+  - m_name: 200
+    m_id: 200
+    m_master: {fileID: 11400000, guid: ca7ce96a26ad27345b48d3b7f9e569f6, type: 2}

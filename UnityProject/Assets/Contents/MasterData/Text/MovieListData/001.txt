@@ -1,0 +1,11 @@
+1	Ingame,PlayDisplayChara,Default,false
+2	Ingame,MoveDisplayChara,0,8,-10,0,180,0,0.0
+3	Outgame,MenuInvisible,0
+4	Outgame,FadeIn,2.0
+5	Ingame,PlayDisplayChara,In,false
+6	Ingame,PlayDisplayChara,Wait,true
+7	Ingame,MoveDisplayChara,20,8,-10,0,220,0,0.5
+8	Outgame,AddTitleWindow,-80,-64
+9	Outgame,RemoveWindow,0
+10	Ingame,MoveDisplayChara,4,4,-40,0,180,0,1.0
+11	Outgame,FadeOut,1.0

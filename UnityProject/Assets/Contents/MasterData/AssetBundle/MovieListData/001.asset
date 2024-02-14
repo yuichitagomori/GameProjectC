@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e97c9ccdbd197d84c959f293f05d4173, type: 3}
+  m_Name: 001
+  m_EditorClassIdentifier: 
+  m_datas:
+  - m_name: '001: Ingame,PlayDisplayChara,Default,false'
+    m_id: 1
+    m_param: Ingame,PlayDisplayChara,Default,false
+  - m_name: '002: Ingame,MoveDisplayChara,0,8,-10,0,180,0,0.0'
+    m_id: 2
+    m_param: Ingame,MoveDisplayChara,0,8,-10,0,180,0,0.0
+  - m_name: '003: Outgame,MenuInvisible,0'
+    m_id: 3
+    m_param: Outgame,MenuInvisible,0
+  - m_name: '004: Outgame,FadeIn,2.0'
+    m_id: 4
+    m_param: Outgame,FadeIn,2.0
+  - m_name: '005: Ingame,PlayDisplayChara,In,false'
+    m_id: 5
+    m_param: Ingame,PlayDisplayChara,In,false
+  - m_name: '006: Ingame,PlayDisplayChara,Wait,true'
+    m_id: 6
+    m_param: Ingame,PlayDisplayChara,Wait,true
+  - m_name: '007: Ingame,MoveDisplayChara,20,8,-10,0,220,0,0.5'
+    m_id: 7
+    m_param: Ingame,MoveDisplayChara,20,8,-10,0,220,0,0.5
+  - m_name: '008: Outgame,AddTitleWindow,-80,-64'
+    m_id: 8
+    m_param: Outgame,AddTitleWindow,-80,-64
+  - m_name: '009: Outgame,RemoveWindow,0'
+    m_id: 9
+    m_param: Outgame,RemoveWindow,0
+  - m_name: '010: Ingame,MoveDisplayChara,4,4,-40,0,180,0,1.0'
+    m_id: 10
+    m_param: Ingame,MoveDisplayChara,4,4,-40,0,180,0,1.0
+  - m_name: '011: Outgame,FadeOut,1.0'
+    m_id: 11
+    m_param: Outgame,FadeOut,1.0

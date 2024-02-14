@@ -1,0 +1,2 @@
+1	Outgame,AddCommonWindow,0,-64,50,101,11
+2	Outgame,MenuInvisible,0.5
