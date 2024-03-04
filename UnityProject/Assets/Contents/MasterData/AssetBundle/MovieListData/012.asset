@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e97c9ccdbd197d84c959f293f05d4173, type: 3}
+  m_Name: 012
+  m_EditorClassIdentifier: 
+  m_datas:
+  - m_name: '001: Outgame,RemoveWindow,3'
+    m_id: 1
+    m_param: Outgame,RemoveWindow,3
+  - m_name: '002: Outgame,AddCommonWindow,0,0,50,101,13'
+    m_id: 2
+    m_param: Outgame,AddCommonWindow,0,0,50,101,13
