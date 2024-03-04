@@ -13,9 +13,10 @@ namespace scene.game.outgame.window.main.actiongame
 		{
 			public enum State
 			{
-				NORMAL,
-				WARNING,
-				ERROR,
+				Active,
+				Inactive,
+				ToActive,
+				ToInactive,
 			}
 
 			[SerializeField]
@@ -29,16 +30,7 @@ namespace scene.game.outgame.window.main.actiongame
 		}
 
 		[SerializeField]
-		private UnityEngine.UI.Image m_gaugeImage;
-
-		[SerializeField]
-		private Sprite m_gaugeNormalSprite;
-
-		[SerializeField]
-		private Sprite m_gaugeWarningSprite;
-
-		[SerializeField]
-		private Sprite m_gaugeErrorSprite;
+		private Common.AnimatorExpansion m_animator;
 
 
 
@@ -46,19 +38,30 @@ namespace scene.game.outgame.window.main.actiongame
 		{
 		}
 
-		public void Setting(Data data)
+		public void Setting(Data data, UnityAction callback)
 		{
-			if (data.NowState == Data.State.NORMAL)
+			switch (data.NowState)
 			{
-				m_gaugeImage.sprite = m_gaugeNormalSprite;
-			}
-			else if (data.NowState == Data.State.WARNING)
-			{
-				m_gaugeImage.sprite = m_gaugeWarningSprite;
-			}
-			else if (data.NowState == Data.State.ERROR)
-			{
-				m_gaugeImage.sprite = m_gaugeErrorSprite;
+				case Data.State.Active:
+					{
+						m_animator.Play("Active", callback);
+						break;
+					}
+				case Data.State.Inactive:
+					{
+						m_animator.Play("Inactive", callback);
+						break;
+					}
+				case Data.State.ToActive:
+					{
+						m_animator.Play("ToActive", callback);
+						break;
+					}
+				case Data.State.ToInactive:
+					{
+						m_animator.Play("ToInactive", callback);
+						break;
+					}
 			}
 		}
 	}

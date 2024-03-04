@@ -25,39 +25,63 @@ MonoBehaviour:
   - m_name: '004: Outgame,RemoveWindow,1'
     m_id: 4
     m_param: Outgame,RemoveWindow,1
-  - m_name: '005: Outgame,MoveWindow,0,2.0,400,-240'
+  - m_name: '005: Outgame,MoveWindow,0,1.0,430,130'
     m_id: 5
-    m_param: Outgame,MoveWindow,0,2.0,400,-240
-  - m_name: '006: Outgame,AddResultWindow,0,-64'
+    m_param: Outgame,MoveWindow,0,1.0,430,130
+  - m_name: '006: WaitTime,1.0'
     m_id: 6
-    m_param: Outgame,AddResultWindow,0,-64
-  - m_name: '007: EnableInput'
+    m_param: WaitTime,1.0
+  - m_name: '007: Outgame,PlayWindow,Camera,AnimationName,Entreaty,false'
     m_id: 7
-    m_param: EnableInput
-  - m_name: '008: Outgame,PlayResultWindow'
+    m_param: Outgame,PlayWindow,Camera,AnimationName,Entreaty,false
+  - m_name: '008: WaitTime,0.5'
     m_id: 8
-    m_param: Outgame,PlayResultWindow
-  - m_name: '009: DisableInput'
+    m_param: WaitTime,0.5
+  - m_name: '009: Outgame,AddResultWindow,-120,-64'
     m_id: 9
-    m_param: DisableInput
-  - m_name: '010: Outgame,RemoveWindow,1'
+    m_param: Outgame,AddResultWindow,-120,-64
+  - m_name: '010: Outgame,PlayWindow,Result,Phase1'
     m_id: 10
-    m_param: Outgame,RemoveWindow,1
-  - m_name: '011: Outgame,MoveWindow,0,2.0,0,-64'
+    m_param: Outgame,PlayWindow,Result,Phase1
+  - m_name: '011: WaitTime,0.5'
     m_id: 11
-    m_param: Outgame,MoveWindow,0,2.0,0,-64
-  - m_name: '012: Outgame,PlayCameraWindow,2'
+    m_param: WaitTime,0.5
+  - m_name: '012: Outgame,PlayWindow,Camera,TopSibling'
     m_id: 12
-    m_param: Outgame,PlayCameraWindow,2
-  - m_name: '013: Outgame,RemoveWindow,0'
+    m_param: Outgame,PlayWindow,Camera,TopSibling
+  - m_name: '013: Outgame,PlayWindow,Camera,AnimationName,Happy,false'
     m_id: 13
-    m_param: Outgame,RemoveWindow,0
-  - m_name: '014: Ingame,BackgroundFast,2.0'
+    m_param: Outgame,PlayWindow,Camera,AnimationName,Happy,false
+  - m_name: '014: WaitTime,1.5'
     m_id: 14
-    m_param: Ingame,BackgroundFast,2.0
-  - m_name: '015: Outgame,FadeOut,2.0'
+    m_param: WaitTime,1.5
+  - m_name: '015: EnableInput'
     m_id: 15
-    m_param: Outgame,FadeOut,2.0
-  - m_name: '016: EnableInput'
+    m_param: EnableInput
+  - m_name: '016: Outgame,PlayWindow,Result,TopSibling'
     m_id: 16
+    m_param: Outgame,PlayWindow,Result,TopSibling
+  - m_name: '017: Outgame,PlayWindow,Result,Phase2'
+    m_id: 17
+    m_param: Outgame,PlayWindow,Result,Phase2
+  - m_name: '018: DisableInput'
+    m_id: 18
+    m_param: DisableInput
+  - m_name: '019: Outgame,PlayWindow,Camera,AnimationName,Wait,true'
+    m_id: 19
+    m_param: Outgame,PlayWindow,Camera,AnimationName,Wait,true
+  - m_name: '020: Outgame,RemoveWindow,1'
+    m_id: 20
+    m_param: Outgame,RemoveWindow,1
+  - m_name: '021: Outgame,MoveWindow,0,2.0,0,0'
+    m_id: 21
+    m_param: Outgame,MoveWindow,0,2.0,0,0
+  - m_name: '022: Outgame,RemoveWindow,0'
+    m_id: 22
+    m_param: Outgame,RemoveWindow,0
+  - m_name: '023: Outgame,FadeOut,2.0'
+    m_id: 23
+    m_param: Outgame,FadeOut,2.0
+  - m_name: '024: EnableInput'
+    m_id: 24
     m_param: EnableInput

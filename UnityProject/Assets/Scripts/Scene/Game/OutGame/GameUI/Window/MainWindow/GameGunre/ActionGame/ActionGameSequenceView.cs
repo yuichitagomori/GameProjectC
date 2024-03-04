@@ -12,14 +12,17 @@ namespace scene.game.outgame.window.main.actiongame
 		private Common.ElementList m_lifeGaugeElementList;
 
 
+
+		private int nowLife = 0;
+
 		public override void Setting()
 		{
 			m_animation.Play("Default");
 
-			UpdateLifeGauge(0);
+			StartCoroutine(UpdateLifeGaugeCoroutine(0, 0));
 		}
 
-		public override IEnumerator SetupEventCoroutine(string[] paramStrings, UnityAction callback)
+		public override IEnumerator OnMovieStartCoroutine(string[] paramStrings, UnityAction callback)
 		{
 			switch (paramStrings[0])
 			{
@@ -35,9 +38,8 @@ namespace scene.game.outgame.window.main.actiongame
 				case "UpdateLifeGauge":
 					{
 						int life = int.Parse(paramStrings[1]);
-						UpdateLifeGauge(life);
-						yield return null;
-
+						int lifeMax = int.Parse(paramStrings[2]);
+						yield return UpdateLifeGaugeCoroutine(life, lifeMax);
 						break;
 					}
 				default:
@@ -52,20 +54,49 @@ namespace scene.game.outgame.window.main.actiongame
 			}
 		}
 
-		private void UpdateLifeGauge(int value)
+		private IEnumerator UpdateLifeGaugeCoroutine(int value, int valueMax)
 		{
+			int doneCount = 0;
 			var elements = m_lifeGaugeElementList.GetElements();
 			for (int i = 0; i < elements.Count; ++i)
 			{
-				if (i >= value)
+				if (i >= valueMax)
 				{
 					elements[i].SetActive(false);
+					doneCount++;
 					continue;
 				}
+
 				elements[i].SetActive(true);
+				LifeGaugeElement.Data.State state = LifeGaugeElement.Data.State.Active;
+				if (i >= value)
+				{
+					if (i >= nowLife)
+					{
+						state = LifeGaugeElement.Data.State.Inactive;
+					}
+					else
+					{
+						state = LifeGaugeElement.Data.State.ToInactive;
+					}
+				}
+				else
+				{
+					if (i < nowLife)
+					{
+						state = LifeGaugeElement.Data.State.Active;
+					}
+					else
+					{
+						state = LifeGaugeElement.Data.State.ToActive;
+					}
+				}
 				var lifeGaugeElement = elements[i].GetComponent<LifeGaugeElement>();
-				lifeGaugeElement.Setting(new LifeGaugeElement.Data(LifeGaugeElement.Data.State.NORMAL));
+				lifeGaugeElement.Setting(new LifeGaugeElement.Data(state), () => { doneCount++; });
 			}
+
+			while (doneCount < elements.Count) { yield return null; }
+			nowLife = value;
 		}
 	}
 }

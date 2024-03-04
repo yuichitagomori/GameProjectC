@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine;
+using UnityEngine.Events;
 
 namespace CommonUI
 {
@@ -19,6 +17,8 @@ namespace CommonUI
 		/// </summary>
 		[SerializeField]
 		private TextExpansion m_text;
+		public TextExpansion Text => m_text;
+
 
 		private void Reset()
 		{
@@ -31,6 +31,12 @@ namespace CommonUI
 		private void Awake()
 		{
 			m_text.text = GetString(m_id);
+		}
+
+		public void PlayProgression(float waitTime, UnityAction callback)
+		{
+			string str = GetString(m_id);
+			m_text.PlayProgression(str, waitTime, callback);
 		}
 
 		public static string GetString(int id)

@@ -59,50 +59,50 @@ namespace scene
 			{
 				yield break;
 			}
-			var bugIds = gameGunreMasterData.CheckSheetBugIds;
-			int index = UnityEngine.Random.Range(0, bugIds.Length);
-			local.UpdateOccurredBugId(bugIds[index]);
-			local.UpdateTryCount(1);
+			UpdateBudId(true);
 
 			m_movieController.Initialize(OnMovieStart);
 
 			m_ingame.Initialize(
 				loadGameEvent: LoadGameEvent,
-				outgameSetupEvent: m_outgame.SetupEvent);
+				playMovieEvent: OnMovieStart);
 			m_outgame.Initialize(
 				commonWindowPlayMovieEvent: (int movieId) =>
 				{
 					m_movieController.Play(movieId, null);
 				},
-				mainWindowPowerButtonEvent: () =>
+				feedbackButtonEvent: () =>
 				{
-					m_ingame.ResetGame();
+					m_movieController.Play((int)data.master.MovieListData.MovieType.Feedback, null);
 				},
-				mainWindowRecreateButtonEvent: () =>
+				powerButtonEvent: () =>
 				{
-					var local = GeneralRoot.User.LocalSaveData;
-					if (local.TryCount > 4 && UnityEngine.Random.Range(0, 2) == 0)
+					m_movieController.Play((int)data.master.MovieListData.MovieType.Recreate, () =>
 					{
-						local.UpdateOccurredBugId(-1);
-					}
-					else
-					{
-						var gameGunreMaster = GeneralRoot.Master.GameGunreData;
-						var gameGunreMasterData = gameGunreMaster.Find(local.ChallengeGameGunreId);
-						if (gameGunreMasterData == null)
-						{
-							return;
-						}
-						var bugIds = gameGunreMasterData.CheckSheetBugIds;
-						int index = UnityEngine.Random.Range(0, bugIds.Length);
-						local.UpdateOccurredBugId(bugIds[index]);
-					}
-					local.UpdateTryCount(local.TryCount + 1);
-					m_ingame.ResetGame();
+						var temporary = GeneralRoot.User.LocalTemporaryData;
+						temporary.ClearSceneNameList.Clear();
+
+						m_ingame.ResetGame(null);
+					});
 				},
-				mainWindowReleaseButtonEvent: () =>
+				recreateButtonEvent: () =>
+				{
+					m_movieController.Play((int)data.master.MovieListData.MovieType.Recreate, () =>
+					{
+						var temporary = GeneralRoot.User.LocalTemporaryData;
+						temporary.ClearSceneNameList.Clear();
+
+						UpdateBudId(false);
+						m_ingame.ResetGame(null);
+					});
+				},
+				releaseButtonEvent: () =>
 				{
 					m_movieController.Play((int)data.master.MovieListData.MovieType.Release, null);
+				},
+				canselButtonEvent: () =>
+				{
+					m_movieController.Play((int)data.master.MovieListData.MovieType.Cansel, null);
 				},
 				mainWindowInputEvent: m_ingame.OnInputEvent);
 
@@ -224,6 +224,66 @@ namespace scene
 			{
 				callback();
 			}
+		}
+
+		private void UpdateBudId(bool isInitialize)
+		{
+			var local = GeneralRoot.User.LocalSaveData;
+			var gameGunreMaster = GeneralRoot.Master.GameGunreData;
+			var gameGunreMasterData = gameGunreMaster.Find(local.ChallengeGameGunreId);
+			if (gameGunreMasterData == null)
+			{
+				return;
+			}
+
+			var temporary = GeneralRoot.User.LocalTemporaryData;
+			if (isInitialize == true)
+			{
+				temporary.UpdateTryCount(0);
+			}
+			else
+			{
+				temporary.UpdateTryCount(temporary.TryCount + 1);
+			}
+
+			bool isBug = false;
+			if (temporary.TryCount < gameGunreMasterData.TryCountMin)
+			{
+				isBug = true;
+			}
+			else if (
+				temporary.TryCount < gameGunreMasterData.TryCountMax &&
+				UnityEngine.Random.Range(0, 2) == 0)
+			{
+				isBug = true;
+			}
+
+			if (isBug)
+			{
+				var bugIds = gameGunreMasterData.CheckSheetBugIds;
+				int index = UnityEngine.Random.Range(0, bugIds.Length);
+				temporary.UpdateOccurredBugId(bugIds[index]);
+				switch (bugIds[index])
+				{
+					case (int)data.master.CheckSheetBugData.BugType.Animation:
+						{
+							temporary.UpdateOccurredBugOptionId(UnityEngine.Random.Range(0, 2));
+							break;
+						}
+					default:
+						{
+							temporary.UpdateOccurredBugOptionId(0);
+							break;
+						}
+				}
+			}
+			else
+			{
+				temporary.UpdateOccurredBugId(-1);
+				temporary.UpdateOccurredBugOptionId(-1);
+			}
+			temporary.UpdateOccurredBugId(51);
+			temporary.UpdateOccurredBugOptionId(1);
 		}
 	}
 }

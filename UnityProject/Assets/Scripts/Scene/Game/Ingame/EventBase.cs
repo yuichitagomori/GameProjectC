@@ -27,8 +27,8 @@ namespace scene.game.ingame
 			public string TargetName => m_targetName;
 
 			[SerializeField]
-			private string m_eventParam;
-			public string EventParam => m_eventParam;
+			private string[] m_eventParams;
+			public string[] EventParams => m_eventParams;
 
 			[SerializeField]
 			private bool m_invalidation = true;
@@ -45,10 +45,10 @@ namespace scene.game.ingame
 
 
 
-		public UnityAction<string> m_callback;
+		public UnityAction<string[]> m_callback;
 
 
-		public void Initialize(UnityAction<string> callback)
+		public void Initialize(UnityAction<string[]> callback)
 		{
 			m_callback = callback;
 		}
@@ -82,7 +82,7 @@ namespace scene.game.ingame
 			for (int i = 0; i < checkDatas.Length; ++i)
 			{
 				var data = checkDatas[i];
-				if (string.IsNullOrEmpty(data.EventParam) == true)
+				if (data.EventParams.Length <= 0)
 				{
 					continue;
 				}
@@ -91,7 +91,7 @@ namespace scene.game.ingame
 					m_collider.enabled = false;
 				}
 
-				m_callback(data.EventParam);
+				m_callback(data.EventParams);
 			}
 		}
 	}

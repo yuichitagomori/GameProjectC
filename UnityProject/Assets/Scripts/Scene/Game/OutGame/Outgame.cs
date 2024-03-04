@@ -21,9 +21,11 @@ namespace scene.game
 
 		public void Initialize(
 			UnityAction<int> commonWindowPlayMovieEvent,
-			UnityAction mainWindowPowerButtonEvent,
-			UnityAction mainWindowRecreateButtonEvent,
-			UnityAction mainWindowReleaseButtonEvent,
+			UnityAction feedbackButtonEvent,
+			UnityAction powerButtonEvent,
+			UnityAction recreateButtonEvent,
+			UnityAction releaseButtonEvent,
+			UnityAction canselButtonEvent,
 			UnityAction<KeyCode[]> mainWindowInputEvent)
 		{
 			var fadeColor = m_fade.color;
@@ -32,9 +34,11 @@ namespace scene.game
 
 			m_gameUI.Initialize(
 				commonWindowPlayMovieEvent: commonWindowPlayMovieEvent,
-				mainWindowPowerButtonEvent: mainWindowPowerButtonEvent,
-				mainWindowRecreateButtonEvent: mainWindowRecreateButtonEvent,
-				mainWindowReleaseButtonEvent: mainWindowReleaseButtonEvent,
+				feedbackButtonEvent: feedbackButtonEvent,
+				powerButtonEvent: powerButtonEvent,
+				recreateButtonEvent: recreateButtonEvent,
+				releaseButtonEvent: releaseButtonEvent,
+				canselButtonEvent: canselButtonEvent,
 				mainWindowInputEvent: mainWindowInputEvent);
 		}
 
@@ -91,29 +95,12 @@ namespace scene.game
 						SetupFade(false, time, callback);
 						break;
 					}
-				case "MenuVisible":
-					{
-						float time = float.Parse(paramStrings[1]);
-						m_gameUI.SetMenuVisible(true, time, callback);
-						break;
-					}
-				case "MenuInvisible":
-					{
-						float time = float.Parse(paramStrings[1]);
-						m_gameUI.SetMenuVisible(false, time, callback);
-						break;
-					}
 				default:
 					{
 						m_gameUI.OnMovieStart(paramStrings, callback);
 						break;
 					}
 			}
-		}
-
-		public void SetupEvent(string param, UnityAction callback)
-		{
-			m_gameUI.SetupEvent(param, callback);
 		}
     }
 }

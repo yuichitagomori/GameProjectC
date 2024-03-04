@@ -8,49 +8,53 @@ namespace scene.game.ingame.actiongame
 	[System.Serializable]
 	public class TransferObject : ObjectBase
 	{
-		private UnityAction<int> m_transferEvent;
-		private UnityAction<string> m_changeGameEvent;
-
-
-
-		public void Initialize(UnityAction<int> transferEvent, UnityAction<string> changeGameEvent)
+		public enum Type
 		{
-			m_transferEvent = transferEvent;
-			m_changeGameEvent = changeGameEvent;
-			m_fbx.Anime.PlayLoop("InactiveLoop");
-			base.Initialize(OnEvent);
+			In,
+			Out,
+			Break,
 		}
 
-		private void OnEvent(string param)
+		[SerializeField]
+		private Type m_type;
+
+		[SerializeField]
+		private Texture[] m_emissionTextures;
+
+		[SerializeField]
+		private GameObject m_breakEffectObject;
+
+		[SerializeField]
+		private string m_breakSceneName;
+
+
+
+		public new void Initialize(UnityAction<string[]> onEvent)
 		{
-			string[] actionStrings = param.Split('_');
-			switch (actionStrings[0])
+			if (m_type == Type.Break)
 			{
-				case "Transfer":
-					{
-						int index = int.Parse(actionStrings[1]);
-						m_transferEvent(index);
-						break;
-					}
-				case "ChangeGame":
-					{
-						string changeGameName = actionStrings[1];
-						m_changeGameEvent(changeGameName);
-						break;
-					}
-				case "In":
-					{
-						m_fbx.Anime.Play("ActiveIn");
-						break;
-					}
-				case "Out":
-					{
-						m_fbx.Anime.Play("ActiveOut", () =>
-						{
-							m_fbx.Anime.PlayLoop("InactiveLoop");
-						});
-						break;
-					}
+				var temporary = GeneralRoot.User.LocalTemporaryData;
+				if (temporary.ClearSceneNameList.Contains(m_breakSceneName) == true)
+				{
+					m_type = Type.Out;
+				}
+			}
+
+			var material = m_fbx.Models[0].Mesh.material;
+			material.SetTexture("_Emission", m_emissionTextures[(int)m_type]);
+			if (m_breakEffectObject != null)
+			{
+				m_breakEffectObject.SetActive(m_type == Type.Break);
+			}
+
+			if (m_type == Type.Out)
+			{
+				// イベントを発生させないようにする
+				base.Initialize(null);
+			}
+			else
+			{
+				base.Initialize(onEvent);
 			}
 		}
 	}

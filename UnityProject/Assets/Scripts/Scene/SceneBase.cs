@@ -13,12 +13,6 @@ namespace scene
 		[Header("SceneBase")]
 
 		/// <summary>
-		/// キャンバス
-		/// </summary>
-		[SerializeField]
-		private Canvas m_canvas;
-
-		/// <summary>
 		/// キャンバス親オブジェクト
 		/// </summary>
 		[SerializeField]

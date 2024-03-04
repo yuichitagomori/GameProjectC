@@ -37,7 +37,7 @@ namespace scene.game
 
 		private ingame.GameGenreBase m_gameGenre;
 
-		private UnityAction<string, UnityAction> m_outgameSetupEvent;
+		private UnityAction<string, UnityAction> m_playMovieEvent;
 
 		private float m_backgroundScrollSpeed;
 
@@ -47,10 +47,10 @@ namespace scene.game
 
 		public void Initialize(
 			UnityAction<string, ingame.GameGenreBase, UnityAction<ingame.GameGenreBase>> loadGameEvent,
-			UnityAction<string, UnityAction> outgameSetupEvent)
+			UnityAction<string, UnityAction> playMovieEvent)
 		{
 			m_loadGameEvent = loadGameEvent;
-			m_outgameSetupEvent = outgameSetupEvent;
+			m_playMovieEvent = playMovieEvent;
 
 			m_backgroundMaterial.SetFloat("_Scroll", 0.0f);
 			m_backgroundMaterial.SetFloat("_Distortion", 0.0f);
@@ -109,8 +109,7 @@ namespace scene.game
 					}
 				case "StartGame":
 					{
-						string sceneName = paramStrings[1];
-						StartGame(sceneName, ingame.GameGenreBase.State.None, callback);
+						ResetGame(callback);
 						break;
 					}
 				case "PlayDisplayChara":
@@ -146,6 +145,7 @@ namespace scene.game
 		private void StartGame(
 			string sceneName,
 			ingame.GameGenreBase.State state,
+			string initializeParam,
 			UnityAction callback)
 		{
 			m_loadGameEvent(sceneName, m_gameGenre, (ingame.GameGenreBase newGameGenre) =>
@@ -153,12 +153,13 @@ namespace scene.game
 				m_gameGenre = newGameGenre;
 				m_gameGenre.Setting(
 					sceneName: sceneName,
-					changeGameEvent: (sceneName, state) =>
+					changeGameEvent: (sceneName, state, initializeParam) =>
 					{
-						StartGame(sceneName, state, null);
+						StartGame(sceneName, state, initializeParam, null);
 					},
-					outgameSetupEvent: m_outgameSetupEvent,
-					state: state);
+					playMovieEvent: m_playMovieEvent,
+					state: state,
+					initializeParam: initializeParam);
 				if (callback != null)
 				{
 					callback();
@@ -166,9 +167,17 @@ namespace scene.game
 			});
 		}
 
-		public void ResetGame()
+		public void ResetGame(UnityAction callback)
 		{
-			StartGame(m_gameGenre.name, ingame.GameGenreBase.State.None, null);
+			var local = GeneralRoot.User.LocalSaveData;
+			var gameGunreMaster = GeneralRoot.Master.GameGunreData;
+			var gameGunreMasterData = gameGunreMaster.Find(local.ChallengeGameGunreId);
+			if (gameGunreMasterData == null)
+			{
+				callback();
+				return;
+			}
+			StartGame(gameGunreMasterData.SceneName, ingame.GameGenreBase.State.None, "", callback);
 		}
 
 		public void OnInputEvent(KeyCode[] pressKeys)

@@ -17,23 +17,16 @@ MonoBehaviour:
     m_id: 1
     m_paramStrings:
     - Prefab,1
-    - WindowAnimationName,Play,ExpansionIn
-    - WaitTime,2.0
-    - AnimationName,Play,In02
-    - AnimationName,PlayLoop,Loop02
-    - WaitTime,1.0
-    - WindowAnimationName,Play,ExpansionOut
+    - AnimationName,Wait,true
   - m_name: 
     m_id: 2
     m_paramStrings:
-    - WindowAnimationName,Play,ExpansionIn
-    - WaitTime,1.0
-    - AnimationName,Play,Out02
-    - WaitTime,1.0
-    - WindowAnimationName,Play,ExpansionOut
+    - AnimationName,Reaction01,false
   - m_name: 
     m_id: 3
     m_paramStrings:
-    - AnimationName,Play,Reaction01
-    - WaitTime,1.0
-    - AnimationName,PlayLoop,Loop02
+    - AnimationName,Reaction02,false
+  - m_name: 
+    m_id: 10
+    m_paramStrings:
+    - AnimationName,Entreaty,false

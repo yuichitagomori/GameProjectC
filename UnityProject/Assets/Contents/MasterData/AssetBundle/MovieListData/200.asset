@@ -16,36 +16,33 @@ MonoBehaviour:
   - m_name: '001: Ingame,PlayDisplayChara,Wait,true'
     m_id: 1
     m_param: Ingame,PlayDisplayChara,Wait,true
-  - m_name: '002: Ingame,MoveDisplayChara,0,-14,-10,-25,180,0,0.0'
+  - m_name: '002: Ingame,MoveDisplayChara,60,20,25,0,220,0,1.0'
     m_id: 2
-    m_param: Ingame,MoveDisplayChara,0,-14,-10,-25,180,0,0.0
-  - m_name: '003: Ingame,BackgroundSlow,0.0'
+    m_param: Ingame,MoveDisplayChara,60,20,25,0,220,0,1.0
+  - m_name: '003: Outgame,FadeIn,2.0'
     m_id: 3
-    m_param: Ingame,BackgroundSlow,0.0
-  - m_name: '004: Outgame,FadeIn,2.0'
-    m_id: 4
     m_param: Outgame,FadeIn,2.0
-  - m_name: '005: Outgame,AddCameraWindow,400,-160'
+  - m_name: '004: Outgame,AddCameraWindow,430,-150'
+    m_id: 4
+    m_param: Outgame,AddCameraWindow,430,-150
+  - m_name: '005: Outgame,PlayWindow,Camera,Prefab,0'
     m_id: 5
-    m_param: Outgame,AddCameraWindow,400,-160
-  - m_name: '006: Outgame,PlayCameraWindow,1'
+    m_param: Outgame,PlayWindow,Camera,Prefab,0
+  - m_name: '006: Outgame,PlayWindow,Camera,AnimationName,Wait,true'
     m_id: 6
-    m_param: Outgame,PlayCameraWindow,1
-  - m_name: '007: Outgame,AddCheckSheetWindow,-360,-160'
+    m_param: Outgame,PlayWindow,Camera,AnimationName,Wait,true
+  - m_name: '007: Outgame,AddCheckSheetWindow,-280,-200'
     m_id: 7
-    m_param: Outgame,AddCheckSheetWindow,-360,-160
-  - m_name: '008: Outgame,AddMainWindow,0,90,Puzzle'
+    m_param: Outgame,AddCheckSheetWindow,-280,-200
+  - m_name: '008: Outgame,AddMainWindow,-40,100,Puzzle'
     m_id: 8
-    m_param: Outgame,AddMainWindow,0,90,Puzzle
+    m_param: Outgame,AddMainWindow,-40,100,Puzzle
   - m_name: '009: Ingame,PlayDisplayChara,Recreate,false'
     m_id: 9
     m_param: Ingame,PlayDisplayChara,Recreate,false
   - m_name: '010: Ingame,PlayDisplayChara,Gaming,true'
     m_id: 10
     m_param: Ingame,PlayDisplayChara,Gaming,true
-  - m_name: '011: Ingame,StartGame,PuzzleGame01'
+  - m_name: '011: Ingame,StartGame'
     m_id: 11
-    m_param: Ingame,StartGame,PuzzleGame01
-  - m_name: '012: Outgame,MenuVisible,1.0'
-    m_id: 12
-    m_param: Outgame,MenuVisible,1.0
+    m_param: Ingame,StartGame

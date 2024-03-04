@@ -34,25 +34,25 @@ namespace scene.game.ingame.world
 			m_eventCallback = _eventCallback;
 		}
 
-		public IEnumerator SetActiveColoutine(bool _value)
-		{
-			if (_value == true)
-			{
-				gameObject.SetActive(true);
-				bool isDone = false;
-				m_fbx.Anime.Play("In", () => { isDone = true; });
-				while (!isDone) { yield return null; }
-				m_fbx.Anime.PlayLoop("Wait");
+		//public IEnumerator SetActiveColoutine(bool _value)
+		//{
+		//	if (_value == true)
+		//	{
+		//		gameObject.SetActive(true);
+		//		bool isDone = false;
+		//		m_fbx.Anime.Play("In", () => { isDone = true; });
+		//		while (!isDone) { yield return null; }
+		//		m_fbx.Anime.PlayLoop("Wait");
 
-				m_event.Initialize(m_eventCallback);
-			}
-			else
-			{
-				bool isDone = false;
-				m_fbx.Anime.Play("Out", () => { isDone = true; });
-				while (!isDone) { yield return null; }
-				gameObject.SetActive(false);
-			}
-		}
+		//		m_event.Initialize(m_eventCallback);
+		//	}
+		//	else
+		//	{
+		//		bool isDone = false;
+		//		m_fbx.Anime.Play("Out", () => { isDone = true; });
+		//		while (!isDone) { yield return null; }
+		//		gameObject.SetActive(false);
+		//	}
+		//}
 	}
 }

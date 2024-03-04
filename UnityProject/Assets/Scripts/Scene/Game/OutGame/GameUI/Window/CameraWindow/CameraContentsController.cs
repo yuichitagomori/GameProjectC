@@ -36,10 +36,5 @@ namespace scene.game.outgame.window.camera
 		{
 			m_animetion.PlayLoop(animationName);
 		}
-
-		public string GetAnimationName()
-		{
-			return m_animetion.GetAnimationName();
-		}
 	}
 }

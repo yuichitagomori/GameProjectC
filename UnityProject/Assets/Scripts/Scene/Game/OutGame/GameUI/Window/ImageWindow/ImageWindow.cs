@@ -41,24 +41,5 @@ namespace scene.game.outgame.window
 		public override void Go()
 		{
 		}
-
-		public override void SetupEvent(string[] paramStrings, UnityAction callback)
-		{
-		}
-
-		protected override void SetupInputKeyEvent()
-		{
-			if (GeneralRoot.Instance.IsPCPlatform() == false)
-			{
-				return;
-			}
-
-			for (int i = 0; i < k_useKeys.Length; ++i)
-			{
-				var key = k_useKeys[i];
-				GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, null);
-				GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, null);
-			}
-		}
 	}
 }

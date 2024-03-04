@@ -121,22 +121,22 @@ namespace system
 				{
 					case KeyCode.W:
 						{
-							control = gamepad.rightStick.up;
+							control = gamepad.leftStick.up;
 							break;
 						}
 					case KeyCode.S:
 						{
-							control = gamepad.rightStick.down;
+							control = gamepad.leftStick.down;
 							break;
 						}
 					case KeyCode.A:
 						{
-							control = gamepad.rightStick.left;
+							control = gamepad.leftStick.left;
 							break;
 						}
 					case KeyCode.D:
 						{
-							control = gamepad.rightStick.right;
+							control = gamepad.leftStick.right;
 							break;
 						}
 					case KeyCode.UpArrow:

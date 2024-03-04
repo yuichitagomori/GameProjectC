@@ -17,15 +17,6 @@ namespace scene.game.outgame.window
 
 
 
-		public override void SetupEvent(string[] paramStrings, UnityAction callback)
-		{
-		}
-
-		protected override void SetupInputKeyEvent()
-		{
-
-		}
-
 		private void Setting()
 		{
 			var elements = m_elementList.GetElements();

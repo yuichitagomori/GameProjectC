@@ -53,17 +53,8 @@ namespace scene.game.outgame.window
 
 
 
-		public override void SetupEvent(string[] paramStrings, UnityAction callback)
+		public override void SetupInputKeyEvent()
 		{
-		}
-
-		protected override void SetupInputKeyEvent()
-		{
-			if (GeneralRoot.Instance.IsPCPlatform() == false)
-			{
-				return;
-			}
-
 			UnityAction<int, int> updateSelectIndexEvent = (beforeIndex, afterIndex) =>
 			{
 				if (beforeIndex == afterIndex)
@@ -78,48 +69,29 @@ namespace scene.game.outgame.window
 				SetupElements();
 				SetupScrollPosition();
 			};
-			for (int i = 0; i < k_useKeys.Length; ++i)
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.UpArrow, () =>
 			{
-				var key = k_useKeys[i];
-				if (key == KeyCode.W ||
-					key == KeyCode.S ||
-					key == KeyCode.A ||
-					key == KeyCode.D)
+				int index = m_selectIndex;
+				index--;
+				if (index < 0)
 				{
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, null);
-					if (key == KeyCode.W)
-					{
-						GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
-						{
-							int index = m_selectIndex;
-							index--;
-							if (index < 0)
-							{
-								index = 0;
-							}
-							updateSelectIndexEvent(m_selectIndex, index);
-						});
-					}
-					else if (key == KeyCode.S)
-					{
-						GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, () =>
-						{
-							int index = m_selectIndex;
-							index++;
-							int indexMax = m_checkSheetData.Datas.Length - 1;
-							if (index > indexMax)
-							{
-								index = indexMax;
-							}
-							updateSelectIndexEvent(m_selectIndex, index);
-						});
-					}
-					else
-					{
-						GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, null);
-					}
+					index = 0;
 				}
-			}
+				updateSelectIndexEvent(m_selectIndex, index);
+				SetTopSibling();
+			});
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.DownArrow, () =>
+			{
+				int index = m_selectIndex;
+				index++;
+				int indexMax = m_checkSheetData.Datas.Length - 1;
+				if (index > indexMax)
+				{
+					index = indexMax;
+				}
+				updateSelectIndexEvent(m_selectIndex, index);
+				SetTopSibling();
+			});
 		}
 
 		public void Setting()

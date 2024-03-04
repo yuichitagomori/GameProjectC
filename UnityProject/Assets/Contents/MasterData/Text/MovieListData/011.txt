@@ -1,2 +1,2 @@
 1	Outgame,RemoveWindow,3
-2	Outgame,MenuVisible,0.5
+2	Ingame,PlayDisplayChara,Gaming,true

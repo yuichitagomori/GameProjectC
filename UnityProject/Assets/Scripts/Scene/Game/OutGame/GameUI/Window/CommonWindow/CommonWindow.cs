@@ -35,50 +35,27 @@ namespace scene.game.outgame.window
 		{
 		}
 
-		public override void SetupEvent(string[] paramStrings, UnityAction callback)
+		public override void SetupInputKeyEvent()
 		{
-		}
-
-		protected override void SetupInputKeyEvent()
-		{
-			if (GeneralRoot.Instance.IsPCPlatform() == false)
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.Space, () =>
 			{
-				return;
-			}
-
-			for (int i = 0; i < k_useKeys.Length; ++i)
+				m_yesButton.OnDown();
+			});
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.Space, () =>
 			{
-				var key = k_useKeys[i];
-				if (key == KeyCode.Space)
-				{
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.Space, () =>
-					{
-						m_yesButton.OnDown();
-					});
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.Space, () =>
-					{
-						m_yesButton.OnUp();
-						m_yesButton.OnClick();
-					});
-				}
-				else if (key == KeyCode.C)
-				{
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.C, () =>
-					{
-						m_noButton.OnDown();
-					});
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.C, () =>
-					{
-						m_noButton.OnUp();
-						m_noButton.OnClick();
-					});
-				}
-				else
-				{
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, null);
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, null);
-				}
-			}
+				m_yesButton.OnUp();
+				m_yesButton.OnClick();
+			});
+
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.C, () =>
+			{
+				m_noButton.OnDown();
+			});
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.C, () =>
+			{
+				m_noButton.OnUp();
+				m_noButton.OnClick();
+			});
 		}
 	}
 }

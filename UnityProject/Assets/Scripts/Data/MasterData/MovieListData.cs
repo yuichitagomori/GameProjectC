@@ -8,7 +8,10 @@
         public enum MovieType
         {
             Title       = 1,
-            Release     = 10,
+            Feedback    = 10,
+            Cansel      = 11,
+            Release     = 12,
+            Recreate    = 14,
         }
     }
 }

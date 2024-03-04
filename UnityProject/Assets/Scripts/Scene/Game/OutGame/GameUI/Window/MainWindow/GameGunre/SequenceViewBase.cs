@@ -13,6 +13,6 @@ namespace scene.game.outgame.window.main
 
 		public abstract void Setting();
 
-		public abstract IEnumerator SetupEventCoroutine(string[] paramStrings, UnityAction callback);
+		public abstract IEnumerator OnMovieStartCoroutine(string[] paramStrings, UnityAction callback);
 	}
 }

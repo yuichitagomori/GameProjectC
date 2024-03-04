@@ -71,16 +71,19 @@ namespace scene.game.ingame.puzzlegame
             m_material.color = color;
         }
 
-        private void OnEvent(string param)
+        private void OnEvent(string[] eventParams)
         {
-            string[] actionStrings = param.Split('_');
-            switch (actionStrings[0])
+            for (int i = 0; i < eventParams.Length; ++i)
             {
-                case "Clean":
-                    {
-                        m_cleanEvent(m_grid);
-                        return;
-                    }
+                string[] actionStrings = eventParams[i].Split(',');
+                switch (actionStrings[0])
+                {
+                    case "Clean":
+                        {
+                            m_cleanEvent(m_grid);
+                            return;
+                        }
+                }
             }
         }
     }

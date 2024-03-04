@@ -8,9 +8,8 @@ namespace scene.game.ingame
 	[System.Serializable]
 	public abstract class GameGenreBase : SceneBase
 	{
-		protected string SequenceAnimeStringFormat = "Main,SequenceAnime,{0}";
-		protected string UpdateInfoViewStringFormat = "Main,UpdateInfoView,{0}";
-		protected string CharaReactionStringFormat = "Chara,Play,{0}";
+		protected string SequenceAnimeStringFormat = "Outgame,PlayWindow,Main,SequenceAnime,{0}";
+		protected string CameraReactionStringFormat = "Outgame,PlayWindow,Camera,AnimationName,{0},{1}";
 
 		public enum State
 		{
@@ -43,9 +42,6 @@ namespace scene.game.ingame
 		[SerializeField]
 		private system.PosproController.Data m_posproData;
 
-		[SerializeField]
-		private Material[] m_mapMaterials;
-
 		/// <summary>
 		/// インゲーム用カメラ
 		/// </summary>
@@ -66,15 +62,17 @@ namespace scene.game.ingame
 		private string m_sceneName;
 		protected string SceneName => m_sceneName;
 
-		private UnityAction<string, State> m_changeGameEvent;
-		protected UnityAction<string, State> ChangeGameEvent => m_changeGameEvent;
+		private UnityAction<string, State, string> m_changeGameEvent;
+		protected UnityAction<string, State, string> ChangeGameEvent => m_changeGameEvent;
 
-		private UnityAction<string, UnityAction> m_outgameSetupEvent;
-		protected UnityAction<string, UnityAction> OutgameSetupEvent => m_outgameSetupEvent;
+		private UnityAction<string, UnityAction> m_playMovieEvent;
+		protected UnityAction<string, UnityAction> PlayMovieEvent => m_playMovieEvent;
 
 
 
 		protected State m_state;
+
+		protected string m_initializeParam = "";
 
 
 
@@ -82,14 +80,16 @@ namespace scene.game.ingame
 
 		public void Setting(
 			string sceneName,
-			UnityAction<string, State> changeGameEvent,
-			UnityAction<string, UnityAction> outgameSetupEvent,
-			State state)
+			UnityAction<string, State, string> changeGameEvent,
+			UnityAction<string, UnityAction> playMovieEvent,
+			State state,
+			string initializeParam)
 		{
 			m_sceneName = sceneName;
 			m_changeGameEvent = changeGameEvent;
-			m_outgameSetupEvent = outgameSetupEvent;
+			m_playMovieEvent = playMovieEvent;
 			m_state = state;
+			m_initializeParam = initializeParam;
 		}
 
 		public override void Ready(UnityAction callback)
@@ -137,13 +137,10 @@ namespace scene.game.ingame
 			}
 		}
 
-		private void SetSequenceTime(float value)
+		protected void SetSkyboxSequenceTime(float value)
 		{
+			m_directionLight.intensity = 2.0f * value;
 			m_skyboxMaterial.SetFloat("_SequenceTime", value);
-			for (int i = 0; i < m_mapMaterials.Length; ++i)
-			{
-				m_mapMaterials[i].SetFloat("_SequenceTime", value);
-			}
 		}
 	}
 }

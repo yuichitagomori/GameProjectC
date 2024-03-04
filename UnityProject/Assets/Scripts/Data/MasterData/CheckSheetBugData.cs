@@ -27,21 +27,28 @@ namespace data.master
 			private int m_rewardDataId;
 			public int RewardDataId => m_rewardDataId;
 
+			[SerializeField]
+			private int m_reactionType;
+			public int ReactionType => m_reactionType;
+
 			/// <summary>
 			/// コンストラクタ
 			/// </summary>
 			/// <param name="id"></param>
 			/// <param name="infoTextId"></param>
 			/// <param name="rewardDataId"></param>
+			/// <param name="reactionType"></param>
 			public Data(
 				int id,
 				int infoTextId,
-				int rewardDataId)
+				int rewardDataId,
+				int reactionType)
 			{
 				m_name = id.ToString();
 				m_id = id;
 				m_infoTextId = infoTextId;
 				m_rewardDataId = rewardDataId;
+				m_reactionType = reactionType;
 			}
 		}
 
@@ -54,10 +61,12 @@ namespace data.master
 			int id = int.Parse(csvParam[0]);
 			int infoTextId = int.Parse(csvParam[1]);
 			int rewardDataId = int.Parse(csvParam[2]);
+			int reactionType = int.Parse(csvParam[3]);
 			return new Data(
 				id,
 				infoTextId,
-				rewardDataId);
+				rewardDataId,
+				reactionType);
 		}
 	}
 }

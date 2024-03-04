@@ -25,7 +25,7 @@ namespace scene.game.outgame.window.main.puzzlegame
 			}
 		}
 
-		public override IEnumerator SetupEventCoroutine(string[] paramStrings, UnityAction callback)
+		public override IEnumerator OnMovieStartCoroutine(string[] paramStrings, UnityAction callback)
 		{
 			switch (paramStrings[0])
 			{

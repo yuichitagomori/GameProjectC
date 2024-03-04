@@ -20,21 +20,24 @@ namespace scene.game.ingame.actiongame
 			base.Initialize(OnEvent);
 		}
 
-		private void OnEvent(string param)
+		private void OnEvent(string[] eventParams)
 		{
-			string[] actionStrings = param.Split('_');
-			switch (actionStrings[0])
+			for (int i = 0; i < eventParams.Length; ++i)
 			{
-				case "In":
-					{
-						m_fbx.Anime.Play("In");
-						break;
-					}
-				case "Out":
-					{
-						m_fbx.Anime.Play("Out");
-						break;
-					}
+				string[] eventParamStrings = eventParams[i].Split(',');
+				switch (eventParamStrings[0])
+				{
+					case "In":
+						{
+							m_fbx.Anime.Play("In");
+							break;
+						}
+					case "Out":
+						{
+							m_fbx.Anime.Play("Out");
+							break;
+						}
+				}
 			}
 		}
 	}

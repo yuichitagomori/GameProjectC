@@ -76,32 +76,14 @@ namespace scene.game.outgame.window
 			StartCoroutine(PlayTimeMove());
 		}
 
-		public override void SetupEvent(string[] paramStrings, UnityAction callback)
+		public override void OnMovieStart(string[] paramStrings, UnityAction callback)
 		{
+			StartCoroutine(OnMovieStartCoroutine(paramStrings, callback));
 		}
 
-		protected override void SetupInputKeyEvent()
+		private IEnumerator OnMovieStartCoroutine(string[] paramStrings, UnityAction callback)
 		{
-			if (GeneralRoot.Instance.IsPCPlatform() == false)
-			{
-				return;
-			}
-
-			for (int i = 0; i < k_useKeys.Length; ++i)
-			{
-				var key = k_useKeys[i];
-				GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, null);
-				GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, null);
-			}
-		}
-
-		public void Play(int controllId, UnityAction callback)
-		{
-			StartCoroutine(PlayCoroutine(controllId, callback));
-		}
-
-		private IEnumerator PlayCoroutine(int controllId, UnityAction callback)
-		{
+			int controllId = int.Parse(paramStrings[0]);
 			var data = m_contentsDatas.FirstOrDefault(d => d.ControllId == controllId);
 
 			//System.DateTime targetDateTime = System.DateTime.ParseExact(targetDateTimeStr, "MM/dd HH:mm:ss", null);
@@ -181,13 +163,13 @@ namespace scene.game.outgame.window
 			int paramStringsIndex = 0;
 			while (paramStringsIndex < data.ParamStrings.Length)
 			{
-				string[] paramStrings = data.ParamStrings[paramStringsIndex].Split(',');
-				switch (paramStrings[0])
+				string[] paramStrings2 = data.ParamStrings[paramStringsIndex].Split(',');
+				switch (paramStrings2[0])
 				{
 					case "AnimationName":
 						{
-							string animationType = paramStrings[1];
-							string animationName = paramStrings[2];
+							string animationType = paramStrings2[1];
+							string animationName = paramStrings2[2];
 							if (animationType == "Play")
 							{
 								isDone = false;
@@ -202,13 +184,13 @@ namespace scene.game.outgame.window
 						}
 					case "WaitTime":
 						{
-							float time = float.Parse(paramStrings[1]);
+							float time = float.Parse(paramStrings2[1]);
 							yield return new WaitForSeconds(time);
 							break;
 						}
 					case "DateTime":
 						{
-							string DateString = paramStrings[1];
+							string DateString = paramStrings2[1];
 							m_nowDateTime = System.DateTime.ParseExact(DateString, "MM/dd HH:mm:ss", null);
 							SetupCalendar();
 							break;

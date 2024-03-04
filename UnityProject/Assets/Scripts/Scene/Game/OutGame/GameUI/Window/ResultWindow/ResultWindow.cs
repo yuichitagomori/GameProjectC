@@ -11,6 +11,15 @@ namespace scene.game.outgame.window
     public class ResultWindow : WindowBase
     {
 		[SerializeField]
+		private CommonUI.TextExpansion m_titleText;
+
+		[SerializeField]
+		private Image m_logo;
+
+		[SerializeField]
+		private CommonUI.TextExpansion m_infoText;
+
+		[SerializeField]
 		private result.ResultReviewElement[] m_reviewElements;
 
 		[SerializeField]
@@ -31,6 +40,9 @@ namespace scene.game.outgame.window
 		[SerializeField]
 		private CommonUI.ButtonExpansion m_yesButton;
 
+		[SerializeField]
+		private Sprite[] m_logoSprites;
+
 
 
 		private int m_resultMoney = 0;
@@ -44,11 +56,15 @@ namespace scene.game.outgame.window
 			{
 				return;
 			}
+
+			m_logo.sprite = m_logoSprites[local.ChallengeGameGunreId - 1];
+
+			var temporary = GeneralRoot.User.LocalTemporaryData;
 			int rewardMasterDataId = gameGunreMasterData.RewardDataId;
-			if (local.OccurredBugId > -1)
+			if (temporary.OccurredBugId > -1)
 			{
 				var checkSheetBugMaster = GeneralRoot.Master.CheckSheetBugData;
-				var checkSheetBugMasterData = checkSheetBugMaster.Find(local.OccurredBugId);
+				var checkSheetBugMasterData = checkSheetBugMaster.Find(temporary.OccurredBugId);
 				if (checkSheetBugMasterData == null)
 				{
 					return;
@@ -112,46 +128,39 @@ namespace scene.game.outgame.window
 		{
 		}
 
-		public override void SetupEvent(string[] paramStrings, UnityAction callback)
+		public override void OnMovieStart(string[] paramStrings, UnityAction callback)
 		{
+			StartCoroutine(OnMovieStartCoroutine(paramStrings, callback));
 		}
 
-		protected override void SetupInputKeyEvent()
+		private IEnumerator OnMovieStartCoroutine(string[] paramStrings, UnityAction callback)
 		{
-			if (GeneralRoot.Instance.IsPCPlatform() == false)
+			switch (paramStrings[0])
 			{
-				return;
+				case "Phase1":
+					{
+						yield return OnMoviePhase1();
+						break;
+					}
+				case "Phase2":
+					{
+						yield return OnMoviePhase2();
+						break;
+					}
+				case "TopSibling":
+					{
+						SetTopSibling();
+						break;
+					}
 			}
 
-			for (int i = 0; i < k_useKeys.Length; ++i)
+			if (callback != null)
 			{
-				var key = k_useKeys[i];
-				if (key == KeyCode.Space)
-				{
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.Space, () =>
-					{
-						m_yesButton.OnDown();
-					});
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.Space, () =>
-					{
-						m_yesButton.OnUp();
-						m_yesButton.OnClick();
-					});
-				}
-				else
-				{
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, null);
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, null);
-				}
+				callback();
 			}
 		}
 
-		public void Play(UnityAction callback)
-		{
-			StartCoroutine(PlayCoroutine(callback));
-		}
-
-		private IEnumerator PlayCoroutine(UnityAction callback)
+		private IEnumerator OnMoviePhase1()
 		{
 			int doneCount = 0;
 			for (int i = 0; i < m_reviewElements.Length; ++i)
@@ -172,17 +181,30 @@ namespace scene.game.outgame.window
 			isDone = false;
 			m_moneyText.PlayProgression(m_resultMoney.ToString("N0"), 0.2f, () => { isDone = true; });
 			while (!isDone) { yield return null; }
+		}
+
+		private IEnumerator OnMoviePhase2()
+		{
+			yield return new WaitForSeconds(1.0f);
 
 			m_yesButton.gameObject.SetActive(true);
 
-			isDone = false;
+			bool isDone = false;
 			m_yesButton.SetupClickEvent(() => { isDone = true; });
 			while (!isDone) { yield return null; }
+		}
 
-			if (callback != null)
+		public override void SetupInputKeyEvent()
+		{
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, KeyCode.Space, () =>
 			{
-				callback();
-			}
+				m_yesButton.OnDown();
+			});
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.Space, () =>
+			{
+				m_yesButton.OnUp();
+				m_yesButton.OnClick();
+			});
 		}
 	}
 }

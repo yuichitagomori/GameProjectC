@@ -124,20 +124,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ffd82bb9d164494fae6320a4ed9e1fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_type: 7
-  m_windowFrameEnableSprite: {fileID: 21300000, guid: 691492076d0d35e4d9206578757d98a9,
-    type: 3}
-  m_windowFrameDisableSprite: {fileID: 21300000, guid: 691492076d0d35e4d9206578757d98a9,
-    type: 3}
-  m_windowFrameImage: {fileID: 8871703469855118776}
-  m_iconViewFrameEnableSprite: {fileID: 0}
-  m_iconViewFrameDisableSprite: {fileID: 0}
-  m_iconViewFrameImage: {fileID: 0}
-  m_iconViewIconImage: {fileID: 0}
+  m_type: 8
   m_windowTransform: {fileID: 8871703469640057267}
   m_windowSize: {x: 0, y: 0}
   m_windowAnime: {fileID: 0}
-  m_holdArea: {fileID: 0}
   m_image: {fileID: 8871703469350632828}
   m_datas:
   - id: 1
@@ -372,8 +362,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8871703470902851712}
-  - component: {fileID: 8871703470902851714}
-  - component: {fileID: 8871703470902851713}
   m_Layer: 20
   m_Name: Animator
   m_TagString: Untagged
@@ -403,35 +391,3 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 512, y: 512}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!95 &8871703470902851714
-Animator:
-  serializedVersion: 3
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8871703470902851719}
-  m_Enabled: 0
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &8871703470902851713
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8871703470902851719}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be42a4d703f42bb469aa35f2cc1077c9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_animator: {fileID: 8871703470902851714}

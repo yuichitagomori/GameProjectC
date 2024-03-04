@@ -15,8 +15,8 @@ namespace scene.game.ingame
 			public GameObject ModelObject => m_modelObject;
 
 			[SerializeField]
-			private SkinnedMeshRenderer m_mesh = null;
-			public SkinnedMeshRenderer Mesh => m_mesh;
+			private MeshRenderer m_mesh = null;
+			public MeshRenderer Mesh => m_mesh;
 		}
 
 		[SerializeField]

@@ -149,14 +149,14 @@ namespace scene.game.ingame
 		{
 			bool isDone = false;
 			string paramString = string.Format(SequenceAnimeStringFormat, "LoadingOut");
-			OutgameSetupEvent(paramString, () => { isDone = true; });
+			PlayMovieEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			if (m_state == State.None)
 			{
 				isDone = false;
 				paramString = string.Format(SequenceAnimeStringFormat, "TitleIn");
-				OutgameSetupEvent(paramString, () => { isDone = true; });
+				PlayMovieEvent(paramString, () => { isDone = true; });
 				while (!isDone) { yield return null; }
 
 				m_state = State.Title;
@@ -166,7 +166,7 @@ namespace scene.game.ingame
 
 				isDone = false;
 				paramString = string.Format(SequenceAnimeStringFormat, "TitleOut");
-				OutgameSetupEvent(paramString, () => { isDone = true; });
+				PlayMovieEvent(paramString, () => { isDone = true; });
 				while (!isDone) { yield return null; }
 			}
 
@@ -185,19 +185,19 @@ namespace scene.game.ingame
 
 			isDone = false;
 			paramString = string.Format(UpdateTurnStringFormat, 0);
-			OutgameSetupEvent(paramString, () => { isDone = true; });
+			PlayMovieEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			isDone = false;
 			paramString = string.Format(SequenceAnimeStringFormat, "GameIn");
-			OutgameSetupEvent(paramString, () => { isDone = true; });
+			PlayMovieEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			for (int i = 0; i < m_nowTurn; ++i)
 			{
 				isDone = false;
 				paramString = string.Format(UpdateTurnStringFormat, i + 1);
-				OutgameSetupEvent(paramString, () => { isDone = true; });
+				PlayMovieEvent(paramString, () => { isDone = true; });
 				while (!isDone) { yield return null; }
 			}
 
@@ -412,7 +412,7 @@ namespace scene.game.ingame
 
 			isDone = false;
 			string paramString = string.Format(UpdateTurnStringFormat, m_nowTurn);
-			OutgameSetupEvent(paramString, () => { isDone = true; });
+			PlayMovieEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			var dirtData = m_nowFieldElementDatas.FirstOrDefault(d => d.DirtType != puzzlegame.FieldTileElement.DirtType.None);
@@ -426,7 +426,7 @@ namespace scene.game.ingame
 
 				isDone = false;
 				paramString = string.Format(SequenceAnimeStringFormat, "ResultIn");
-				OutgameSetupEvent(paramString, () => { isDone = true; });
+				PlayMovieEvent(paramString, () => { isDone = true; });
 				while (!isDone) { yield return null; }
 			}
 			else if (m_nowTurn <= 0)
@@ -447,23 +447,23 @@ namespace scene.game.ingame
 
 			isDone = false;
 			paramString = string.Format(SequenceAnimeStringFormat, "LoadingIn");
-			OutgameSetupEvent(paramString, () => { isDone = true; });
+			PlayMovieEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			if (isClear == true)
 			{
 				if (m_isLastStage == true)
 				{
-					ChangeGameEvent(m_changeSceneName, State.None);
+					ChangeGameEvent(m_changeSceneName, State.None, "");
 				}
 				else
 				{
-					ChangeGameEvent(m_changeSceneName, State.Game);
+					ChangeGameEvent(m_changeSceneName, State.Game, "");
 				}
 			}
 			else
 			{
-				ChangeGameEvent(SceneName, State.Game);
+				ChangeGameEvent(SceneName, State.Game, "");
 			}
 		}
 	}

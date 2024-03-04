@@ -47,10 +47,10 @@ namespace scene.game.ingame.actiongame
 		private bool m_isEnable = true;
 		private bool m_isAir = false;
 		private bool m_isJump = false;
-		private UnityAction<int> m_bugCallback;
+		private UnityAction m_bugCallback;
 
 
-		public void Initialize(UnityAction<int> bugCallback)
+		public void Initialize(UnityAction bugCallback)
 		{
 			m_transform = base.transform;
 			m_isEnable = true;
@@ -58,14 +58,27 @@ namespace scene.game.ingame.actiongame
 			m_isJump = false;
 			m_bugCallback = bugCallback;
 
-			var local = GeneralRoot.User.LocalSaveData;
-			if (local.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation)
+			var temporary = GeneralRoot.User.LocalTemporaryData;
+			if (temporary.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation &&
+				temporary.OccurredBugOptionId == 0)
 			{
-				m_fbx.Anime.Play("Jump");
+				m_bugCallback();
+			}
+			else if (
+				temporary.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation &&
+				temporary.OccurredBugOptionId == 1)
+			{
+				for (int i = 0; i < m_materials.Length; ++i)
+				{
+					float height = m_materials[i].GetFloat("_Height");
+					m_materials[i].SetFloat("_Height", height * 2.0f);
+				}
+				m_transform.localScale = new Vector3(2.0f, 2.0f, 2.0f);
+				m_bugCallback();
 			}
 			else
 			{
-				m_bugCallback(3);
+				m_fbx.Anime.Play("Jump", time: 1.0f);
 			}
 
 			SetSequenceTime(0);
@@ -77,7 +90,6 @@ namespace scene.game.ingame.actiongame
 		{
 			var wait = new WaitForFixedUpdate();
 			var faceMaterial = m_materials[1];
-			var local = GeneralRoot.User.LocalSaveData;
 
 			while (true)
 			{
@@ -131,14 +143,7 @@ namespace scene.game.ingame.actiongame
 				{
 					if (m_fbx.Anime.GetAnimationName() != "Walk" && m_isJump == false)
 					{
-						if (local.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation)
-						{
-							m_fbx.Anime.PlayLoop("Walk");
-						}
-						else
-						{
-							m_bugCallback(3);
-						}
+						m_fbx.Anime.PlayLoop("Walk");
 					}
 					if (m_moveDustParticle.isStopped == true && m_isJump == false)
 					{
@@ -149,14 +154,7 @@ namespace scene.game.ingame.actiongame
 				{
 					if (m_fbx.Anime.GetAnimationName() != "Wait" && m_isJump == false)
 					{
-						if (local.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation)
-						{
-							m_fbx.Anime.PlayLoop("Wait");
-						}
-						else
-						{
-							m_bugCallback(3);
-						}
+						m_fbx.Anime.PlayLoop("Wait");
 					}
 					if (m_moveDustParticle.isPlaying == true)
 					{
@@ -272,14 +270,15 @@ namespace scene.game.ingame.actiongame
 			m_rigidbody.velocity += add;
 			if (m_fbx.Anime.GetAnimationName() != "Jump")
 			{
-				var local = GeneralRoot.User.LocalSaveData;
-				if (local.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation)
+				var temporary = GeneralRoot.User.LocalTemporaryData;
+				if (temporary.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation &&
+					temporary.OccurredBugOptionId == 0)
 				{
-					m_fbx.Anime.Play("Jump");
+					m_bugCallback();
 				}
 				else
 				{
-					m_bugCallback(3);
+					m_fbx.Anime.Play("Jump");
 				}
 			}
 			if (m_moveDustParticle.isPlaying == true)
@@ -291,14 +290,15 @@ namespace scene.game.ingame.actiongame
 
 		public void Transfer()
 		{
-			var local = GeneralRoot.User.LocalSaveData;
-			if (local.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation)
+			var temporary = GeneralRoot.User.LocalTemporaryData;
+			if (temporary.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation &&
+				temporary.OccurredBugOptionId == 0)
 			{
-				m_fbx.Anime.Play("Jump", time: 1.0f);
+				m_bugCallback();
 			}
 			else
 			{
-				m_bugCallback(3);
+				m_fbx.Anime.Play("Jump", time: 1.0f);
 			}
 		}
 
@@ -318,15 +318,7 @@ namespace scene.game.ingame.actiongame
 				}
 				if (m_fbx.Anime.GetAnimationName() != "Wait")
 				{
-					var local = GeneralRoot.User.LocalSaveData;
-					if (local.OccurredBugId == (int)data.master.CheckSheetBugData.BugType.Animation)
-					{
-						m_fbx.Anime.PlayLoop("Wait");
-					}
-					else
-					{
-						m_bugCallback(3);
-					}
+					m_fbx.Anime.PlayLoop("Wait");
 				}
 			}
 		}

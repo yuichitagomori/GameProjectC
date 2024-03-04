@@ -2118,7 +2118,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 2008393d1527f454d8d72984899acd96, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2220,7 +2220,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2289680110186737300
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3651,7 +3651,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -64}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3057541229129561763
@@ -3666,22 +3666,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7f7a2ce0dc29bb418a3cc5dec1f060c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_type: 8
-  m_windowFrameEnableSprite: {fileID: 21300000, guid: 691492076d0d35e4d9206578757d98a9,
-    type: 3}
-  m_windowFrameDisableSprite: {fileID: 21300000, guid: 9414a507acf6c174fba2d6ffa15e24d4,
-    type: 3}
-  m_windowFrameImage: {fileID: 3057541228528981655}
-  m_iconViewFrameEnableSprite: {fileID: 21300000, guid: 8fa0c6f56d2eea842bec4e2815032f02,
-    type: 3}
-  m_iconViewFrameDisableSprite: {fileID: 21300000, guid: 39453de34cbd19042870e04df21d039e,
-    type: 3}
-  m_iconViewFrameImage: {fileID: 9162045449680610632}
-  m_iconViewIconImage: {fileID: 0}
+  m_type: 9
+  m_priority: 0
   m_windowTransform: {fileID: 3057541229129561761}
   m_windowSize: {x: 1000, y: 560}
   m_windowAnime: {fileID: 3057541227523111321}
-  m_holdArea: {fileID: 0}
+  m_titleText: {fileID: 8633592335535700151}
+  m_logo: {fileID: 2289680109987811851}
+  m_infoText: {fileID: 2289680109630233909}
   m_reviewElements:
   - {fileID: 2289680109041047697}
   - {fileID: 825594568268238506}
@@ -3697,6 +3689,9 @@ MonoBehaviour:
   m_disableStarColor: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 1}
   m_moneyText: {fileID: 2289680110575063299}
   m_yesButton: {fileID: 8633592337148356231}
+  m_logoSprites:
+  - {fileID: 21300000, guid: 8b2ba9a7e86f0314c93c988de37fab20, type: 3}
+  - {fileID: 21300000, guid: ae374e446a54e53458fc6734f6892c7b, type: 3}
 --- !u!1 &3242046924886088198
 GameObject:
   m_ObjectHideFlags: 0

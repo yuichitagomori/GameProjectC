@@ -10,39 +10,35 @@ namespace scene.game.outgame.window
     [System.Serializable]
     public class TitleWindow : WindowBase
     {
+		[SerializeField]
+		private CommonUI.LocalizeText m_guideText;
+
+
+
 		private UnityAction m_onButtonPressEvent;
 
 
-		public override void SetupEvent(string[] paramStrings, UnityAction callback)
-		{
-		}
-
-		protected override void SetupInputKeyEvent()
-		{
-			if (GeneralRoot.Instance.IsPCPlatform() == false)
-			{
-				return;
-			}
-
-			for (int i = 0; i < k_useKeys.Length; ++i)
-			{
-				var key = k_useKeys[i];
-				if (key == KeyCode.Space)
-				{
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, null);
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, m_onButtonPressEvent);
-				}
-				else
-				{
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Down, key, null);
-					GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, key, null);
-				}
-			}
-		}
 
 		public void Setting(UnityAction onButtonPressEvent)
 		{
 			m_onButtonPressEvent = onButtonPressEvent;
+			m_guideText.Text.text = "";
+		}
+
+		public override void Go()
+		{
+			m_guideText.PlayProgression(0.05f, null);
+		}
+
+		public override void SetupInputKeyEvent()
+		{
+			GeneralRoot.Input.UpdateEvent(system.InputSystem.Type.Up, KeyCode.Space, () =>
+			{
+				if (m_onButtonPressEvent != null)
+				{
+					m_onButtonPressEvent();
+				}
+			});
 		}
 	}
 }

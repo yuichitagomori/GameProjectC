@@ -9,7 +9,7 @@ namespace scene.game.ingame
 {
 	public class ActionGame : GameGenreBase
 	{
-		private string UpdateLifeGameStringFormat = "Main,UpdateLifeGauge,{0}";
+		private string UpdateLifeGameStringFormat = "Outgame,PlayWindow,Main,UpdateLifeGauge,{0},{1}";
 
 
 
@@ -60,35 +60,36 @@ namespace scene.game.ingame
 		[SerializeField]
 		private actiongame.SwitchObject[] m_switches;
 
+		[SerializeField]
+		private actiongame.EnemyBase[] m_enemies;
 
 
-		private bool m_isEnableInput = false;
+
+		private bool m_enableInput = false;
 
 		private KeyCode[] m_beforePressKeys;
 
 		private int m_life;
 
-		private List<int> m_reactionBugIdList = new List<int>();
+		private int m_lifeMax;
 
 
 
 		public override void Initialize()
 		{
-			m_isEnableInput = false;
+			m_enableInput = false;
 
 			m_cameraTransform.localPosition = m_cameraAngles[0].localPosition;
 			m_cameraTransform.localRotation = m_cameraAngles[0].localRotation;
 
 			for (int i = 0; i < m_mapEvents.Length; ++i)
 			{
-				m_mapEvents[i].Initialize(OnMapEvent);
+				m_mapEvents[i].Initialize(OnEvent);
 			}
 			m_player.Initialize(BugEvent);
 			for (int i = 0; i < m_transfers.Length; ++i)
 			{
-				m_transfers[i].Initialize(
-					OnTransferEvent,
-					OnChangeGameEvent);
+				m_transfers[i].Initialize(OnEvent);
 			}
 			for (int i = 0; i < m_guides.Length; ++i)
 			{
@@ -96,14 +97,26 @@ namespace scene.game.ingame
 			}
 			for (int i = 0; i < m_switches.Length; ++i)
 			{
-				int id = i + 1;
-				m_switches[i].Initialize(false, (value) => { OnSwitchEvent(id, value); });
+				m_switches[i].Initialize(OnEvent);
+			}
+			for (int i = 0; i < m_enemies.Length; ++i)
+			{
+				m_enemies[i].Initialize(OnEvent);
 			}
 			m_beforePressKeys = null;
 			m_life = 4;
+			m_lifeMax = 4;
 
-			var local = GeneralRoot.User.LocalSaveData;
-			var bugTarget = m_bugTargets.FirstOrDefault(d => d.BugId == local.OccurredBugId);
+			if (string.IsNullOrEmpty(m_initializeParam) == false)
+			{
+				int transferIndex = int.Parse(m_initializeParam);
+				Vector3 pos = m_transfers[transferIndex].transform.position;
+				m_player.transform.position = pos;
+				m_cameraParentTransform.position = pos;
+			}
+
+			var temporary = GeneralRoot.User.LocalTemporaryData;
+			var bugTarget = m_bugTargets.FirstOrDefault(d => d.BugId == temporary.OccurredBugId);
 			if (bugTarget != null)
 			{
 				// コライダー削除
@@ -112,6 +125,8 @@ namespace scene.game.ingame
 					bugTarget.Colliders[i].SetActive(false);
 				}
 			}
+
+			SetSkyboxSequenceTime(0.0f);
 		}
 
 		public override void Go()
@@ -123,24 +138,24 @@ namespace scene.game.ingame
 		{
 			bool isDone = false;
 			string paramString = string.Format(SequenceAnimeStringFormat, "LoadingOut");
-			OutgameSetupEvent(paramString, () => { isDone = true; });
+			PlayMovieEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			if (m_state == State.None)
 			{
 				isDone = false;
 				paramString = string.Format(SequenceAnimeStringFormat, "TitleIn");
-				OutgameSetupEvent(paramString, () => { isDone = true; });
+				PlayMovieEvent(paramString, () => { isDone = true; });
 				while (!isDone) { yield return null; }
 
 				m_state = State.Title;
-				m_isEnableInput = true;
+				m_enableInput = true;
 				while (m_state == State.Title) { yield return null; }
-				m_isEnableInput = false;
+				m_enableInput = false;
 
 				isDone = false;
 				paramString = string.Format(SequenceAnimeStringFormat, "TitleOut");
-				OutgameSetupEvent(paramString, () => { isDone = true; });
+				PlayMovieEvent(paramString, () => { isDone = true; });
 				while (!isDone) { yield return null; }
 			}
 
@@ -162,27 +177,27 @@ namespace scene.game.ingame
 				null);
 
 			isDone = false;
-			paramString = string.Format(UpdateLifeGameStringFormat, 0);
-			OutgameSetupEvent(paramString, () => { isDone = true; });
+			paramString = string.Format(UpdateLifeGameStringFormat, 0, m_lifeMax);
+			PlayMovieEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			isDone = false;
 			paramString = string.Format(SequenceAnimeStringFormat, "GameIn");
-			OutgameSetupEvent(paramString, () => { isDone = true; });
+			PlayMovieEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			var wait = new WaitForSeconds(0.2f);
 			for (int i = 0; i < m_life; ++i)
 			{
 				isDone = false;
-				paramString = string.Format(UpdateLifeGameStringFormat, i + 1);
-				OutgameSetupEvent(paramString, () => { isDone = true; });
+				paramString = string.Format(UpdateLifeGameStringFormat, i + 1, m_lifeMax);
+				PlayMovieEvent(paramString, () => { isDone = true; });
 				while (!isDone) { yield return null; }
 
 				yield return wait;
 			}
 
-			m_isEnableInput = true;
+			m_enableInput = true;
 		}
 
 		private void FixedUpdate()
@@ -199,7 +214,7 @@ namespace scene.game.ingame
 
 		public override void OnInputEvent(KeyCode[] pressKeys)
 		{
-			if (m_isEnableInput == false)
+			if (m_enableInput == false)
 			{
 				return;
 			}
@@ -241,10 +256,6 @@ namespace scene.game.ingame
 					{
 						m_player.Move(moveVector.Vector);
 					}
-					else if (m_beforePressKeys != null & !m_beforePressKeys.Contains(KeyCode.W))
-					{
-						m_player.Jump();
-					}
 				}
 				else if (pressKeys.Contains(KeyCode.S))
 				{
@@ -254,10 +265,16 @@ namespace scene.game.ingame
 						m_player.Move(moveVector.Vector);
 					}
 				}
-
 				if (pressKeys.Contains(KeyCode.Space))
 				{
-					m_state = State.Game;
+					var moveVector = m_moveVectors.FirstOrDefault(d => d.Key == KeyCode.Space);
+					if (moveVector != null)
+					{
+						if (m_beforePressKeys != null & !m_beforePressKeys.Contains(KeyCode.Space))
+						{
+							m_player.Jump();
+						}
+					}
 				}
 			}
 
@@ -272,32 +289,73 @@ namespace scene.game.ingame
 		//	}
 		//}
 
-		private void OnMapEvent(string param)
+		private void OnEvent(string[] eventParams)
 		{
-			switch (param)
-			{
-				case "Delete":
-					{
-						m_life--;
-						string paramString = string.Format(UpdateLifeGameStringFormat, m_life);
-						OutgameSetupEvent(paramString, () =>
-						{
-							OnTransferEvent(0);
-						});
-						
-						break;
-					}
-			}
+			StartCoroutine(OnEventCoroutine(eventParams));
 		}
 
-		private void OnTransferEvent(int index)
+		private IEnumerator OnEventCoroutine(string[] eventParams)
 		{
-			StartCoroutine(TransferCoroutine(index));
+			for (int i = 0; i < eventParams.Length; ++i)
+			{
+				string[] eventParamStrings = eventParams[i].Split(',');
+				switch (eventParamStrings[0])
+				{
+					case "Delete":
+						{
+							int submitLife = int.Parse(eventParamStrings[1]);
+							m_life -= submitLife;
+
+							bool isDone = false;
+							string paramString = string.Format(UpdateLifeGameStringFormat, m_life, m_lifeMax);
+							PlayMovieEvent(paramString, () => { isDone = true; });
+							while (!isDone) { yield return null; }
+							yield return TransferCoroutine(0);
+							break;
+						}
+					case "Transfer":
+						{
+							int index = int.Parse(eventParamStrings[1]);
+							yield return TransferCoroutine(index);
+							break;
+						}
+					case "Switch":
+						{
+							int index = int.Parse(eventParamStrings[1]);
+							m_switches[index].Switch(!m_switches[index].Value);
+							break;
+						}
+					case "ChangeGame":
+						{
+							string changeGameName = eventParamStrings[1];
+							string sceneParamString = "";
+							if (eventParamStrings.Length >= 3)
+							{
+								sceneParamString = eventParamStrings[2];
+							}
+							yield return OnChangeGameEventCoroutine(changeGameName, sceneParamString);
+							break;
+						}
+					case "AddClearSceneName":
+						{
+							string clearSceneName = eventParamStrings[1];
+							var temporary = GeneralRoot.User.LocalTemporaryData;
+							temporary.ClearSceneNameList.Add(clearSceneName);
+							break;
+						}
+					case "SkyboxSequence":
+						{
+							bool isIn = bool.Parse(eventParamStrings[1]);
+							yield return OnSkyboxSequenceCoroutine(isIn);
+							break;
+						}
+				}
+			}
 		}
 
 		private IEnumerator TransferCoroutine(int index)
 		{
-			m_isEnableInput = false;
+			m_enableInput = false;
 
 			bool isDone = false;
 			m_player.SequenceOut(0.5f, () => { isDone = true; });
@@ -313,17 +371,12 @@ namespace scene.game.ingame
 			m_player.SequenceIn(1.0f, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
-			m_isEnableInput = true;
+			m_enableInput = true;
 		}
 
-		private void OnChangeGameEvent(string sceneName)
+		private IEnumerator OnChangeGameEventCoroutine(string sceneName, string sceneParamString)
 		{
-			StartCoroutine(OnChangeGameEventCoroutine(sceneName));
-		}
-
-		private IEnumerator OnChangeGameEventCoroutine(string sceneName)
-		{
-			m_isEnableInput = false;
+			m_enableInput = false;
 
 			bool isDone = false;
 			m_player.SequenceOut(0.5f, () => { isDone = true; });
@@ -333,41 +386,71 @@ namespace scene.game.ingame
 
 			isDone = true;
 			string paramString = string.Format(SequenceAnimeStringFormat, "GameOut");
-			OutgameSetupEvent(paramString, () => { isDone = true; });
+			PlayMovieEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
 			isDone = false;
 			paramString = string.Format(SequenceAnimeStringFormat, "LoadingIn");
-			OutgameSetupEvent(paramString, () => { isDone = true; });
+			PlayMovieEvent(paramString, () => { isDone = true; });
 			while (!isDone) { yield return null; }
 
-			ChangeGameEvent(sceneName, State.Game);
+			ChangeGameEvent(sceneName, State.Game, sceneParamString);
 		}
 
-		private void OnSwitchEvent(int id, bool value)
+		private IEnumerator OnSkyboxSequenceCoroutine(bool isIn)
 		{
-
+			m_enableInput = false;
+			if (isIn)
+			{
+				SetSkyboxSequenceTime(0.0f);
+				yield return CommonMath.EaseInOut(
+					1.0f,
+					(time) => { SetSkyboxSequenceTime(time); },
+					() => { SetSkyboxSequenceTime(1.0f); });
+			}
+			else
+			{
+				SetSkyboxSequenceTime(1.0f);
+				yield return CommonMath.EaseInOut(
+					1.0f,
+					(time) => { SetSkyboxSequenceTime(1.0f - time); },
+					() => { SetSkyboxSequenceTime(0.0f); });
+			}
+			m_enableInput = true;
 		}
 
-		private void BugEvent(int bugId)
+		private void BugEvent()
 		{
-			if (m_reactionBugIdList.Contains(bugId) == true)
+			var temporary = GeneralRoot.User.LocalTemporaryData;
+			var checkSheetBugMaster = GeneralRoot.Master.CheckSheetBugData;
+			var checkSheetBugMasterData = checkSheetBugMaster.Find(temporary.OccurredBugId);
+			if (checkSheetBugMasterData == null)
 			{
 				return;
 			}
-			m_reactionBugIdList.Add(bugId);
 
-			int reactionId = 0;
-			switch (bugId)
+			string reactionAnimeName = "";
+			switch (checkSheetBugMasterData.ReactionType)
 			{
+				case 1:
+				case 2:
 				case 3:
 					{
-						reactionId = 3;
+						reactionAnimeName = "Reaction02";
 						break;
 					}
 			}
-			string paramString = string.Format(CharaReactionStringFormat, reactionId);
-			OutgameSetupEvent(paramString, null);
+			if (string.IsNullOrEmpty(reactionAnimeName) == true)
+			{
+				return;
+			}
+
+			string paramString = string.Format(CameraReactionStringFormat, reactionAnimeName, "false");
+			PlayMovieEvent(paramString, () =>
+			{
+				paramString = string.Format(CameraReactionStringFormat, "Wait", "true");
+				PlayMovieEvent(paramString, null);
+			});
 		}
 	}
 }

@@ -650,21 +650,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_type: 3
-  m_windowFrameEnableSprite: {fileID: 21300000, guid: 691492076d0d35e4d9206578757d98a9,
-    type: 3}
-  m_windowFrameDisableSprite: {fileID: 21300000, guid: 9414a507acf6c174fba2d6ffa15e24d4,
-    type: 3}
-  m_windowFrameImage: {fileID: 3773572480148605448}
-  m_iconViewFrameEnableSprite: {fileID: 21300000, guid: 8fa0c6f56d2eea842bec4e2815032f02,
-    type: 3}
-  m_iconViewFrameDisableSprite: {fileID: 21300000, guid: 39453de34cbd19042870e04df21d039e,
-    type: 3}
-  m_iconViewFrameImage: {fileID: 7683009709618245901}
-  m_iconViewIconImage: {fileID: 7344986039457922610}
+  m_priority: 0
   m_windowTransform: {fileID: 3773572479143291454}
   m_windowSize: {x: 512, y: 256}
   m_windowAnime: {fileID: 3773572479675933958}
-  m_holdArea: {fileID: 0}
   m_contentsDatas:
   - m_controllId: 1
     m_paramStrings:
@@ -1143,7 +1132,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3773572479675933957}
-  - component: {fileID: 3773572479675933953}
   - component: {fileID: 3773572479675933959}
   - component: {fileID: 3773572479675933958}
   m_Layer: 20
@@ -1175,14 +1163,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 512, y: 256}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &3773572479675933953
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3773572479675933956}
-  m_CullTransparentMesh: 1
 --- !u!95 &3773572479675933959
 Animator:
   serializedVersion: 3

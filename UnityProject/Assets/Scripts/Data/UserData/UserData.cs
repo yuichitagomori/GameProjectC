@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.IO;
-using System.Linq;
 
 namespace data
 {
@@ -24,7 +23,7 @@ namespace data
 		}
 
 		[System.Serializable]
-		public class LocalSave
+		public class SaveData
 		{
 			/// <summary>
 			/// 挑戦中ゲームID
@@ -36,31 +35,6 @@ namespace data
 			public void UpdateChallengeGameGunreId(int id)
 			{
 				m_challengeGameGunreId = id;
-			}
-
-			/// <summary>
-			/// 発生バグID
-			/// </summary>
-			[SerializeField]
-			private int m_occurredBugId;
-			public int OccurredBugId => m_occurredBugId;
-
-			public void UpdateOccurredBugId(int id)
-			{
-				m_occurredBugId = id;
-			}
-
-
-			/// <summary>
-			/// 発生バグID
-			/// </summary>
-			[SerializeField]
-			private int m_tryCount;
-			public int TryCount => m_tryCount;
-
-			public void UpdateTryCount(int count)
-			{
-				m_tryCount = count;
 			}
 
 
@@ -91,19 +65,73 @@ namespace data
 			[SerializeField]
 			private Language m_language = Language.JP;
 			public Language Language => m_language;
-
-			public LocalSave()
-			{
-			}
 		}
-
 
 		/// <summary>
 		/// セーブデータ
 		/// </summary>
 		[SerializeField]
-		private LocalSave m_localSaveData = null;
-		public LocalSave LocalSaveData => m_localSaveData;
+		private SaveData m_localSaveData;
+		public SaveData LocalSaveData => m_localSaveData;
+
+
+
+
+		[System.Serializable]
+		public class TemporaryData
+		{
+			/// <summary>
+			/// クリアステージID
+			/// </summary>
+			[SerializeField]
+			private List<string> m_clearSceneNameList;
+			public List<string> ClearSceneNameList => m_clearSceneNameList;
+
+			/// <summary>
+			/// 発生バグID
+			/// </summary>
+			[SerializeField]
+			private int m_occurredBugId;
+			public int OccurredBugId => m_occurredBugId;
+
+			public void UpdateOccurredBugId(int id)
+			{
+				m_occurredBugId = id;
+			}
+
+			/// <summary>
+			/// 発生バグID（オプション）
+			/// </summary>
+			[SerializeField]
+			private int m_occurredBugOptionId;
+			public int OccurredBugOptionId => m_occurredBugOptionId;
+
+			public void UpdateOccurredBugOptionId(int id)
+			{
+				m_occurredBugOptionId = id;
+			}
+
+			/// <summary>
+			/// ゲーム生成回数
+			/// </summary>
+			[SerializeField]
+			private int m_tryCount;
+			public int TryCount => m_tryCount;
+
+			public void UpdateTryCount(int count)
+			{
+				m_tryCount = count;
+			}
+		}
+
+		/// <summary>
+		/// 一時データ
+		/// </summary>
+		[SerializeField]
+		private TemporaryData m_localTemporaryData;
+		public TemporaryData LocalTemporaryData => m_localTemporaryData;
+
+
 
 		/// <summary>
 		/// セーブ
@@ -146,7 +174,7 @@ namespace data
 				yield return null;
 				string json = Decrypt(str);
 				yield return null;
-				m_localSaveData = JsonUtility.FromJson<LocalSave>(json);
+				m_localSaveData = JsonUtility.FromJson<SaveData>(json);
 			}
 		}
 

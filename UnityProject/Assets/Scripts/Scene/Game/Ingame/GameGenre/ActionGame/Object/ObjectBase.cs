@@ -21,7 +21,7 @@ namespace scene.game.ingame
 
 
 
-		public void Initialize(UnityAction<string> callback)
+		public void Initialize(UnityAction<string[]> callback)
 		{
 			m_transform = base.transform;
 			m_event.Initialize(callback);

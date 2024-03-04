@@ -19,35 +19,30 @@ namespace scene.game.ingame.actiongame
 
 
 
-		private bool m_value;
-
-		private UnityAction<bool> m_switchEvent;
-
+		private bool m_value = false;
+		public bool Value => m_value;
 
 
-		public void Initialize(bool value, UnityAction<bool> switchEvent)
+
+		public new void Initialize(UnityAction<string[]> onEvent)
 		{
-			m_value = value;
-			m_switchEvent = switchEvent;
-
-			m_material.SetTexture("_Emission", (m_value ? m_emissionTextureOn : m_emissionTextureOff));
-
-			base.Initialize(OnEvent);
+			base.Initialize(onEvent);
+			SetupMaterial();
 		}
 
-		private void OnEvent(string param)
+		public void Switch(bool value)
 		{
-			string[] actionStrings = param.Split('_');
-			switch (actionStrings[0])
+			if (m_value == value)
 			{
-				case "Switch":
-					{
-						m_value = !m_value;
-						m_material.SetTexture("_Emission", (m_value ? m_emissionTextureOn : m_emissionTextureOff));
-						m_switchEvent(m_value);
-						break;
-					}
+				return;
 			}
+			m_value = value;
+			SetupMaterial();
+		}
+
+		private void SetupMaterial()
+		{
+			m_material.SetTexture("_Emission", (m_value ? m_emissionTextureOn : m_emissionTextureOff));
 		}
 	}
 }

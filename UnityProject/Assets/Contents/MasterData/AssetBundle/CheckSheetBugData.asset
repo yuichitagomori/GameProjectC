@@ -17,27 +17,44 @@ MonoBehaviour:
     m_id: 1
     m_infoTextId: 100
     m_rewardDataId: 50
+    m_reactionType: 1
   - m_name: 2
     m_id: 2
     m_infoTextId: 101
     m_rewardDataId: 51
+    m_reactionType: 1
   - m_name: 3
     m_id: 3
     m_infoTextId: 102
     m_rewardDataId: 52
+    m_reactionType: 1
   - m_name: 4
     m_id: 4
     m_infoTextId: 103
     m_rewardDataId: 53
+    m_reactionType: 1
   - m_name: 5
     m_id: 5
     m_infoTextId: 104
     m_rewardDataId: 54
+    m_reactionType: 2
+  - m_name: 50
+    m_id: 50
+    m_infoTextId: 150
+    m_rewardDataId: 100
+    m_reactionType: 3
+  - m_name: 51
+    m_id: 51
+    m_infoTextId: 151
+    m_rewardDataId: 101
+    m_reactionType: 2
   - m_name: 100
     m_id: 100
     m_infoTextId: 200
     m_rewardDataId: 150
+    m_reactionType: 3
   - m_name: 101
     m_id: 101
     m_infoTextId: 201
     m_rewardDataId: 151
+    m_reactionType: 2
